@@ -121,6 +121,7 @@ if (isset($_GET["op"])) {
                                         <th>RUT</th>
                                         <th>NOMBRE</th>
                                         <th>MONTO</th>
+                                        <th>TRANSACCION</th>
                                         <th>FECHA RECEPCIÓN</th>
                                         <th>CUENTA</th>
                                         <th>ASIGNAR</th>
@@ -139,13 +140,22 @@ if (isset($_GET["op"])) {
                                             <td class="col-auto"><?php echo $transferencia["RUT"];     ?></td>
                                             <td class="col-auto"><?php echo $transferencia["NOMBRE"];  ?></td>
                                             <td class="col-auto">$<?php echo $transferencia["MONTO"];   ?></td>
+                                            <td class="col-auto"><?php echo $transferencia["TRANSACCION"];   ?></td>
                                             <td class="col-auto"><?php echo $transferencia["FECHA"];   ?></td>
                                             <td class="col-auto"><?php echo $transferencia["CUENTA"];  ?></td>
-                                            <td class="col-1">
-                                                <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2">
-                                                    <i class="feather-24" data-feather="plus"></i>
-                                                </a>
-                                            </td>
+                                            <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
+                                                <td class="col-1">
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2">
+                                                        <i class="feather-24" data-feather="plus"></i>
+                                                    </a>
+                                                </td>
+                                            <?php } else { ?>
+                                                <td class="col-1">
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos_b.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>" class="btn btn-icon btn-rounded btn-info ml-2">
+                                                        <i class="feather-24" data-feather="folder"></i>
+                                                    </a>
+                                                </td>
+                                            <?php }; ?>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
@@ -205,15 +215,48 @@ if (isset($_GET["op"])) {
 
     // DataTables Initialization
     $(document).ready(function() {
-        $('#datatable2').dataTable({
-            "aaSorting": [
-                [2, "desc"]
-            ], // Ordena la columna fecha en orden descendente
-        });
-    });
+            var table = $('#datatable2').DataTable({
+                columnDefs: [
+                    { targets: [2], visible: false } // Ocultar la columna Transaccion
+                ]
+            });
 
+            // Mantener un seguimiento de las transacciones que ya se han visto
+            var seenTransactions = new Set();
+            var transactionCounts = {};
 
-    <?php if ($op == 1) { ?>
+            // Contar las transacciones
+            table.rows().every(function() {
+                var data = this.data();
+                var transaccion = data[3]; // Índice de la columna Transaccion
+
+                if (transactionCounts[transaccion]) {
+                    transactionCounts[transaccion]++;
+                } else {
+                    transactionCounts[transaccion] = 1;
+                }
+            });
+
+            // Ocultar filas duplicadas y agregar asterisco en el campo RUT de las filas agrupadas
+            table.rows().every(function() {
+                var data = this.data();
+                var transaccion = data[3]; // Índice de la columna Transaccion
+                var rut = data[0]; // Índice de la columna RUT
+
+                if (seenTransactions.has(transaccion)) {
+                    // Ocultar esta fila si la transacción ya ha sido vista
+                    $(this.node()).hide();
+                } else {
+                    // Marcar esta transacción como vista
+                    seenTransactions.add(transaccion);
+                    // Solo agregar el asterisco si hay más de una fila para la transacción
+                    if (transactionCounts[transaccion] > 1) {
+                        data[0] = rut + ' <span style="color: red;">*</span>'; // Añadir asterisco en rojo
+                    }
+                    this.data(data); // Actualizar la fila con el nuevo valor
+                }
+            });
+        });    <?php if ($op == 1) { ?>
         Swal.fire({
             width: 600,
             icon: 'success',

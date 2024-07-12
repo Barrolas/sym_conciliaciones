@@ -125,7 +125,7 @@ $gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
 									<tbody>
 										<tr style="background-color:#0055a6">
 											<td align="right">
-												<a align="right" href="conciliaciones_transferencias.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
+												<a align="right" href="conciliaciones_transferencias_consultas.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
 											</td>
 										</tr>
 									</tbody>
