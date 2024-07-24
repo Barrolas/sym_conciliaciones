@@ -9,44 +9,134 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-//$iddocumento_checked    = $_POST['iddocumento_checkbox'];
-//print_r($monto_checked);
+$op = isset($_GET["op"]) ? $_GET["op"] : 0;
+
+//print_r($_POST['iddocumento_checkbox']);
 //exit;
 
-$op             = isset($_GET["op"]) ? $_GET["op"] : 0;
-
 if (isset($_POST['iddocumento_checkbox'])) {
+
     // Creamos arreglos vacíos para almacenar los valores separados
     $id_documentos = array();
-    $montos = array();
+    $montos_docs = array();
+    $fechas_venc = array();
+    $suma_docs = 0;
 
     // Recorremos cada valor del arreglo de checkboxes
     foreach ($_POST['iddocumento_checkbox'] as $checkbox_value) {
+
         // Dividimos el valor usando la coma como delimitador
         $valores = explode(',', $checkbox_value);
 
-        // $valores[0] contiene ID_DOCUMENTO y $valores[1] contiene MONTO
-        $id_documentos[] = $valores[0];
-        $montos[] = $valores[1];
+        // Verificamos que $valores tenga el número correcto de elementos
+        if (count($valores) >= 3) {
+            // $valores[0] contiene ID_DOCUMENTO, $valores[1] contiene MONTO, y $valores[2] contiene FECHA_VENCIMIENTO
+            $id_documentos[]    = $valores[0];
+            $montos_docs[]      = $valores[1];
+            $fechas_venc[]      = $valores[2];
+            $suma_docs         += $valores[1];
+        }
     }
+
+    // Combinar los arreglos en uno solo
+    $docs_combined = [];
+    foreach ($id_documentos as $index => $id) {
+        $docs_combined[] = [
+            'id_documento'  => $id,
+            'monto_doc'     => $montos_docs[$index],
+            'fecha_venc'    => $fechas_venc[$index]
+        ];
+    }
+
+    // Ordenar el arreglo combinado por fecha de vencimiento
+    usort($docs_combined, function ($a, $b) {
+        return strtotime($a['fecha_venc']) - strtotime($b['fecha_venc']);
+    });
+
+    // Descomponer el arreglo ordenado en los arreglos originales
+    $id_documentos  = array_column($docs_combined, 'id_documento');
+    $montos_docs    = array_column($docs_combined, 'monto_doc');
+    $fechas_venc    = array_column($docs_combined, 'fecha_venc');
 }
 
-$rut_ordenante          = $_GET['rut_ordenante'];
-$rut_deudor             = $_GET['rut_deudor'];
-$transaccion            = $_GET['transaccion'];
+//print_r($id_documentos);
+//print_r($montos_docs);
+//print_r($fechas_venc);
+//exit;
 
-// Inicializar variables de salida
-$existe_pareo       = 0;
-$idpareo_sistema    = 0;
+$rut_cliente                    = $_POST['cliente'];
+$rut_ordenante                  = $_GET['rut_ordenante'];
+$rut_deudor                     = $_GET['rut_deudor'];
+$transaccion                    = $_GET['transaccion'];
+$cuenta                         = $_GET['cuenta'];
+$monto_transferido_con_puntos   = $_GET['monto'];
+$monto_transferido = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
+
+//print_r($_POST);
+//print_r($_GET);
+//print_r($id_documentos);
+//exit;
+
+//Validar el pago
+//$valida_pago = 0;
+
+//$sql_pago = "{call [_SP_CONCILIACIONES_VALIDA_PAGO] (?, ?, ?, ?)}";
+
+//$params_pago = array(
+
+//    array($rut_cliente,         SQLSRV_PARAM_IN),
+//    array($monto_transferido,   SQLSRV_PARAM_IN),
+//    array($suma_docs,           SQLSRV_PARAM_IN),
+//    array(&$valida_pago,        SQLSRV_PARAM_OUT)
+
+//);
+
+//print_r($params_pago);
+//exit;
+
+// Ejecutar la consulta
+//$stmt_pago = sqlsrv_query($conn, $sql_pago, $params_pago);
+
+//if ($stmt_pago === false) {
+//    echo "Error in executing statement pago.\n";
+//    die(print_r(sqlsrv_errors(), true));
+//}
+//if ($valida_pago == 0) {
+//    header("Location: conciliaciones_transferencias_pendientes.php?op=5");
+//}
+
+$tipo_pago = 0;
+
+$sql_tpago = "{call [_SP_CONCILIACIONES_TIPO_PAGO_VALIDA] (?, ?, ?)}";
+
+$params_tpago = array(
+    array($cuenta,          SQLSRV_PARAM_IN),
+    array($rut_cliente,     SQLSRV_PARAM_IN),
+    array(&$tipo_pago,      SQLSRV_PARAM_OUT)
+);
+
+// Ejecutar la consulta
+$stmt_tpago = sqlsrv_query($conn, $sql_tpago, $params_tpago);
+
+if ($stmt_tpago === false) {
+    echo "Error in executing statement tpago.\n";
+    die(print_r(sqlsrv_errors(), true));
+}
+
+$existe_pareo    = 0;   
+$idpareo_sistema = 0;    
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?)}";
+$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
 $params1 = array(
     array($rut_ordenante,       SQLSRV_PARAM_IN),
     array($rut_deudor,          SQLSRV_PARAM_IN),
     array($transaccion,         SQLSRV_PARAM_IN),
+    array($cuenta,              SQLSRV_PARAM_IN),
+    array($rut_cliente,         SQLSRV_PARAM_IN),
+    array($tipo_pago,           SQLSRV_PARAM_IN),
     array(&$existe_pareo,       SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
@@ -60,64 +150,92 @@ if ($stmt1 === false) {
 }
 
 // Verificar la variable de salida $existe
-if ($existe_pareo && $op == 1) {
-    header("Location: conciliaciones_documentos.php?op=2&rut_ordenante=$rut_ordenante&transaccion=$transaccion&rut_deudor=$rut_deudor");
-    exit;
+if ($existe_pareo == 1 && $op == 1) {
+    header("Location: conciliaciones_transferencias_pendientes.php?op=3");
 }
-if ($existe_pareo && $op == 2) {
-    header("Location: conciliaciones_documentos_b.php?op=2&rut_ordenante=$rut_ordenante&transaccion=$transaccion&rut_deudor=$rut_deudor");
-    exit;
+if ($existe_pareo == 1 && $op == 2) {
+    header("Location: conciliaciones_transferencias_pendientes.php?op=3");
 }
 
 // SP para insertar en DOCDEUDORES
-$sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA](?, ?, ?)}";
+
+$leidos             = 0;
+$conciliados        = 0;
+$error              = 0;
+$concilia_doc       = 0;
+$saldo_disponible   = $monto_transferido;
+
+//print_r($saldo_disponible);
+//exit;
 
 foreach ($id_documentos as $index => $id_docdeudores) {
     // Inicializar variable de salida para cada iteración
 
     $existe_doc = 0;
 
-    // Parámetros para la llamada al stored procedure
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?)}"; // Reemplaza NOMBRE_SP_INSERTAR_DOCUMENTO por el nombre correcto de tu SP
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?)}";
+
     $params2 = array(
-        array($idpareo_sistema, SQLSRV_PARAM_IN),
-        array($id_docdeudores,  SQLSRV_PARAM_IN),
-        array($montos[$index],  SQLSRV_PARAM_IN), // Accedemos al MONTO usando el índice
-        array(&$existe_doc,     SQLSRV_PARAM_OUT)
+        array($idpareo_sistema,     SQLSRV_PARAM_IN),
+        array($rut_cliente,         SQLSRV_PARAM_IN),
+        array($id_docdeudores,      SQLSRV_PARAM_IN),
+        array($montos_docs[$index], SQLSRV_PARAM_IN),
+        array(&$saldo_disponible,   SQLSRV_PARAM_INOUT),
+        array(&$concilia_doc,       SQLSRV_PARAM_OUT)
     );
 
-    // Ejecutar la consulta
     $stmt2 = sqlsrv_query($conn, $sql2, $params2);
 
     if ($stmt2 === false) {
         echo "Error in executing statement 2.\n";
         die(print_r(sqlsrv_errors(), true));
     }
-}
-if ($existe_doc && $op == 1) {
-    header("Location: conciliaciones_documentos.php?op=2&rut_ordenante=$rut_ordenante&transaccion=$transaccion&rut_deudor=$rut_deudor");
-}
-if ($existe_doc && $op == 2) {
-    header("Location: conciliaciones_documentos_b.php?op=2&rut_ordenante=$rut_ordenante&transaccion=$transaccion&rut_deudor=$rut_deudor");
-} else {
 
-    $sql3 = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?)}";
-    $params3 = array(
-        array($idpareo_sistema, SQLSRV_PARAM_IN)
-    );
+    $leidos++;
 
-    // Ejecutar la consulta
-    $stmt3 = sqlsrv_query($conn, $sql3, $params3);
-
-    if ($stmt3 === false) {
-        echo "Error in executing statement 3.\n";
-        die(print_r(sqlsrv_errors(), true));
-    }
-    if ($op == 1) {
-        header("Location: conciliaciones_documentos.php?op=1&rut_ordenante=$rut_ordenante&transaccion=$transaccion&rut_deudor=$rut_deudor");
-    }
-    if ($op == 2) {
-        header("Location: conciliaciones_documentos_b.php?op=1&rut_ordenante=$rut_ordenante&transaccion=$transaccion&rut_deudor=$rut_deudor");
+    if ($concilia_doc == 0) {
+        $conciliados++;
     }
 
+    if ($concilia_doc == 1) {
+        $error++;
+    }
 }
+
+//if ($existe_doc && $op == 1) {
+//    header("Location: conciliaciones_transferencias_pendientes.php?op=4");
+//}
+//if ($existe_doc && $op == 2) {
+//    header("Location: conciliaciones_transferencias_pendientes.php?op=4");
+
+//} else {
+
+//print_r($idpareo_sistema);
+//print_r($saldo_disponible);
+//exit;
+
+$sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
+$params_saldo = array(
+    array($idpareo_sistema,     SQLSRV_PARAM_IN),
+    array($saldo_disponible,    SQLSRV_PARAM_IN)
+);
+
+//print_r($idpareo_sistema);
+//print_r($saldo_disponible);
+//exit;
+
+
+// Ejecutar la consulta
+$stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
+
+if ($stmt_saldo === false) {
+    echo "Error in executing statement saldo.\n";
+    die(print_r(sqlsrv_errors(), true));
+}
+if ($op == 1) {
+    header("Location: conciliaciones_transferencias_pendientes.php?op=1");
+}
+if ($op == 2) {
+    header("Location: conciliaciones_transferencias_pendientes.php?op=1");
+}
+?>

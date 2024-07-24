@@ -4,14 +4,28 @@ include("funciones.php");
 include("conexiones.php");
 noCache();
 
+$sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
+        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+
+$stmt = sqlsrv_query($conn, $sql);
+if ($stmt === false) {
+    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+}
+
+$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+$fecha_proceso = $row["FECHAPROCESO"];
+
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $op             = isset($_GET["op"]) ? $_GET["op"] : 0;
-$idusuario      = $_SESSION['ID_USUARIO'];
+
 $rut_ordenante  = $_GET["rut_ordenante"];
 $transaccion    = $_GET["transaccion"];
+$cuenta         = $_GET["cuenta"];
 $rut_deudor     = isset($_POST["rut_deudor"]) ? $_POST["rut_deudor"] : '';
 
 $sql1     = "{call [_SP_CONCILIACIONES_TRANSFERENCIAS_PENDIENTES_CONSULTA](?, ?)}";
@@ -52,6 +66,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <title>Conciliaciones</title>
@@ -72,14 +87,31 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
     <link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
     <link href="plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
+    <script type="text/javascript">
+        // Pasar la variable PHP a JavaScript
+        var rutDeudor = <?php echo json_encode($rut_deudor);  ?>;
+        var transaccion = <?php echo json_encode($transaccion); ?>;
+
+        // Imprimir el valor en la consola
+        console.log(rutDeudor);
+        console.log(transaccion);
+    </script>
     <style>
         .custom-size {
             font-size: 15px;
             /* search button */
         }
+
+        .scrollable-div {
+            max-height: 72px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
     </style>
+
 </head>
 
 <body class="dark-sidenav">
@@ -91,8 +123,15 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         <?php include("menu_top.php"); ?>
         <!-- Top Bar End -->
 
+        <!-- Pantalla de Carga -->
+        <div id="loading-screen">
+            <div class="spinner mr-3"></div>
+            <p>Cargando...</p>
+        </div>
+
+
         <!-- Page Content-->
-        <div class="page-content">
+        <div class="page-content" id="content">
             <div class="container-fluid">
                 <!-- Page-Title -->
                 <div class="row">
@@ -101,11 +140,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                             <div class="row">
                                 <div class="col">
                                     <ol class="breadcrumb">
-                                        <?php if ($_SESSION["TIPO"] == 1) { ?>
-                                            <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
-                                        <?php } else { ?>
-                                            <li class="breadcrumb-item"><a href="menu_gestor.php">Inicio</a></li>
-                                        <?php }; ?>
+
                                         <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
                                         <li class="breadcrumb-item active">Asignar conciliación</li>
                                     </ol>
@@ -135,13 +170,27 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 
                 <div class="container-fluid px-2">
                     <div class="col-12 px-3">
-                        <div class="row text-start">
+                        <div class="row">
                             <div class="col-md-12">
-                            </div>
+                                <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
+                                    <div class="col-lg-4">
+                                        <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
+                                        <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label class="col-4" for="fecha_ultima_cartola">CUENTA</label>
+                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <label class="col-4" for="fecha_ultima_cartola">TRANSACCIÓN</label>
+                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $gestion["TRANSACCION"] . ' - ' . $gestion["FECHA"] ?>" disabled />
+                                    </div>
+                                </div><!--end form-group-->
+                            </div><!--end col-->
                         </div>
 
                         <?php if ($existe == 1) { ?>
-                            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&op=1" onsubmit="return valida_envia2();return false;">
+                            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&op=2" onsubmit="return valida_envia2();return false;">
                                 <div class="card ">
                                     <div class="card-header" style="background-color: #0055a6">
                                         <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -164,7 +213,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                     </td>
 
                                                 <?php } else { ?>
-                                                    <form id="form_busqueda" method="post" action="conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>" onsubmit="return valida_envia1();">
+                                                    <form id="form_busqueda" method="post" action="conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&monto_transferido=<?php echo $gestion["MONTO"] ?>" onsubmit="return valida_envia1();">
                                                         <div class="card ">
                                                             <div class="card-header" style="background-color: #0055a6">
                                                                 <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -202,12 +251,6 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                         <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["RUT"] . ' - ' . $gestion["NOMBRE"] ?>" disabled />
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="col-lg-5 d-flex align-items-center justify-content-end">
-                                                                                    <label for="cliente" class="col-lg-4 col-form-label">TRANSACCION</label>
-                                                                                    <div class="col-lg-8">
-                                                                                        <input type="text" name="cliente" id="cliente" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["TRANSACCION"] . ' - ' . $gestion["FECHA"] ?>" disabled />
-                                                                                    </div>
-                                                                                </div>
                                                                             </div>
 
                                                                             <div class="form-group row text-center justify-content-between">
@@ -218,7 +261,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="col-lg-4 d-flex align-items-start">
-                                                                                    <label for="total" class="col-lg-2 col-form-label">TOTAL</label>
+                                                                                    <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
                                                                                     <div class="col-lg-8">
                                                                                         <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
                                                                                         <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
@@ -231,6 +274,48 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+                                                                            <hr>
+
+                                                                            <div class="form-group row  justify-content-between">
+                                                                                <div class="col-lg-6 d-flex align-items-center">
+                                                                                    <label for="cliente" class="col-lg-3 col-form-label">CLIENTE</label>
+                                                                                    <div class="col-lg-9">
+                                                                                        <select name="cliente" id="cliente" class="form-control" maxlength="50" autocomplete="off">
+                                                                                            <option value="0" selected>Seleccione cliente a conciliar</option>
+                                                                                            <?php
+                                                                                            $sql_cliente    = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_CLIENTES](?)}";
+                                                                                            $params_cliente = array($rut_deudor);
+                                                                                            //print_r($rut_deudor);
+                                                                                            //exit;
+                                                                                            $stmt_cliente   = sqlsrv_query($conn, $sql_cliente, $params_cliente);
+
+                                                                                            if ($stmt_cliente === false) {
+                                                                                                die(print_r(sqlsrv_errors(), true));
+                                                                                            }
+                                                                                            while ($cliente = sqlsrv_fetch_array($stmt_cliente, SQLSRV_FETCH_ASSOC)) {
+                                                                                            ?>
+                                                                                                <option value="<?php echo $cliente["RUT_CLIENTE"] ?>"><?php echo $cliente["RUT_CLIENTE"] . " - " . $cliente["NOM_CLIENTE"] ?></option>
+                                                                                            <?php }; ?>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-lg-6 d-flex align-items-center justify-content-start">
+                                                                                    <label for="gestion" class="col-lg-2 col-form-label">GESTION</label>
+                                                                                    <div id="gestion" class="scrollable-div border p-3 col-10 rounded">
+                                                                                        <?php $sql4 = "{call [_SP_CONCILIACIONES_GESTIONES_CONSULTA_TRANSFERENCIA_INDETERMINADOS](?)}";
+                                                                                        $params4 = array($rut_deudor);
+                                                                                        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+                                                                                        if ($stmt4 === false) {
+                                                                                            die(print_r(sqlsrv_errors(), true));
+                                                                                        }
+                                                                                        while ($gestiones = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
+                                                                                            echo "<strong>" . $gestiones['FECHA_GESTION']->format('d-m-Y') . ": </strong>" . $gestiones['OBSERVACION'] . "<br><hr>";
+                                                                                        }; ?>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <hr>
+
 
                                                                         </div>
                                                                     </div>
@@ -245,8 +330,9 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                             <th>N° DOC</th>
                                                                             <th>RUT CLIENTE</th>
                                                                             <th>CLIENTE</th>
+                                                                            <th>SUBPRODUCTO</th>
                                                                             <th>ESTADO</th>
-                                                                            <th class="col-1">SELECCIÓN</th>
+                                                                            <th class="col-1"></th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -275,10 +361,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                         break;
                                                                                 }
 
-                                                                                $f_venc = $transferencia["F_VENC"];
-                                                                                if ($f_venc instanceof DateTime) {
-                                                                                    $f_venc = $f_venc->format('Y-m-d');
-                                                                                }
+                                                                                $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y-m-d');
                                                                         ?>
                                                                                 <tr>
                                                                                     <td class="f_venc" id="f_venc"><?php echo $f_venc; ?></td>
@@ -287,9 +370,10 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     <td class="n_doc" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
                                                                                     <td class="rut_cliente" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
                                                                                     <td class="nom_cliente" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
+                                                                                    <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
                                                                                     <td class="estado_doc" id="estado_doc"><?php echo $estado_doc_text; ?></td>
                                                                                     <td style="text-align: center;">
-                                                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"].','.$transferencia["MONTO"]; ?>" />
+                                                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"] . ',' . $transferencia["F_VENC"]; ?>" data-n-doc="<?php echo htmlspecialchars($transferencia['N_DOC']); ?>" />
                                                                                     </td>
                                                                                 </tr>
                                                                         <?php
@@ -308,6 +392,14 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                 <?php include('footer.php'); ?>
                 <!-- page-wrapper -->
             </div>
+
+            <script>
+                window.onload = function() {
+                    // Oculta la pantalla de carga y muestra el contenido principal
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                };
+            </script>
 </body>
 
 <!-- jQuery  -->
@@ -342,19 +434,43 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 
 
 <script>
-    function valida_envia1() {
-        var rutDeudor = document.getElementById('rut_deudor').value;
-        if (rutDeudor.length < 7 || rutDeudor.length > 8) {
-            Swal.fire({
-                width: 600,
-                icon: 'error',
-                title: 'Debe ingresar un RUT entre 7 y 8 dígitos.',
-                showConfirmButton: false,
-                timer: 2000
-            });
-            return false; // Devuelve false para cancelar el envío del formulario
+    function valida_envia2() {
+        var cliente = document.getElementById('cliente').value; // Obtén el RUT del cliente
+        var checkboxes = document.querySelectorAll('.iddocumento_checkbox:checked');
+        var nDocs = new Set();
+        var estadoFinal = $('#estado').val(); // Obtén el estado calculado
+
+        // Verificar si el cliente RUT es 96509669
+        if (cliente == 96509669) {
+            // Validación: Verificar que no haya checkboxes seleccionados con el mismo número de operación
+            for (var checkbox of checkboxes) {
+                var nDoc = checkbox.getAttribute('data-n-doc');
+                if (nDocs.has(nDoc)) {
+                    Swal.fire({
+                        width: 600,
+                        icon: 'error',
+                        title: 'El tipo cartera sólo permite seleccionar más de un documento cuando estos tienen distinto numero de operación.',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    return false; // Cancelar el envío del formulario
+                }
+                nDocs.add(nDoc);
+            }
+
+            // Validación adicional basada en el estado calculado
+            if (estadoFinal === "ABONADO") {
+                Swal.fire({
+                    width: 600,
+                    icon: 'info',
+                    title: 'El tipo cartera no permite abonos.',
+                    showConfirmButton: false
+                });
+                return false; // Devuelve false si la validación no pasa
+            }
         }
-        return true; // Devuelve true para permitir el envío del formulario
+
+        return true; // Permitir el envío del formulario si todas las validaciones pasan
     }
 </script>
 
@@ -370,12 +486,11 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         var table = $('#datatable2').DataTable({
             responsive: true,
             columnDefs: [{
-                    targets: [1],
-                    visible: false
-                } 
-            ],
+                targets: [1],
+                visible: false
+            }],
             order: [
-                [6, 'desc'],
+                [7, 'desc'],
                 [0, 'asc']
             ]
         });
@@ -433,29 +548,62 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
     });
 </script>
 
-
 <script>
     $(document).ready(function() {
         // Función para actualizar el estado del botón de CONCILIAR
         function updateConciliarButton() {
             var checkboxes = $('#datatable2 .iddocumento_checkbox');
             var checkedCount = checkboxes.filter(':checked').length;
-            $('#conciliarButton').prop('disabled', checkedCount === 0);
+            var clienteSeleccionado = $('#cliente').val(); // Usar .val() para obtener el valor seleccionado
+
+            console.log("Checkboxes seleccionados: " + checkedCount); // Depuración
+            console.log("Cliente seleccionado: " + clienteSeleccionado); // Depuración
+
+            // Habilitar el botón solo si hay al menos un checkbox marcado y un cliente seleccionado distinto de 0
+            var shouldEnableButton = checkedCount > 0 && clienteSeleccionado !== "0";
+            console.log("Botón habilitado: " + shouldEnableButton); // Depuración
+
+            $('#conciliarButton').prop('disabled', !shouldEnableButton);
         }
 
         // Llamar a la función al cargar la página
         updateConciliarButton();
 
-        // Añadir evento change a todos los checkboxes para actualizar el botón cuando cambien
+        // Añadir evento change a todos los checkboxes y al select de cliente para actualizar el botón cuando cambien
         $('#datatable2').on('change', '.iddocumento_checkbox', function() {
+            updateConciliarButton();
+        });
+
+        $('#cliente').on('change', function() {
             updateConciliarButton();
         });
     });
 </script>
+
+<script>
+    $(document).ready(function() {
+        // Initialize the DataTable
+        var table = $('#datatable2').DataTable();
+
+        // Add event listener to the select element
+        $('#cliente').on('change', function() {
+            var filterValue = $(this).val();
+
+            if (filterValue == "0") {
+                // Clear all filters
+                table.search('').columns().search('').draw();
+            } else {
+                // Use DataTables search() function to filter the table
+                table.column(4).search(filterValue).draw();
+            }
+        });
+    });
+</script>
+
 <script>
     function limpiarFormulario() {
         // Redireccionar para limpiar
-        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>';
+        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>';
     }
 </script>
 

@@ -74,7 +74,7 @@ if (isset($_GET["op"])) {
                         <CENTER> BIENVENIDO AL SISTEMA</CENTER>
                     </h1><BR><BR>
                     <h1 class="text-info">
-                        <CENTER><?= $_SESSION["NOMBRES"]; ?></CENTER>
+                        <CENTER>USUARIO</CENTER>
                     </h1>
                     <BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
                 </div>

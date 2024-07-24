@@ -9,11 +9,10 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $op             = isset($_GET["op"]) ? $_GET["op"] : 0;
-
+$idusuario      = $_SESSION['ID_USUARIO'];
 $rut_ordenante  = $_GET["rut_ordenante"];
 $transaccion    = $_GET["transaccion"];
 $rut_deudor     = $_GET["rut_deudor"];
-$cuenta         = $_GET["cuenta"];
 
 $sql1     = "{call [_SP_CONCILIACIONES_TRANSFERENCIAS_ASIGNADAS_CONSULTA](?, ?)}";
 
@@ -33,19 +32,6 @@ $gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
 $existe     = 0;
 $idestado   = 0;
 $estado     = '';
-
-$sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
-
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
-}
-
-$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-
-$fecha_proceso = $row["FECHAPROCESO"];
-
 
 //print($rut_deudor);
 //exit;
@@ -75,7 +61,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
     <link href="plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
-    <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
@@ -85,12 +70,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
         }
 
         .scrollable-div {
-            max-height: 72px;
+            max-height: 64px;
             overflow-y: auto;
             scroll-behavior: smooth;
         }
     </style>
-
 </head>
 
 <body class="dark-sidenav">
@@ -102,14 +86,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
         <?php include("menu_top.php"); ?>
         <!-- Top Bar End -->
 
-        <!-- Pantalla de Carga -->
-        <div id="loading-screen">
-            <div class="spinner mr-3"></div>
-            <p>Cargando...</p>
-        </div>
-
         <!-- Page Content-->
-        <div class="page-content" id="content">
+        <div class="page-content">
             <div class="container-fluid">
                 <!-- Page-Title -->
                 <div class="row">
@@ -118,7 +96,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <div class="row">
                                 <div class="col">
                                     <ol class="breadcrumb">
-
+                                        <?php if ($_SESSION["TIPO"] == 1) { ?>
+                                            <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
+                                        <?php } else { ?>
+                                            <li class="breadcrumb-item"><a href="menu_gestor.php">Inicio</a></li>
+                                        <?php }; ?>
                                         <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
                                         <li class="breadcrumb-item active">Asignar conciliación</li>
                                     </ol>
@@ -148,26 +130,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                 <div class="container-fluid px-2">
                     <div class="col-12 px-3">
-                        <div class="row">
+                        <div class="row text-start">
                             <div class="col-md-12">
-                                <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
-                                    <div class="col-lg-4">
-                                        <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
-                                        <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                                    </div>
-                                    <div class="col-lg-3">
-                                        <label class="col-4" for="fecha_ultima_cartola">CUENTA</label>
-                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label class="col-4" for="fecha_ultima_cartola">TRANSACCIÓN</label>
-                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $gestion["TRANSACCION"] . ' - ' . $gestion["FECHA"] ?>" disabled />
-                                    </div>
-                                </div><!--end form-group-->
-                            </div><!--end col-->
+                            </div>
                         </div>
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&op=2" onsubmit="return valida_envia();return false;">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&op=2" onsubmit="return valida_envia2();return false;">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -194,7 +162,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </table>
                                 </div><!--end card-header-->
                                 <div class="card-body ">
-                                    <form class="form-asignado" id="validate" role="form" class="needs-validation" autocomplete="on">
+                                    <form class="form-horizontal " id="validate" role="form" class="needs-validation" autocomplete="on">
                                         <div class="row text-start">
                                             <div class="col-md-12">
 
@@ -202,7 +170,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <div class="col-lg-7 d-flex align-items-center">
                                                         <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
                                                         <div class="col-lg-8">
-                                                            <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["RUT"] . ' - ' . $gestion["NOMBRE"] ?>" disabled />
+                                                            <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["RUT"] . ' / ' . $gestion["NOMBRE"] ?>" disabled />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-5 d-flex align-items-center justify-content-end">
+                                                        <label for="cliente" class="col-lg-4 col-form-label">TRANSACCION</label>
+                                                        <div class="col-lg-8">
+                                                            <input type="text" name="cliente" id="cliente" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["TRANSACCION"] . ' - ' . $gestion["FECHA"] ?>" disabled />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -235,26 +209,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <div class="col-lg-6 d-flex align-items-center">
                                                         <label for="cliente" class="col-lg-3 col-form-label">CLIENTE</label>
                                                         <div class="col-lg-9">
-                                                            <select name="cliente" id="cliente" class="form-control" maxlength="50" autocomplete="off">
-                                                                <option value="0" selected>Seleccione cliente a conciliar</option>
-                                                                <?php
-                                                                $sql_cliente = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_CLIENTES](?)}";
-                                                                $params_cliente = array($rut_deudor);
-                                                                $stmt_cliente = sqlsrv_query($conn, $sql_cliente, $params_cliente);
-
-                                                                if ($stmt_cliente === false) {
-                                                                    die(print_r(sqlsrv_errors(), true));
-                                                                }
-                                                                while ($cliente = sqlsrv_fetch_array($stmt_cliente, SQLSRV_FETCH_ASSOC)) {
-                                                                ?>
-                                                                    <option value="<?php echo $cliente["RUT_CLIENTE"] ?>"><?php echo $cliente["RUT_CLIENTE"] . " - " . $cliente["NOM_CLIENTE"] ?></option>
-                                                                <?php }; ?>
+                                                            <select type="text" name="cliente" id="cliente" class="form-control" maxlength="50" autocomplete="off">
+                                                                <option value="">Seleccione cliente para la conciliación</option>
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-lg-6 d-flex align-items-center justify-content-start">
                                                         <label for="gestion" class="col-lg-2 col-form-label">GESTION</label>
-                                                        <div id="gestion" class="scrollable-div border p-3 col-10 rounded">
+                                                        <div id="gestion" class="scrollable-div border p-3 col-10">
                                                             <?php $sql4 = "{call [_SP_CONCILIACIONES_GESTIONES_CONSULTA_TRANSFERENCIA](?)}";
                                                             $params4 = array($transaccion);
                                                             $stmt4 = sqlsrv_query($conn, $sql4, $params4);
@@ -279,12 +241,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <th>F. VENC</th>
                                                 <th style="display: none;">MONTO</th> <!-- Columna oculta -->
                                                 <th>MONTO</th>
-                                                <th>OPERACIÓN</th>
+                                                <th>ID DOC</th>
                                                 <th>RUT CLIENTE</th>
                                                 <th>CLIENTE</th>
-                                                <th>SUBPRODUCTO</th>
                                                 <th>ESTADO</th>
-                                                <th class="col-1"></th>
+                                                <th class="col-1">SELECCIÓN</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -313,7 +274,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         break;
                                                 }
 
-                                                $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y-m-d');
+                                                $f_venc = $transferencia["F_VENC"]
+
                                             ?>
 
 
@@ -321,13 +283,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="f_venc col-auto" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td> <!-- Celda oculta -->
                                                     <td class="valor2 col-auto" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
-                                                    <td class="n_doc col-auto" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
+                                                    <td class="id_doc col-auto" id="id_doc"><?php echo $transferencia['ID_DOCUMENTO']; ?></td>
                                                     <td class="rut_cliente col-auto" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
                                                     <td class="nom_cliente col-auto" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
-                                                    <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
-                                                    <td class="estado_doc col-auto" id="estado_doc"><?php echo $estado_doc_text; ?></td>
+                                                    <td class="estado_doc col-1" id="estado_doc"><?php echo $estado_doc_text; ?></td>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"] . ',' . $transferencia["F_VENC"]; ?>" data-n-doc="<?php echo htmlspecialchars($transferencia['N_DOC']); ?>" />
+                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"]; ?>" />
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -343,16 +304,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
         <!-- page-wrapper -->
         <?php include('footer.php'); ?>
     </div>
-
-    <script>
-        window.onload = function() {
-            // Oculta la pantalla de carga y muestra el contenido principal
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-        };
-    </script>
-
-
 </body>
 
 <!-- jQuery  -->
@@ -387,47 +338,37 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 
 <script>
-function valida_envia() {
-    var cliente = document.getElementById('cliente').value; // Obtén el RUT del cliente
-    var checkboxes = document.querySelectorAll('.iddocumento_checkbox:checked');
-    var nDocs = new Set();
-    var estadoFinal = $('#estado').val(); // Obtén el estado calculado
-
-    // Verificar si el cliente RUT es 96509669
-    if (cliente == 96509669) {
-        // Validación: Verificar que no haya checkboxes seleccionados con el mismo número de operación
-        for (var checkbox of checkboxes) {
-            var nDoc = checkbox.getAttribute('data-n-doc');
-            if (nDocs.has(nDoc)) {
-                Swal.fire({
-                    width: 600,
-                    icon: 'error',
-                    title: 'El tipo cartera sólo permite seleccionar más de un documento cuando estos tienen distinto numero de operación.',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                return false; // Cancelar el envío del formulario
-            }
-            nDocs.add(nDoc);
-        }
-
-        // Validación adicional basada en el estado calculado
-        if (estadoFinal === "ABONADO") {
+    function valida_envia1() {
+        var rutDeudor = document.getElementById('rut_deudor').value;
+        if (rutDeudor.length < 7 || rutDeudor.length > 8) {
             Swal.fire({
                 width: 600,
-                icon: 'info',
-                title: 'El tipo cartera no permite abonos.',
-                showConfirmButton: false
+                icon: 'error',
+                title: 'Debe ingresar un RUT entre 7 y 8 dígitos.',
+                showConfirmButton: false,
+                timer: 2000
             });
-            return false; // Devuelve false si la validación no pasa
+            return false; // Devuelve false para cancelar el envío del formulario
         }
+        return true; // Devuelve true para permitir el envío del formulario
     }
-
-    return true; // Permitir el envío del formulario si todas las validaciones pasan
-}
 </script>
 
-
+<!--<script language="javascript">
+	$(document).ready(function() {
+		$("#cliente").on('change', function() {
+			$("#cliente option:selected").each(function() {
+				var rut_cliente = $(this).val();
+				$.post("get_clientes_conciliar.php", {
+					id_region: rut_cliente
+				}, function(data) {
+					$("#datatable2").html(data);
+				});
+			});
+		});
+	});
+</script>
+!-->
 
 <script>
     // Variable para mantener el total de los valores seleccionados
@@ -445,8 +386,8 @@ function valida_envia() {
                 visible: false
             }],
             order: [
-                [7, 'desc'],
                 [0, 'asc']
+                [6, 'desc'],
             ]
         });
 
@@ -455,13 +396,14 @@ function valida_envia() {
         $('#datatable2').on('change', '.iddocumento_checkbox', function() {
             // Parsea el monto PHP a entero en JavaScript
             var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
+            alert(montoParseado)
             // Obtener el índice de la fila
             var rowIndex = $(this).closest('tr').index();
             // Obtener los datos de la fila desde DataTables
             var rowData = table.row(rowIndex).data();
             // Obtener el valor de la columna oculta (suponiendo que es numérico)
             var valor = parseFloat(rowData[1]); // Suponiendo que la columna oculta es la segunda columna (índice 1)
-
+            alert(valor)
             if ($(this).is(':checked')) {
                 // Sumar el valor al total si el checkbox está marcado
                 total += valor;
@@ -472,8 +414,8 @@ function valida_envia() {
 
             // Comparar el total con montoParseado y actualizar el estado
             var estado;
-            //alert(montoParseado)
-            //alert(total)
+            alert(montoParseado)
+            alert(total)
             if (montoParseado > total && total > 0) {
                 estado = "EXCEDIDO";
             } else if (montoParseado < total) {
@@ -499,9 +441,11 @@ function valida_envia() {
 
         // Obtener el monto_checkbox de la misma fila y marcarlo si iddocumento_checkbox está marcado
         var montoCheckbox = $(this).closest('tr').find('.monto_checkbox');
+
         montoCheckbox.prop('checked', this.checked);
     });
 </script>
+
 
 <script>
     $(document).ready(function() {
@@ -509,52 +453,18 @@ function valida_envia() {
         function updateConciliarButton() {
             var checkboxes = $('#datatable2 .iddocumento_checkbox');
             var checkedCount = checkboxes.filter(':checked').length;
-            var clienteSeleccionado = $('#cliente').val(); // Usar .val() para obtener el valor seleccionado
-
-            console.log("Checkboxes seleccionados: " + checkedCount); // Depuración
-            console.log("Cliente seleccionado: " + clienteSeleccionado); // Depuración
-
-            // Habilitar el botón solo si hay al menos un checkbox marcado y un cliente seleccionado distinto de 0
-            var shouldEnableButton = checkedCount > 0 && clienteSeleccionado !== "0";
-            console.log("Botón habilitado: " + shouldEnableButton); // Depuración
-
-            $('#conciliarButton').prop('disabled', !shouldEnableButton);
+            $('#conciliarButton').prop('disabled', checkedCount === 0);
         }
 
         // Llamar a la función al cargar la página
         updateConciliarButton();
 
-        // Añadir evento change a todos los checkboxes y al select de cliente para actualizar el botón cuando cambien
+        // Añadir evento change a todos los checkboxes para actualizar el botón cuando cambien
         $('#datatable2').on('change', '.iddocumento_checkbox', function() {
             updateConciliarButton();
         });
-
-        $('#cliente').on('change', function() {
-            updateConciliarButton();
-        });
     });
 </script>
-
-<script>
-    $(document).ready(function() {
-        // Initialize the DataTable
-        var table = $('#datatable2').DataTable();
-
-        // Add event listener to the select element
-        $('#cliente').on('change', function() {
-            var filterValue = $(this).val();
-
-            if (filterValue == "0") {
-                // Clear all filters
-                table.search('').columns().search('').draw();
-            } else {
-                // Use DataTables search() function to filter the table
-                table.column(4).search(filterValue).draw();
-            }
-        });
-    });
-</script>
-
 <script>
     function limpiarFormulario() {
         // Redireccionar para limpiar

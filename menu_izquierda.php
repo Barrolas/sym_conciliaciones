@@ -32,12 +32,17 @@ error_reporting(E_ALL);
     </a>
 
     <div class="menu-content h-100" data-simplebar>
-
-
         <ul class="metismenu left-sidenav-menu mb-5">
             <li>
-                CONCILIACIONES
+                <a href="cargas_conciliaciones.php">CARGA CONCILIACIONES</a>
             </li>
-        </ul>
+            <li>
+                <a href="conciliaciones_transferencias_pendientes.php">TRANSFERENCIAS PENDIENTES</a>
+            </li>    
+            <li>
+                <a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a>
+            </li>    
+        </ul>  
     </div>
+    
 </div>

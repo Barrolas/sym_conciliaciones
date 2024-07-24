@@ -13,20 +13,6 @@ $op = 0;
 if (isset($_GET["op"])) {
     $op = $_GET["op"];
 };
-
-$sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
-
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
-}
-
-$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-
-$fecha_proceso = $row["FECHAPROCESO"];
-
-
 ?>
 
 <!DOCTYPE html>
@@ -53,8 +39,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
     <link href="plugins/dropify/css/dropify.min.css" rel="stylesheet">
-    <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
@@ -69,15 +53,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
         <?php include("menu_top.php"); ?>
         <!-- Top Bar End -->
 
-        <!-- Pantalla de Carga -->
-        <div id="loading-screen">
-            <div class="spinner mr-3"></div>
-            <p>Cargando...</p>
-        </div>
-
-
         <!-- Page Content-->
-        <div class="page-content" id="content">
+        <div class="page-content">
             <div class="container-fluid">
                 <!-- Page-Title -->
                 <div class="row">
@@ -101,7 +78,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Transferencias pendientes</b>
+                            <b>Conciliaciones Pareados</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
@@ -122,28 +99,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-6">
-                                <label class="col-4" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
-                                <input type="text" class="form-control col-6" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="col-lg-9">
-                                    <label for="cuenta" class="col-4">CUENTA</label>
-                                    <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Todas las cuentas</option>
-                                        <?php
-                                        $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
-                                        $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
+                            <div class="col-lg-12">
+                                <h4 class="mb-0">
+                                    Transferencias
+                                </h4>
+                                <p class="text-secondary mb-0">
+                                    Los campos RUT y NOMBRE hacen alusión al ordenante. El campo CUENTA hace alusión a la cuenta del beneficiario.
+                                </p>
 
-                                        if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo $cuenta["CUENTA"] ?>"><?php echo $cuenta["CUENTA"] ?></option>
-                                        <?php }; ?>
-                                    </select>
-                                </div>
                             </div>
                         </div><!--end form-group-->
                     </div><!--end col-->
@@ -156,7 +119,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 <thead>
                                     <tr>
                                         <th>RUT ORD</th>
-                                        <th>NOMBRE</th>
+                                        <th>RUT DEUD</th>
                                         <th>MONTO</th>
                                         <th>TRANSACCION</th>
                                         <th>FECHA REC.</th>
@@ -174,22 +137,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                                     ?>
                                         <tr>
-                                            <td class="col-2"> <?php echo $transferencia["RUT"];         ?></td>
+                                            <td class="col-2">    <?php echo $transferencia["RUT"];         ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["NOMBRE"];      ?></td>
                                             <td class="col-auto">$<?php echo $transferencia["MONTO"];       ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["TRANSACCION"]; ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["FECHA"];       ?></td>
-                                            <td class="col-auto"><?php echo $transferencia["CUENTA"];      ?></td>
+                                            <td class="col-auto"> <?php echo $transferencia["CUENTA"];      ?></td>
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
-
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2">
+                                                    
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2">
                                                         <i class="feather-24" data-feather="plus"></i>
                                                     </a>
                                                 </td>
                                             <?php } else { ?>
                                                 <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos_b.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>" class="btn btn-icon btn-rounded btn-info ml-2">
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos_b.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>" class="btn btn-icon btn-rounded btn-info ml-2">
                                                         <i class="feather-24" data-feather="folder"></i>
                                                     </a>
                                                 </td>
@@ -206,16 +169,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
         <?php include('footer.php'); ?>
     </div>
     <!-- end page content -->
-
-    <script>
-        window.onload = function() {
-            // Oculta la pantalla de carga y muestra el contenido principal
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-        };
-    </script>
-
-
 </body>
 
 <!-- jQuery  -->
@@ -247,9 +200,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="assets/js/app.js"></script>
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-
 
 <script>
     // Inicializar Feather Icons
@@ -266,91 +216,54 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
     // DataTables Initialization
     $(document).ready(function() {
-        var table = $('#datatable2').DataTable({
-            order: [
-                [4, 'desc'],
-                [0, 'asc']
-            ]
-
+            var table = $('#datatable2').DataTable({
             //    columnDefs: [
             //        { targets: [3], visible: false } // Ocultar la columna Transaccion
             //    ]
-        });
+            });
 
-        // Function to apply filter based on the stored value
-        function applyFilter() {
-            var storedValue = localStorage.getItem('selected_cuenta');
-            if (storedValue && storedValue !== "0") {
-                $('#cuenta').val(storedValue).change();
-            } else {
-                $('#cuenta').val("0").change(); // Reset to default
-            }
-        }
+            // Mantener un seguimiento de las transacciones que ya se han visto
+            var seenTransactions = new Set();
+            var transactionCounts = {};
 
-        // Add event listener to the select element
-        $('#cuenta').on('change', function() {
-            var filterValue = $(this).val();
+            // Contar las transacciones
+            table.rows().every(function() {
+                var data = this.data();
+                var transaccion = data[3]; // Índice de la columna Transaccion
 
-            // Save the selected value in localStorage
-            localStorage.setItem('selected_cuenta', filterValue);
-
-            if (filterValue == "0") {
-                // Clear all filters
-                table.search('').columns().search('').draw();
-            } else {
-                // Use DataTables search() function to filter the table
-                table.column(5).search(filterValue).draw();
-            }
-        });
-
-        // Apply the filter on page load
-        applyFilter();
-        // Mantener un seguimiento de las transacciones que ya se han visto
-        var seenTransactions = new Set();
-        var transactionCounts = {};
-
-        // Contar las transacciones
-        table.rows().every(function() {
-            var data = this.data();
-            var transaccion = data[3]; // Índice de la columna Transaccion
-
-            if (transactionCounts[transaccion]) {
-                transactionCounts[transaccion]++;
-            } else {
-                transactionCounts[transaccion] = 1;
-            }
-        });
-
-        // Ocultar filas duplicadas y agregar asterisco en el campo RUT de las filas agrupadas
-        table.rows().every(function() {
-            var data = this.data();
-            var transaccion = data[3]; // Índice de la columna Transaccion
-            var rut = data[0]; // Índice de la columna RUT
-
-            if (seenTransactions.has(transaccion)) {
-                // Ocultar esta fila si la transacción ya ha sido vista
-                $(this.node()).hide();
-            } else {
-                // Marcar esta transacción como vista
-                seenTransactions.add(transaccion);
-                // Solo agregar el asterisco si hay más de una fila para la transacción
-                if (transactionCounts[transaccion] > 1) {
-                    data[0] = rut + ' <span><i class="far fa-bookmark text-primary pl-2"</i></span>'; // Añadir asterisco en rojo
+                if (transactionCounts[transaccion]) {
+                    transactionCounts[transaccion]++;
+                } else {
+                    transactionCounts[transaccion] = 1;
                 }
-                this.data(data); // Actualizar la fila con el nuevo valor
-            }
-        });
-    });
+            });
 
+            // Ocultar filas duplicadas y agregar asterisco en el campo RUT de las filas agrupadas
+            table.rows().every(function() {
+                var data = this.data();
+                var transaccion = data[3]; // Índice de la columna Transaccion
+                var rut = data[0]; // Índice de la columna RUT
 
-
-    <?php if ($op == 1) { ?>
+                if (seenTransactions.has(transaccion)) {
+                    // Ocultar esta fila si la transacción ya ha sido vista
+                    $(this.node()).hide();
+                } else {
+                    // Marcar esta transacción como vista
+                    seenTransactions.add(transaccion);
+                    // Solo agregar el asterisco si hay más de una fila para la transacción
+                    if (transactionCounts[transaccion] > 1) {
+                        data[0] = rut + ' <span><i class="far fa-bookmark text-primary pl-2"</i></span>'; // Añadir asterisco en rojo
+                    }
+                    this.data(data); // Actualizar la fila con el nuevo valor
+                }
+            });
+        });    <?php if ($op == 1) { ?>
         Swal.fire({
             width: 600,
             icon: 'success',
             title: 'Conciliación realizada con éxito.',
-            html: '<p>El proceso se completó satisfactoriamente. Puede revisar los detalles en el informe.</p>',
-            showConfirmButton: true
+            showConfirmButton: false,
+            timer: 3000,
         });
     <?php } ?>
 
