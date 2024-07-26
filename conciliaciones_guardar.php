@@ -17,10 +17,12 @@ $op = isset($_GET["op"]) ? $_GET["op"] : 0;
 if (isset($_POST['iddocumento_checkbox'])) {
 
     // Creamos arreglos vacíos para almacenar los valores separados
-    $id_documentos = array();
-    $montos_docs = array();
-    $fechas_venc = array();
-    $suma_docs = 0;
+    $id_documentos  = array();
+    $montos_docs    = array();
+    $fechas_venc    = array();
+    $subproductos   = array();
+    $suma_docs      = 0;
+    $cant_docs      = 0;
 
     // Recorremos cada valor del arreglo de checkboxes
     foreach ($_POST['iddocumento_checkbox'] as $checkbox_value) {
@@ -29,14 +31,19 @@ if (isset($_POST['iddocumento_checkbox'])) {
         $valores = explode(',', $checkbox_value);
 
         // Verificamos que $valores tenga el número correcto de elementos
-        if (count($valores) >= 3) {
-            // $valores[0] contiene ID_DOCUMENTO, $valores[1] contiene MONTO, y $valores[2] contiene FECHA_VENCIMIENTO
+        if (count($valores) >= 4) {
+            // $valores[0] contiene ID_DOCUMENTO, $valores[1] contiene MONTO, $valores[2] contiene FECHA_VENCIMIENTO y $valores[3] contiene SUBPRODUCTO
             $id_documentos[]    = $valores[0];
             $montos_docs[]      = $valores[1];
             $fechas_venc[]      = $valores[2];
+            $subproductos[]     = $valores[3];
             $suma_docs         += $valores[1];
+            $cant_docs++;
         }
     }
+
+//print_r($cant_docs);
+//exit;
 
     // Combinar los arreglos en uno solo
     $docs_combined = [];
@@ -44,7 +51,8 @@ if (isset($_POST['iddocumento_checkbox'])) {
         $docs_combined[] = [
             'id_documento'  => $id,
             'monto_doc'     => $montos_docs[$index],
-            'fecha_venc'    => $fechas_venc[$index]
+            'fecha_venc'    => $fechas_venc[$index],
+            'subproducto'   => $subproductos[$index]
         ];
     }
 
@@ -57,11 +65,15 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $id_documentos  = array_column($docs_combined, 'id_documento');
     $montos_docs    = array_column($docs_combined, 'monto_doc');
     $fechas_venc    = array_column($docs_combined, 'fecha_venc');
+    $subproductos   = array_column($docs_combined, 'subproducto');
 }
 
 //print_r($id_documentos);
 //print_r($montos_docs);
 //print_r($fechas_venc);
+//exit;
+
+//print_r($cant_docs);
 //exit;
 
 $rut_cliente                    = $_POST['cliente'];
@@ -123,18 +135,20 @@ if ($stmt_tpago === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-$existe_pareo    = 0;   
-$idpareo_sistema = 0;    
+$existe_pareo    = 0;
+$idpareo_sistema = 0;
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?)}";
+$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
 $params1 = array(
     array($rut_ordenante,       SQLSRV_PARAM_IN),
     array($rut_deudor,          SQLSRV_PARAM_IN),
     array($transaccion,         SQLSRV_PARAM_IN),
+    array($monto_transferido,   SQLSRV_PARAM_IN),
     array($cuenta,              SQLSRV_PARAM_IN),
+    array($cant_docs,           SQLSRV_PARAM_IN),
     array($rut_cliente,         SQLSRV_PARAM_IN),
     array($tipo_pago,           SQLSRV_PARAM_IN),
     array(&$existe_pareo,       SQLSRV_PARAM_OUT),
@@ -173,15 +187,16 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     $existe_doc = 0;
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?)}";
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?)}";
 
     $params2 = array(
-        array($idpareo_sistema,     SQLSRV_PARAM_IN),
-        array($rut_cliente,         SQLSRV_PARAM_IN),
-        array($id_docdeudores,      SQLSRV_PARAM_IN),
-        array($montos_docs[$index], SQLSRV_PARAM_IN),
-        array(&$saldo_disponible,   SQLSRV_PARAM_INOUT),
-        array(&$concilia_doc,       SQLSRV_PARAM_OUT)
+        array($idpareo_sistema,         SQLSRV_PARAM_IN),
+        array($rut_cliente,             SQLSRV_PARAM_IN),
+        array($id_docdeudores,          SQLSRV_PARAM_IN),
+        array($montos_docs[$index],     SQLSRV_PARAM_IN),
+        array($subproductos[$index],    SQLSRV_PARAM_IN),
+        array(&$saldo_disponible,       SQLSRV_PARAM_INOUT),
+        array(&$concilia_doc,           SQLSRV_PARAM_OUT)
     );
 
     $stmt2 = sqlsrv_query($conn, $sql2, $params2);
@@ -238,4 +253,3 @@ if ($op == 1) {
 if ($op == 2) {
     header("Location: conciliaciones_transferencias_pendientes.php?op=1");
 }
-?>

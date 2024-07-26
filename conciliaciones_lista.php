@@ -57,6 +57,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
+
+
 </head>
 
 <body class="dark-sidenav">
@@ -101,7 +103,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Transferencias pendientes</b>
+                            <b>Conciliados</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
@@ -122,15 +124,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-6">
-                                <label class="col-4" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
-                                <input type="text" class="form-control col-6" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
+                            <div class="col-lg-4">
+                                <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
+                                <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
-                            <div class="col-lg-6">
+                            <div class="col-lg-4">
+                                <label for="dias_mora" class="col-4">DIAS MORA</label>
+                                <select name="dias_mora" id="dias_mora" class="form-control col-8" maxlength="50" autocomplete="off">
+                                    <option value="0" selected>Mostrar todos</option>
+                                    <option value="1">170 días o más</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-4">
                                 <div class="col-lg-9">
                                     <label for="cuenta" class="col-4">CUENTA</label>
                                     <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Todas las cuentas</option>
+                                        <option value="0" selected>Mostrar todas</option>
                                         <?php
                                         $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
                                         $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
@@ -155,45 +164,68 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>RUT ORD</th>
-                                        <th>NOMBRE</th>
-                                        <th>MONTO</th>
-                                        <th>TRANSACCION</th>
-                                        <th>FECHA REC.</th>
+                                        <th>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
+                                                <span>CH</span>
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <input class="mb-2" type="checkbox" id="select_all_checkbox2" onclick="handleMasterCheckbox(2)">
+                                                <span>TR</span>
+                                            </div>
+                                        </th>
                                         <th>CUENTA</th>
-                                        <th>ASIGNAR</th>
+                                        <th>TRANSACCION</th>
+                                        <th>RUT DEUDOR</th>
+                                        <th>OPERACION</th>
+                                        <th>VALOR CUOTA</th>
+                                        <th class="col-1">DIAS MORA</th>
+                                        <th>F. VENC</th>
+                                        <th>SUBPRODUCTO</th>
+                                        <th>CARTERA</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_TRANSFERENCIAS_PENDIENTES_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
-                                    while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                    while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                                     ?>
                                         <tr>
-                                            <td class="col-2"> <?php echo $transferencia["RUT"];         ?></td>
-                                            <td class="col-auto"> <?php echo $transferencia["NOMBRE"];      ?></td>
-                                            <td class="col-auto">$<?php echo $transferencia["MONTO"];       ?></td>
-                                            <td class="col-auto"> <?php echo $transferencia["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"> <?php echo $transferencia["FECHA"];       ?></td>
-                                            <td class="col-auto"><?php echo $transferencia["CUENTA"];      ?></td>
-                                            <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
-                                                <td class="col-1">
-
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2">
-                                                        <i class="feather-24" data-feather="plus"></i>
-                                                    </a>
-                                                </td>
-                                            <?php } else { ?>
-                                                <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos_b.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>" class="btn btn-icon btn-rounded btn-info ml-2">
-                                                        <i class="feather-24" data-feather="folder"></i>
-                                                    </a>
-                                                </td>
-                                            <?php }; ?>
+                                            <td class="col-1">
+                                                <div class="form-check d-flex justify-content-center align-items-center">
+                                                    <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
+                                                </div>
+                                            </td>
+                                            <td class="col-1">
+                                                <div class="form-check d-flex justify-content-center align-items-center">
+                                                    <input class="form-check-input" type="checkbox" data-column="2" onclick="toggleRowCheckbox(this)">
+                                                </div>
+                                            </td>
+                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
+                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
+                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
+                                            <td class="col-1"><?php echo $conciliacion['DIAS_MORA'] ?></td>
+                                            <td class="col-auto">
+                                                <?php
+                                                if ($conciliacion["F_VENC"] instanceof DateTime) {
+                                                    echo $conciliacion["F_VENC"]->format('Y-m-d');
+                                                } else if (is_string($conciliacion["F_VENC"])) {
+                                                    echo date('Y-m-d', strtotime($conciliacion["F_VENC"]));
+                                                } else {
+                                                    echo 'Fecha no disponible';
+                                                }
+                                                ?>
+                                            </td>
+                                            <td class="col-auto"><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["CARTERA"]; ?></td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
@@ -215,6 +247,79 @@ $fecha_proceso = $row["FECHAPROCESO"];
         };
     </script>
 
+
+    <script>
+        function handleMasterCheckbox(column) {
+            // Determinar si el checkbox maestro está marcado o desmarcado
+            var isChecked = $('#select_all_checkbox' + column).is(':checked');
+
+            // Desmarcar todos los checkboxes maestros
+            $('#select_all_checkbox1, #select_all_checkbox2').not('#select_all_checkbox' + column).prop('checked', false);
+
+            // Obtener la instancia de DataTable
+            var table = $('#datatable2').DataTable();
+
+            // Marcar o desmarcar los checkboxes en la columna seleccionada
+            table.rows({
+                search: 'applied'
+            }).nodes().to$().each(function() {
+                var row = $(this);
+                var checkboxes = row.find('input[type="checkbox"]');
+
+                checkboxes.each(function() {
+                    if ($(this).data('column') === column) {
+                        this.checked = isChecked;
+                    } else {
+                        this.checked = false;
+                    }
+                });
+            });
+
+            // Actualizar el estado del encabezado después de cambiar los checkboxes en las filas
+            updateHeaderCheckboxState();
+        }
+
+        function toggleRowCheckbox(checkbox) {
+            var row = $(checkbox).closest('tr');
+            var checkboxes = row.find('input[type="checkbox"]');
+
+            // Marcar solo el checkbox clickeado y desmarcar los demás en la misma fila
+            checkboxes.each(function() {
+                if (this !== checkbox) {
+                    this.checked = false;
+                }
+            });
+
+            // Actualizar el estado de los checkboxes maestros
+            updateHeaderCheckboxState();
+        }
+
+        function updateHeaderCheckboxState() {
+            var table = $('#datatable2').DataTable();
+
+            // Comprobar si todos los checkboxes de la columna 1 están marcados
+            var allCheckedColumn1 = table.rows({
+                search: 'applied'
+            }).nodes().to$().find('input[data-column="1"]').length && table.rows({
+                search: 'applied'
+            }).nodes().to$().find('input[data-column="1"]').filter(':checked').length === table.rows({
+                search: 'applied'
+            }).nodes().to$().find('input[data-column="1"]').length;
+
+            // Comprobar si todos los checkboxes de la columna 2 están marcados
+            var allCheckedColumn2 = table.rows({
+                search: 'applied'
+            }).nodes().to$().find('input[data-column="2"]').length && table.rows({
+                search: 'applied'
+            }).nodes().to$().find('input[data-column="2"]').filter(':checked').length === table.rows({
+                search: 'applied'
+            }).nodes().to$().find('input[data-column="2"]').length;
+
+            // Actualizar el estado de los checkboxes maestros
+            $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
+            $('#select_all_checkbox2').prop('checked', allCheckedColumn2);
+        }
+    </script>
 
 </body>
 
@@ -266,80 +371,101 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
     // DataTables Initialization
     $(document).ready(function() {
-        var table = $('#datatable2').DataTable({
-            order: [
-                [4, 'desc'],
-                [0, 'asc']
-            ]
 
-            //    columnDefs: [
-            //        { targets: [3], visible: false } // Ocultar la columna Transaccion
-            //    ]
+        $('#datatable2').on('change', '#select_all_checkbox1', function() {
+            toggleAllCheckboxes(this, 1);
         });
 
-        // Function to apply filter based on the stored value
-        function applyFilter() {
-            var storedValue = localStorage.getItem('selected_cuenta');
-            if (storedValue && storedValue !== "0") {
-                $('#cuenta').val(storedValue).change();
+        $('#datatable2').on('change', '#select_all_checkbox2', function() {
+            toggleAllCheckboxes(this, 2);
+        });
+
+        var table = $('#datatable2').DataTable({
+            order: [
+                [8, 'asc'] // Ordena la columna 8 en orden ascendente
+            ],
+            columnDefs: [{
+                    targets: 0,
+                    orderable: false
+                },
+                {
+                    targets: 1,
+                    orderable: false
+                },
+                {
+                    targets: 7,
+                    render: function(data, type, row, meta) {
+                        if (data > 100) { // Valor desde el cual se mostrará el texto en rojo
+                            return '<span class="text-danger"><b>' + data + '</b></span>';
+                        }
+                        return data;
+                    }
+                }
+            ],
+            createdRow: function(row, data, dataIndex) {
+                // Verifica el valor en la columna 7 (índice 7)
+                if (data[7] > 100) { // Valor desde el cual se mostrará el fondo en rojo claro
+                    $(row).css('background-color', 'rgba(255, 0, 0, 0.06)'); // Color rojo claro con transparencia
+                }
+            }
+        });
+
+        // Function to apply filters based on stored values
+        function applyFilters() {
+            var storedCuentaValue = localStorage.getItem('selected_cuenta');
+            var storedFiltroValue = localStorage.getItem('selected_diasmora');
+
+            // Apply cuenta filter
+            if (storedCuentaValue && storedCuentaValue !== "0") {
+                $('#cuenta').val(storedCuentaValue).change();
             } else {
                 $('#cuenta').val("0").change(); // Reset to default
             }
+
+            // Apply dias_mora filter
+            if (storedFiltroValue && storedFiltroValue !== "0") {
+                $('#dias_mora').val(storedFiltroValue).change();
+            } else {
+                $('#dias_mora').val("0").change(); // Reset to default
+            }
         }
 
-        // Add event listener to the select element
+        // Custom filter function for values >= 170
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                var filterValue = $('#dias_mora').val();
+                var columnValue = parseFloat(data[7]) || 0; // Convert the value to a number
+
+                if (filterValue === "1") {
+                    return columnValue >= 100; // Rango para dias de mora
+                }
+                return true; // Otherwise, show all rows
+            }
+        );
+
+        // Add event listener to the cuenta select element
         $('#cuenta').on('change', function() {
             var filterValue = $(this).val();
-
-            // Save the selected value in localStorage
             localStorage.setItem('selected_cuenta', filterValue);
 
             if (filterValue == "0") {
-                // Clear all filters
-                table.search('').columns().search('').draw();
+                table.column(2).search('').draw(); // Clear the cuenta filter
             } else {
-                // Use DataTables search() function to filter the table
-                table.column(5).search(filterValue).draw();
+                table.column(2).search(filterValue).draw();
             }
         });
 
-        // Apply the filter on page load
-        applyFilter();
-        // Mantener un seguimiento de las transacciones que ya se han visto
-        var seenTransactions = new Set();
-        var transactionCounts = {};
+        // Add event listener to the dias_mora select element
+        $('#dias_mora').on('change', function() {
+            var filterValue = $(this).val();
+            localStorage.setItem('selected_diasmora', filterValue);
 
-        // Contar las transacciones
-        table.rows().every(function() {
-            var data = this.data();
-            var transaccion = data[3]; // Índice de la columna Transaccion
-
-            if (transactionCounts[transaccion]) {
-                transactionCounts[transaccion]++;
-            } else {
-                transactionCounts[transaccion] = 1;
-            }
+            // Redraw table to apply the dias_mora filter
+            table.draw();
         });
 
-        // Ocultar filas duplicadas y agregar asterisco en el campo RUT de las filas agrupadas
-        table.rows().every(function() {
-            var data = this.data();
-            var transaccion = data[3]; // Índice de la columna Transaccion
-            var rut = data[0]; // Índice de la columna RUT
-
-            if (seenTransactions.has(transaccion)) {
-                // Ocultar esta fila si la transacción ya ha sido vista
-                $(this.node()).hide();
-            } else {
-                // Marcar esta transacción como vista
-                seenTransactions.add(transaccion);
-                // Solo agregar el asterisco si hay más de una fila para la transacción
-                if (transactionCounts[transaccion] > 1) {
-                    data[0] = rut + ' <span><i class="far fa-bookmark text-primary pl-2"</i></span>'; // Añadir asterisco en rojo
-                }
-                this.data(data); // Actualizar la fila con el nuevo valor
-            }
-        });
+        // Apply filters on page load
+        applyFilters();
     });
 
 

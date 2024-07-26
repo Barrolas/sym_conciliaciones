@@ -40,6 +40,9 @@ error_reporting(E_ALL);
                 <a href="conciliaciones_transferencias_pendientes.php">TRANSFERENCIAS PENDIENTES</a>
             </li>    
             <li>
+                <a href="conciliaciones_lista.php">CONCILIADOS</a>
+            </li>    
+            <li>
                 <a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a>
             </li>    
         </ul>  

@@ -327,7 +327,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
                                                     <td class="estado_doc col-auto" id="estado_doc"><?php echo $estado_doc_text; ?></td>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"] . ',' . $transferencia["F_VENC"]; ?>" data-n-doc="<?php echo htmlspecialchars($transferencia['N_DOC']); ?>" />
+                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"] . ',' . $transferencia["F_VENC"] . ',' . $transferencia["SUBPRODUCTO"]; ?>" data-n-doc="<?php echo htmlspecialchars($transferencia['N_DOC']); ?>" />
                                                     </td>
                                                 </tr>
                                             <?php } ?>

@@ -201,7 +201,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                         <div class="form-group row align-items-center mb-0">
                                                             <label for="rut_deudor" class="col-form-label text-white px-3 mb-0"><b>INGRESE RUT DEUDOR</b></label>
                                                             <div class="col-auto py-0 pr-0">
-                                                                <input id="rut_deudor" type="text" name="rut_deudor" maxlength="8" class="form-control mb-0" placeholder="Sin dígito verificador" value="<?php echo htmlspecialchars($rut_deudor); ?>">
+                                                                <input id="rut_deudor" type="text" name="rut_deudor" maxlength="8" class="form-control mb-0" placeholder="Sin dígito verificador" value="<?php echo htmlspecialchars($rut_deudor); ?>" disabled>
                                                             </div>
                                                             <div class="col-auto mr-0">
                                                                 <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> CONCILIAR</button>
