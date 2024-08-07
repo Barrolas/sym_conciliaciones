@@ -12,7 +12,7 @@ error_reporting(E_ALL);
 $op = isset($_GET["op"]) ? $_GET["op"] : 0;
 
 //print_r($_POST['iddocumento_checkbox']);
-//exit;
+
 
 if (isset($_POST['iddocumento_checkbox'])) {
 
@@ -149,10 +149,19 @@ if ($monto_transferido < $suma_docs){
     $estado_pareo = 3;
 }
 
-//print_r($monto_transferido);
-//print_r($suma_docs);
-//print_r($estado_pareo);
-//exit;
+echo "<pre>"; // Esta etiqueta HTML ayuda a mantener el formato
+echo "Monto Transferido:\n";
+print_r($monto_transferido);
+echo "\n\n"; // Dos saltos de línea
+
+echo "Suma Docs:\n";
+print_r($suma_docs);
+echo "\n\n"; // Dos saltos de línea
+
+echo "Estado Pareo:\n";
+print_r($estado_pareo);
+echo "</pre>"; // Cierra la etiqueta HTML <pre>
+exit;
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
 $sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";

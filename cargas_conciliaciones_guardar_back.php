@@ -31,7 +31,6 @@
 		<div class="spinner"></div>
 		<p>Cargando...</p>
 	</div>
-
 	<div class="container" id="content">
 
 		<?php
@@ -54,15 +53,6 @@
 		$conn2           	= sqlsrv_connect($serverName, $connectionInfo);
 
 		noCache();
-
-		// Verificar las conexiones
-		if ($conn3 === false) {
-			die("Error en la conexión a la base de datos SYM: " . print_r(sqlsrv_errors(), true));
-		}
-		if ($conn2 === false) {
-			die("Error en la conexión a la base de datos conciliacion: " . print_r(sqlsrv_errors(), true));
-		}
-
 		/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -116,65 +106,50 @@ error_reporting(E_ALL);
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
 
-		// Insertar datos desde el archivo Excel
-		$count = 0; // Contador de registros
-		for ($i = 7; $i < $sheetCount; $i++) {
-			$transaccion = isset($spreadSheetAry[$i][0]) ? $spreadSheetAry[$i][0] : '';
-			$fecha = isset($spreadSheetAry[$i][2]) ? $spreadSheetAry[$i][2] : '';
-			$rutempresa = isset($spreadSheetAry[$i][3]) ? $spreadSheetAry[$i][3] : '';
-			$nombreempresa = isset($spreadSheetAry[$i][4]) ? $spreadSheetAry[$i][4] : '';
-			$cuenta_bene = isset($spreadSheetAry[$i][5]) ? $spreadSheetAry[$i][5] : '';
-			$producto = isset($spreadSheetAry[$i][6]) ? $spreadSheetAry[$i][6] : '';
-			$rutordenante = isset($spreadSheetAry[$i][7]) ? $spreadSheetAry[$i][7] : '';
-			$nombreorden = isset($spreadSheetAry[$i][8]) ? $spreadSheetAry[$i][8] : '';
-			$bancoorden = isset($spreadSheetAry[$i][9]) ? $spreadSheetAry[$i][9] : '';
-			$cuentaorden = isset($spreadSheetAry[$i][10]) ? $spreadSheetAry[$i][10] : '';
-			$monto = isset($spreadSheetAry[$i][11]) ? $spreadSheetAry[$i][11] : '';
-			$formapago = isset($spreadSheetAry[$i][12]) ? $spreadSheetAry[$i][12] : '';
-			$numerodoc = isset($spreadSheetAry[$i][13]) ? $spreadSheetAry[$i][13] : '';
-			$oficina = isset($spreadSheetAry[$i][14]) ? $spreadSheetAry[$i][14] : '';
+		for ($i = 7; $i <= $sheetCount - 1; $i++) {
+			$transaccion	= $spreadSheetAry[$i][0];
+			$fecha 			= $spreadSheetAry[$i][2];
+			$rutempresa		= $spreadSheetAry[$i][3];
+			$nombreempresa	= $spreadSheetAry[$i][4];
+			$cuenta_bene	= $spreadSheetAry[$i][5];
+			$producto 		= $spreadSheetAry[$i][6];
+			$rutordenante	= $spreadSheetAry[$i][7];
+			$nombreorden	= $spreadSheetAry[$i][8];
+			$bancoorden		= $spreadSheetAry[$i][9];
+			$cuentaorden	= $spreadSheetAry[$i][10];
+			$monto			= $spreadSheetAry[$i][11];
+			$formapago 		= $spreadSheetAry[$i][12];
+			$numerodoc		= $spreadSheetAry[$i][13];
+			$oficina		= $spreadSheetAry[$i][14];
 
-
-			$sql = "INSERT INTO [Conciliacion].[dbo].[Transferencias_Recibidas]		   
-		VALUES
-			('" . $transaccion . "'
-			,'" . $fecha . "'
-			,'" . $rutempresa . "'
-			,'" . $nombreempresa . "'
-			,'" . $cuenta_bene . "'
-			,'" . $producto . "'
-			,'" . $rutordenante . "'
-			,'" . $nombreorden . "'
-			,'" . $bancoorden . "'
-			,'" . $cuentaorden . "'
-			,'" . $monto . "'
-			,'" . $formapago . "'
-			,'" . $numerodoc . "'
-			,'" . $oficina . "'
-			)";
-			// Mostrar los datos a ingresar
-			echo  $sql . ";<br>";
-
-
-			$stmt = sqlsrv_query($conn2, $sql);
+			$sql = "INSERT INTO [dbo].[Transferencias_Recibidas]			   
+		 VALUES
+			   ('" . $transaccion . "'
+			   ,'" . $fecha . "'
+			   ,'" . $rutempresa . "'
+			   ,'" . $nombreempresa . "'
+			   ,'" . $cuenta_bene . "'
+			   ,'" . $producto . "'
+			   ,'" . $rutordenante . "'
+			   ,'" . $nombreorden . "'
+			   ,'" . $bancoorden . "'
+			   ,'" . $cuentaorden . "'
+			   ,'" . $monto . "'
+			   ,'" . $formapago . "'
+			   ,'" . $numerodoc . "'
+			   ,'" . $oficina . "'
+			   )";
+			// echo $sql.'<BR>';	
+			$stmt = sqlsrv_query($conn3, $sql);
 			if ($stmt === false) {
-				die(print_r(sqlsrv_errors(), true));
+				die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 			}
-			if ($conn2 === false) {
-				die(print_r(sqlsrv_errors(), true)); // Mostrar errores de conexión si falló
-			}
-			$count++;
-		}
-
-		// Mostrar el total de registros ingresados
-		echo "Total registros ingresados: " . $count;
-		//		exit;
-
+		};
 		$sql = "insert into [192.168.1.193].conciliacion.dbo.[Transferencias_Recibidas]
 			select * -- delete
 			from [Transferencias_Recibidas]";
 
-		$stmt = sqlsrv_query($conn2, $sql);
+		$stmt = sqlsrv_query($conn3, $sql);
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
@@ -189,7 +164,6 @@ error_reporting(E_ALL);
 		header("Location: cargas_conciliaciones.php?op=1");
 		?>
 	</div>
-
 	<script>
 		window.onload = function() {
 			// Oculta la pantalla de carga y muestra el contenido principal
