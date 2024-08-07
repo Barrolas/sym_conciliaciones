@@ -434,11 +434,15 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 
 
 <script>
-    function valida_envia2() {
+    function valida_envia() {
         var cliente = document.getElementById('cliente').value; // Obtén el RUT del cliente
         var checkboxes = document.querySelectorAll('.iddocumento_checkbox:checked');
         var nDocs = new Set();
         var estadoFinal = $('#estado').val(); // Obtén el estado calculado
+
+        // Define la fecha actual
+        var fechaActual = new Date();
+        fechaActual.setHours(0, 0, 0, 0); // Establece la hora a 00:00:00 para comparar solo las fechas
 
         // Verificar si el cliente RUT es 96509669
         if (cliente == 96509669) {
@@ -467,6 +471,27 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                     showConfirmButton: false
                 });
                 return false; // Devuelve false si la validación no pasa
+            }
+        }
+
+        // Validación de la fecha de vencimiento
+        for (var checkbox of checkboxes) {
+            var fechaVencimientoStr = checkbox.value.split(',')[2]; // Extrae la fecha de vencimiento como cadena
+            var fechaVencimiento = new Date(fechaVencimientoStr); // Convierte la cadena en un objeto Date
+            fechaVencimiento.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
+
+            console.log("Fecha Actual:", fechaActual);
+            console.log("Fecha Vencimiento:", fechaVencimiento);
+
+            if (fechaVencimiento > fechaActual) { // Compara con la fecha actual
+                Swal.fire({
+                    width: 600,
+                    icon: 'error',
+                    title: 'Todos los documentos seleccionados deben tener una fecha de vencimiento igual o anterior a la fecha actual.',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return false; // Cancelar el envío del formulario
             }
         }
 

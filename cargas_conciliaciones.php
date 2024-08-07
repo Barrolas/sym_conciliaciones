@@ -61,7 +61,7 @@ error_reporting(0);
 		<!-- Page Content-->
 		<div class="page-content" id="content">
 			<div class="container-fluid">
-				<center>CARGA CONCILIACIONES</center>
+				<center><h4 class="mt-4">CARGA CONCILIACIONES</h4></center>
 				<br><br>
 				<div class="row">
 					<div class="col-lg-9 offset-md-2">

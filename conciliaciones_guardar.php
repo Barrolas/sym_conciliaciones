@@ -82,7 +82,7 @@ $rut_deudor                     = $_GET['rut_deudor'];
 $transaccion                    = $_GET['transaccion'];
 $cuenta                         = $_GET['cuenta'];
 $monto_transferido_con_puntos   = $_GET['monto'];
-$monto_transferido = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
+$monto_transferido              = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
 
 //print_r($_POST);
 //print_r($_GET);
@@ -137,9 +137,25 @@ if ($stmt_tpago === false) {
 
 $existe_pareo    = 0;
 $idpareo_sistema = 0;
+$estado_pareo    = 0;
+
+if ($monto_transferido == $suma_docs){
+    $estado_pareo = 1;
+}
+if ($monto_transferido > $suma_docs){
+    $estado_pareo = 2;
+}
+if ($monto_transferido < $suma_docs){
+    $estado_pareo = 3;
+}
+
+//print_r($monto_transferido);
+//print_r($suma_docs);
+//print_r($estado_pareo);
+//exit;
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
 $params1 = array(
@@ -151,6 +167,7 @@ $params1 = array(
     array($cant_docs,           SQLSRV_PARAM_IN),
     array($rut_cliente,         SQLSRV_PARAM_IN),
     array($tipo_pago,           SQLSRV_PARAM_IN),
+    array($estado_pareo,        SQLSRV_PARAM_IN),
     array(&$existe_pareo,       SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
@@ -187,12 +204,13 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     $existe_doc = 0;
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?)}";
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?)}";
 
     $params2 = array(
         array($idpareo_sistema,         SQLSRV_PARAM_IN),
         array($rut_cliente,             SQLSRV_PARAM_IN),
         array($id_docdeudores,          SQLSRV_PARAM_IN),
+        array($index,                   SQLSRV_PARAM_IN),
         array($montos_docs[$index],     SQLSRV_PARAM_IN),
         array($subproductos[$index],    SQLSRV_PARAM_IN),
         array(&$saldo_disponible,       SQLSRV_PARAM_INOUT),

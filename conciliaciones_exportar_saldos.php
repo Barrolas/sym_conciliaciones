@@ -10,7 +10,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once ('phpexcel2/vendor/autoload.php');
+require_once('phpexcel2/vendor/autoload.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -22,12 +22,11 @@ $documento
     ->getProperties()
     ->setCreator("Sistema Conciliaciones")
     ->setLastModifiedBy('')
-    ->setTitle('Archivo de Transferencias Indeterminadas')
-    ->setDescription('Archivo de Transferencias Indeterminadas');
+    ->setTitle('Archivo de Saldos')
+    ->setDescription('Archivo de Saldos');
 
-# Como ya hay una hoja por defecto, la obtenemos, no la creamos
 $hojaDeProductos = $documento->getActiveSheet();
-$hojaDeProductos->setTitle("Transferencias Indeterminadas");
+$hojaDeProductos->setTitle("Saldos");
 
 function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
 {
@@ -56,48 +55,43 @@ function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
     }
 }
 
-# Escribir encabezado de los productos
-$encabezado = ["RUT", "DV", "NOMBRE", "MONTO", "BANCO", "CUENTA"];
-# El último argumento es por defecto A1 pero lo pongo para que se explique mejor
+// Escribir encabezado de los productos
+$encabezado = ["TRANSACCION", "FECHA RECEPCION", "CUENTA BENEFICIARIO", "PRODUCTO", "RUT", "DV", "NOMBRE", "BANCO", "CUENTA ORDENANTE", "SALDO"];
 $hojaDeProductos->fromArray($encabezado, null, 'A1');
 
-$sql = "EXEC [_SP_CONCILIACIONES_TRANSFERENCIAS_INDETERMINADAS_LISTA]";
+// Asignar el formato de celda para la columna de saldo
+//$hojaDeProductos->getStyle('J')->getNumberFormat()->setFormatCode('#.##0'); // Asegúrate de que la columna de saldo esté formateada correctamente
+
+$sql = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
     header("Location: menu_principal.php?op=1");
     exit;
 }
 
-// echo $sql;
 $numeroDeFila = 2;
 $i = 0;
 
 while ($gestion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $i++;
 
-    $rutSinDv   = substr($gestion["RUT_ORDENANTE"], 0, -2);
-    $dv         = str_replace('-', '', substr($gestion["RUT_ORDENANTE"], -2));
-    $monto      = str_replace('.', '', $gestion["MONTO"]);
-    
-    $hojaDeProductos->setCellValueExplicitByColumnAndRow(1, $numeroDeFila, $rutSinDv,   DataType::TYPE_STRING);
-    $hojaDeProductos->setCellValueExplicitByColumnAndRow(2, $numeroDeFila, $dv,         DataType::TYPE_STRING);
-    $hojaDeProductos->setCellValueByColumnAndRow        (3, $numeroDeFila, $gestion["NOMBRE_ORDENANTE"]);
-    $hojaDeProductos->setCellValueByColumnAndRow        (4, $numeroDeFila, $monto);
-    $hojaDeProductos->setCellValueByColumnAndRow        (5, $numeroDeFila, $gestion["BANCO_ORDENANTE"]);
-    $hojaDeProductos->setCellValueExplicitByColumnAndRow(6, $numeroDeFila, $gestion["CUENTA_ORDENANTE"], DataType::TYPE_STRING);
+    $hojaDeProductos->setCellValueExplicitByColumnAndRow(1, $numeroDeFila, $gestion["TRANSACCION"], DataType::TYPE_STRING);
+    $hojaDeProductos->setCellValueByColumnAndRow(2, $numeroDeFila, $gestion["F_REC"]);
+    $hojaDeProductos->setCellValueExplicitByColumnAndRow(3, $numeroDeFila, $gestion["CUENTA"], DataType::TYPE_STRING);
+    $hojaDeProductos->setCellValueByColumnAndRow(4, $numeroDeFila, $gestion["PRODUCTO"]);
+    $hojaDeProductos->setCellValueByColumnAndRow(5, $numeroDeFila, $gestion["RUT_ORD"]);
+    $hojaDeProductos->setCellValueByColumnAndRow(6, $numeroDeFila, $gestion["DV"]);
+    $hojaDeProductos->setCellValueByColumnAndRow(7, $numeroDeFila, $gestion["NOMBRE"]);
+    $hojaDeProductos->setCellValueByColumnAndRow(8, $numeroDeFila, $gestion["BANCO"]);
+    $hojaDeProductos->setCellValueExplicitByColumnAndRow(9, $numeroDeFila, $gestion["CTA_ORD"], DataType::TYPE_STRING);
+    $hojaDeProductos->setCellValueByColumnAndRow(10, $numeroDeFila, $gestion["SALDO"]);
 
     $numeroDeFila++;
-//    print_r($gestion);
 }
 
 autoSizeColumns($hojaDeProductos);
 
-# Crear un "escritor"
 $writer = new Xlsx($documento);
-# Le pasamos la ruta de guardado
-// $writer->save('Exportado.xlsx');
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment; filename="TransferenciasIndeterminadas'.$hoy_arch.'.xlsx"');
+header('Content-Disposition: attachment; filename="ConciliacionesSaldos' . $hoy_arch . '.xlsx"');
 $writer->save('php://output');
-
-?>

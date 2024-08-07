@@ -124,18 +124,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
                                 <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
-                            <div class="col-lg-4">
-                                <label for="dias_mora" class="col-4">DIAS MORA</label>
+                            <div class="col-lg-3">
+                                <label for="dias_mora" class="col-12">DIAS MORA</label>
                                 <select name="dias_mora" id="dias_mora" class="form-control col-8" maxlength="50" autocomplete="off">
                                     <option value="0" selected>Mostrar todos</option>
                                     <option value="1">170 días o más</option>
                                 </select>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <div class="col-lg-9">
                                     <label for="cuenta" class="col-4">CUENTA</label>
                                     <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
@@ -154,6 +154,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-lg-3">
+                                <a href="conciliaciones_exportar_saldos.php">
+                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" disabled>
+                                        EXPORTAR
+                                    </button>
+                                </a>
+                            </div>
                         </div><!--end form-group-->
                     </div><!--end col-->
                 </div>
@@ -161,35 +168,29 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="col-12 px-3">
                     <div class="card">
                         <div class="card-body">
-                            <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                            <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>
+                                        <!--<th>
                                             <div class="d-flex flex-column align-items-center">
                                                 <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
-                                                <span>CH</span>
                                             </div>
                                         </th>
-                                        <th>
-                                            <div class="d-flex flex-column align-items-center">
-                                                <input class="mb-2" type="checkbox" id="select_all_checkbox2" onclick="handleMasterCheckbox(2)">
-                                                <span>TR</span>
-                                            </div>
-                                        </th>
+                                        !-->
                                         <th>CUENTA</th>
-                                        <th>TRANSACCION</th>
-                                        <th>RUT DEUDOR</th>
-                                        <th>OPERACION</th>
-                                        <th>VALOR CUOTA</th>
-                                        <th class="col-1">DIAS MORA</th>
-                                        <th>F. VENC</th>
-                                        <th>SUBPRODUCTO</th>
                                         <th>CARTERA</th>
+                                        <th>SUBPRODUCTO</th>
+                                        <th>TRANSACCION</th>
+                                        <th>RUT DEUD</th>
+                                        <th>N° DOC</th>
+                                        <th>F. VENC</th>
+                                        <th>F. REC</th>
+                                        <th>MONTO DOC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_DOCUMENTOS_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
@@ -197,35 +198,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                                     ?>
                                         <tr>
-                                            <td class="col-1">
+                                            <!--<td class="col-1">
                                                 <div class="form-check d-flex justify-content-center align-items-center">
                                                     <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
                                                 </div>
-                                            </td>
-                                            <td class="col-1">
-                                                <div class="form-check d-flex justify-content-center align-items-center">
-                                                    <input class="form-check-input" type="checkbox" data-column="2" onclick="toggleRowCheckbox(this)">
-                                                </div>
-                                            </td>
-                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
-                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
-                                            <td class="col-1"><?php echo $conciliacion['DIAS_MORA'] ?></td>
-                                            <td class="col-auto">
-                                                <?php
-                                                if ($conciliacion["F_VENC"] instanceof DateTime) {
-                                                    echo $conciliacion["F_VENC"]->format('Y-m-d');
-                                                } else if (is_string($conciliacion["F_VENC"])) {
-                                                    echo date('Y-m-d', strtotime($conciliacion["F_VENC"]));
-                                                } else {
-                                                    echo 'Fecha no disponible';
-                                                }
-                                                ?>
-                                            </td>
-                                            <td class="col-auto"><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
+                                            </td> !-->
+                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
                                             <td class="col-auto"><?php echo $conciliacion["CARTERA"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
+                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) . "-" . $conciliacion["DV"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
+                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
@@ -306,18 +292,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 search: 'applied'
             }).nodes().to$().find('input[data-column="1"]').length;
 
-            // Comprobar si todos los checkboxes de la columna 2 están marcados
-            var allCheckedColumn2 = table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="2"]').length && table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="2"]').filter(':checked').length === table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="2"]').length;
-
             // Actualizar el estado de los checkboxes maestros
             $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
-            $('#select_all_checkbox2').prop('checked', allCheckedColumn2);
         }
     </script>
 
@@ -382,32 +358,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         var table = $('#datatable2').DataTable({
             order: [
-                [8, 'asc'] // Ordena la columna 8 en orden ascendente
+                [0, 'asc']
             ],
             columnDefs: [{
-                    targets: 0,
-                    orderable: false
-                },
-                {
-                    targets: 1,
-                    orderable: false
-                },
-                {
-                    targets: 7,
-                    render: function(data, type, row, meta) {
-                        if (data > 100) { // Valor desde el cual se mostrará el texto en rojo
-                            return '<span class="text-danger"><b>' + data + '</b></span>';
-                        }
-                        return data;
-                    }
-                }
-            ],
-            createdRow: function(row, data, dataIndex) {
-                // Verifica el valor en la columna 7 (índice 7)
-                if (data[7] > 100) { // Valor desde el cual se mostrará el fondo en rojo claro
-                    $(row).css('background-color', 'rgba(255, 0, 0, 0.06)'); // Color rojo claro con transparencia
-                }
-            }
+                targets: 0
+                //orderable: false
+            }]
         });
 
         // Function to apply filters based on stored values

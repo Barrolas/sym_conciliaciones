@@ -120,7 +120,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <ol class="breadcrumb">
 
                                         <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
-                                        <li class="breadcrumb-item active">Asignar conciliación</li>
+                                        <li class="breadcrumb-item active">Parear documentos</li>
                                     </ol>
                                 </div>
                             </div>
@@ -132,7 +132,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="row">
                         <div class="col">
                             <h3>
-                                <b>Asignar conciliación</b>
+                                <b>Parear documentos</b>
                             </h3>
                         </div>
                         <div class="row">
@@ -181,7 +181,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                             <input id="rut_deudor" type="text" name="rut_deudor" maxlength="8" class="form-control mb-0" placeholder="Sin dígito verificador" value="<?php echo htmlspecialchars($rut_deudor); ?>" disabled>
                                                         </div>
                                                         <div class="col-auto mr-0">
-                                                            <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> CONCILIAR</button>
+                                                            <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -316,7 +316,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y-m-d');
                                             ?>
 
-
                                                 <tr>
                                                     <td class="f_venc col-auto" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td> <!-- Celda oculta -->
@@ -387,47 +386,127 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 
 <script>
-function valida_envia() {
-    var cliente = document.getElementById('cliente').value; // Obtén el RUT del cliente
-    var checkboxes = document.querySelectorAll('.iddocumento_checkbox:checked');
-    var nDocs = new Set();
-    var estadoFinal = $('#estado').val(); // Obtén el estado calculado
+    function valida_envia() {
+        var cliente = document.getElementById('cliente').value; // Obtén el RUT del cliente
+        var checkboxes = document.querySelectorAll('.iddocumento_checkbox:checked');
+        var nDocs = new Set();
+        var estadoFinal = $('#estado').val(); // Obtén el estado calculado
 
-    // Verificar si el cliente RUT es 96509669
-    if (cliente == 96509669) {
-        // Validación: Verificar que no haya checkboxes seleccionados con el mismo número de operación
-        for (var checkbox of checkboxes) {
-            var nDoc = checkbox.getAttribute('data-n-doc');
-            if (nDocs.has(nDoc)) {
+        // Define la fecha actual
+        var fechaActual = new Date();
+        fechaActual.setHours(0, 0, 0, 0); // Establece la hora a 00:00:00 para comparar solo las fechas
+
+        // Verificar si el cliente RUT es 96509669
+        if (cliente == 96509669) {
+            // Validación: Verificar que no haya checkboxes seleccionados con el mismo número de operación
+            for (var checkbox of checkboxes) {
+                var nDoc = checkbox.getAttribute('data-n-doc');
+                if (nDocs.has(nDoc)) {
+                    Swal.fire({
+                        width: 600,
+                        icon: 'error',
+                        title: 'El tipo cartera sólo permite seleccionar más de un documento cuando estos tienen distinto numero de operación.',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    return false; // Cancelar el envío del formulario
+                }
+                nDocs.add(nDoc);
+            }
+
+            // Validación adicional basada en el estado calculado
+            if (estadoFinal === "ABONADO") {
                 Swal.fire({
                     width: 600,
-                    icon: 'error',
-                    title: 'El tipo cartera sólo permite seleccionar más de un documento cuando estos tienen distinto numero de operación.',
-                    showConfirmButton: false,
-                    timer: 2000
+                    icon: 'info',
+                    title: 'El tipo cartera no permite abonos.',
+                    showConfirmButton: false
                 });
-                return false; // Cancelar el envío del formulario
+                return false; // Devuelve false si la validación no pasa
             }
-            nDocs.add(nDoc);
         }
 
-        // Validación adicional basada en el estado calculado
-        if (estadoFinal === "ABONADO") {
+        // Nueva validación: Confirmación del usuario si hay fechas de vencimiento futuras
+        var confirmacionRequerida_fecha = false;
+
+        for (var checkbox of checkboxes) {
+            var fechaVencimientoStr = checkbox.value.split(',')[2]; // Extrae la fecha de vencimiento como cadena
+            var fechaVencimiento = new Date(fechaVencimientoStr); // Convierte la cadena en un objeto Date
+            fechaVencimiento.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
+
+            // Obtener la fecha actual
+            var fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
+
+            if (fechaVencimiento > fechaActual) { // Compara con la fecha actual
+                confirmacionRequerida_fecha = true;
+                break; // Salir del bucle si se encuentra una fecha futura
+            }
+        }
+
+        if (confirmacionRequerida_fecha) {
             Swal.fire({
-                width: 600,
-                icon: 'info',
-                title: 'El tipo cartera no permite abonos.',
-                showConfirmButton: false
+                title: 'Confirmación',
+                text: 'Algunos documentos tienen fechas de vencimiento futuras. ¿Desea continuar con el envío del formulario?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return false; // Cancelar el envío del formulario si el usuario cancela
+                } else {
+                    // Si se confirma, continuar con el envío del formulario
+                    document.getElementById('form_concilia').submit();
+                }
             });
-            return false; // Devuelve false si la validación no pasa
+            return false; // Evitar el envío inmediato del formulario
         }
+
+        // Si no se requiere confirmación, permitir el envío del formulario
+        return true;
+
+        // Nueva validación: Confirmación del usuario si el estado del documento es PAGADO o NO VIGENTE
+        var confirmacionRequerida = false;
+
+        for (var checkbox of checkboxes) {
+            // Obtener la fila del checkbox seleccionado
+            var fila = checkbox.closest('tr');
+            var estadoDoc = fila.querySelector('.estado_doc').textContent.trim(); // Obtén el estado del documento de la celda correspondiente
+
+            if (estadoDoc === 'PAGADO' || estadoDoc === 'NO VIGENTE') {
+                confirmacionRequerida = true;
+                break;
+            }
+        }
+
+        if (confirmacionRequerida) {
+            Swal.fire({
+                title: 'Confirmación',
+                text: 'Algunos documentos están en estado PAGADO o NO VIGENTE. ¿Desea continuar?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return false; // Cancelar el envío del formulario si el usuario cancela
+                } else {
+                    // Si se confirma, continuar con el envío del formulario
+                    document.getElementById('form_concilia').submit();
+                }
+            });
+            return false; // Evitar el envío inmediato del formulario
+        }
+
+        // Si no se requiere confirmación, permitir el envío del formulario
+        return true;
     }
-
-    return true; // Permitir el envío del formulario si todas las validaciones pasan
-}
 </script>
-
-
 
 <script>
     // Variable para mantener el total de los valores seleccionados

@@ -18,7 +18,7 @@ if (isset($_GET["op"])) {
 
 <head>
     <meta charset="utf-8" />
-    <title><?= $sistema ?></title>
+    <title>Sistema Conciliaciones</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
