@@ -339,7 +339,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             // Apply the filter and page length on page load
             applyFilter();
         });
-/*
+
         // Mantener un seguimiento de las transacciones que ya se han visto
         var seenTransactions = new Set();
         var transactionCounts = {};
@@ -377,7 +377,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         });
     });
 
-*/
+
 
     <?php if ($op == 1) { ?>
         Swal.fire({

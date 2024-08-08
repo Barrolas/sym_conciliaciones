@@ -161,7 +161,7 @@ echo "\n\n"; // Dos saltos de línea
 echo "Estado Pareo:\n";
 print_r($estado_pareo);
 echo "</pre>"; // Cierra la etiqueta HTML <pre>
-exit;
+
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
 $sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";

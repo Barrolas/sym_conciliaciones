@@ -280,9 +280,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <th style="display: none;">MONTO</th> <!-- Columna oculta -->
                                                 <th>MONTO</th>
                                                 <th>OPERACIÓN</th>
-                                                <th>RUT CLIENTE</th>
+                                                <th>RUT CTE</th>
                                                 <th>CLIENTE</th>
-                                                <th>SUBPRODUCTO</th>
+                                                <th>SUBPROD</th>
                                                 <th>ESTADO</th>
                                                 <th class="col-1"></th>
                                             </tr>
@@ -313,7 +313,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         break;
                                                 }
 
-                                                $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y-m-d');
+                                                $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
                                             ?>
 
                                                 <tr>
@@ -417,12 +417,23 @@ $fecha_proceso = $row["FECHAPROCESO"];
             // Validación adicional basada en el estado calculado
             if (estadoFinal === "ABONADO") {
                 Swal.fire({
-                    width: 600,
-                    icon: 'info',
-                    title: 'El tipo cartera no permite abonos.',
-                    showConfirmButton: false
+                    title: 'Confirmación',
+                    text: 'Este tipo de cartera no permite abonos, ¿Desea continuar con el envío del formulario de todos modos?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Continuar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        return false; // Cancelar el envío del formulario si el usuario cancela
+                    } else {
+                        // Si se confirma, continuar con el envío del formulario
+                        document.getElementById('form_concilia').submit();
+                    }
                 });
-                return false; // Devuelve false si la validación no pasa
+                return false; // Evitar el envío inmediato del formulario
             }
         }
 
@@ -452,7 +463,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, continuar',
+                confirmButtonText: 'Continuar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (!result.isConfirmed) {
@@ -490,7 +501,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, continuar',
+                confirmButtonText: 'Continuar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (!result.isConfirmed) {
@@ -515,8 +526,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    // DataTables Initialization
     $(document).ready(function() {
+        // Inicialización de DataTables
         var table = $('#datatable2').DataTable({
             responsive: true,
             columnDefs: [{
@@ -526,18 +537,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
             order: [
                 [7, 'desc'],
                 [0, 'asc']
-            ]
+            ],
+            createdRow: function(row, data, dataIndex) {
+                // Asignar un ID único a cada fila basado en el índice
+                $(row).attr('id', 'row-' + dataIndex);
+            }
         });
 
         // Evento para los checkboxes
-        var total = 0;
+        var total = 0; // Inicializar el total en 0
         $('#datatable2').on('change', '.iddocumento_checkbox', function() {
             // Parsea el monto PHP a entero en JavaScript
             var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
-            // Obtener el índice de la fila
-            var rowIndex = $(this).closest('tr').index();
+            // Obtener el ID de la fila
+            var rowId = $(this).closest('tr').attr('id');
             // Obtener los datos de la fila desde DataTables
-            var rowData = table.row(rowIndex).data();
+            var rowData = table.row('#' + rowId).data();
             // Obtener el valor de la columna oculta (suponiendo que es numérico)
             var valor = parseFloat(rowData[1]); // Suponiendo que la columna oculta es la segunda columna (índice 1)
 
@@ -549,16 +564,21 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 total -= valor;
             }
 
+            // Asegurarse de que el total no sea menor de cero
+            if (total < 0) {
+                total = 0;
+            }
+
             // Comparar el total con montoParseado y actualizar el estado
             var estado;
-            //alert(montoParseado)
-            //alert(total)
             if (montoParseado > total && total > 0) {
                 estado = "EXCEDIDO";
             } else if (montoParseado < total) {
                 estado = "ABONADO";
-            } else if (montoParseado = total) {
+            } else if (montoParseado == total) { // Corregir = a ==
                 estado = "CONCILIADO";
+            } else {
+                estado = ""; // Estado vacío si no se cumple ninguna condición
             }
 
             // Actualizar el valor de la entrada total en la interfaz con formato
@@ -567,23 +587,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
             // Actualizar el valor del campo de entrada de estado
             $('#estado').val(estado);
 
+            // Actualizar el monto_checkbox de la misma fila
+            var montoCheckbox = $(this).closest('tr').find('.monto_checkbox');
+            montoCheckbox.prop('checked', this.checked);
+
+            // Actualizar el botón CONCILIAR
+            updateConciliarButton();
         });
-    });
-</script>
 
-<script>
-    $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-        // Obtener el índice de la fila
-        var rowIndex = $(this).closest('tr').index();
-
-        // Obtener el monto_checkbox de la misma fila y marcarlo si iddocumento_checkbox está marcado
-        var montoCheckbox = $(this).closest('tr').find('.monto_checkbox');
-        montoCheckbox.prop('checked', this.checked);
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
         // Función para actualizar el estado del botón de CONCILIAR
         function updateConciliarButton() {
             var checkboxes = $('#datatable2 .iddocumento_checkbox');
