@@ -125,9 +125,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <div class="col-12 mx-2">
                                 <p>
                                     Esta herramienta permite visualizar y gestionar las transferencias ya pareadas en el sistema
-                                    y asignarle a cada cual si se canalizará por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>. 
-                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere dolores sequi animi ipsa quaerat 
-                                    delectus veritatis veniam corrupti consequuntur cupiditate quidem totam asperiores optio at, dolore 
+                                    y asignarle a cada cual si se canalizará por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>.
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere dolores sequi animi ipsa quaerat
+                                    delectus veritatis veniam corrupti consequuntur cupiditate quidem totam asperiores optio at, dolore
                                     vero incidunt maxime nulla.
                                 </p>
                             </div>
@@ -206,9 +206,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </th>
                                                 <th>ID DOC</th>
                                                 <th>CUENTA</th>
-                                                <th>TRANSACCION</th>
-                                                <th>RUT DEUDOR</th>
-                                                <th>OPERACION</th>
+                                                <th>TRANSACCIÓN</th>
+                                                <th>RUT DEUD</th>
+                                                <th>OPERACIÓN</th>
                                                 <th>$ CUOTA</th>
                                                 <th>MORA</th>
                                                 <th>F. VENC</th>
@@ -225,17 +225,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
                                             while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                                $disabled = ($conciliacion["ESTADO"] === "PENDIENTE") ? 'disabled' : '';
                                             ?>
                                                 <tr>
                                                     <td>
                                                         <div class="form-check d-flex justify-content-center align-items-center">
-                                                            <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)">
+                                                            <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                             <input type="hidden" class="checkbox_type" value="ch">
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div class="form-check d-flex justify-content-center align-items-center">
-                                                            <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)">
+                                                            <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                             <input type="hidden" class="checkbox_type" value="tr">
                                                         </div>
                                                     </td>
@@ -260,8 +261,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td><?php echo $conciliacion["ESTADO"]; ?></td>
                                                     <td><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
                                                     <td><?php echo $conciliacion["CARTERA"]; ?></td>
-                                                </tr>
-                                            <?php } ?>
+                                                </tr> <?php } ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -303,12 +303,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 search: 'applied'
             }).nodes().to$().each(function() {
                 var row = $(this);
-                var checkboxes = row.find('input[type="checkbox"]');
+                var checkboxes = row.find('input[data-column="' + column + '"]');
 
                 checkboxes.each(function() {
-                    if ($(this).data('column') === column) {
+                    if (!$(this).is(':disabled')) { // Solo marca los checkboxes habilitados
                         this.checked = isChecked;
-                    } else {
+                    }
+                });
+
+                // Desmarcar los checkboxes de la columna opuesta
+                var otherColumn = column === 1 ? 2 : 1;
+                row.find('input[data-column="' + otherColumn + '"]').each(function() {
+                    if (!$(this).is(':disabled')) { // Solo desmarca los checkboxes habilitados
                         this.checked = false;
                     }
                 });
@@ -336,23 +342,27 @@ $fecha_proceso = $row["FECHAPROCESO"];
         function updateHeaderCheckboxState() {
             var table = $('#datatable2').DataTable();
 
-            // Comprobar si todos los checkboxes de la columna 1 están marcados
+            // Comprobar si todos los checkboxes habilitados de la columna 1 están marcados
             var allCheckedColumn1 = table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length && table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').filter(':checked').length === table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length;
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length &&
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').filter(':checked').length ===
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length;
 
-            // Comprobar si todos los checkboxes de la columna 2 están marcados
+            // Comprobar si todos los checkboxes habilitados de la columna 2 están marcados
             var allCheckedColumn2 = table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="2"]').length && table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="2"]').filter(':checked').length === table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="2"]').length;
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length &&
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').filter(':checked').length ===
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length;
 
             // Actualizar el estado de los checkboxes maestros
             $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
@@ -395,13 +405,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
     <script>
         function valida_envia() {
-            
             var selectedIdsDocs = [];
             var selectedIdsPareoSistema = [];
             var selectedTypes = [];
 
-            // Obtener los checkboxes seleccionados
-            document.querySelectorAll('input[type=checkbox]:checked').forEach(function(checkbox) {
+            // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
+            document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
                 var ids = checkbox.value.split(',');
                 var idDoc = ids[0];
                 var idPareoSistema = ids[1];
@@ -419,7 +428,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
             document.getElementById('selected_ids_pareosistema').value = selectedIdsPareoSistema.join(',');
             document.getElementById('selected_types').value = selectedTypes.join(',');
-            
+
             return true; // Asegúrate de que el formulario se envíe
         }
     </script>

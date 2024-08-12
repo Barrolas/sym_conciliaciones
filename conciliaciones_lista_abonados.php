@@ -177,14 +177,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </div>
                                         </th>
                                         !-->
-                                        <th>CANAL</th>
-                                        <th>F. VENC</th>
-                                        <th>N° DOC</th>
-                                        <th>RUT_DEUDOR</th>
-                                        <th>TRANSACCION</th>
-                                        <th>F. RECEP</th>
+                                        <th>CN</th>
                                         <th>CUENTA</th>
-                                        <th>MONTO DOC</th>
+                                        <th>F. VENC</th>
+                                        <th>F. RECEP</th>
+                                        <th>TRANSACCIÓN</th>
+                                        <th>RUT DEUD</th>
+                                        <th>OPERACIÓN</th>
+                                        <th>$ DOC</th>
                                         <th>ABONO</th>
                                     </tr>
                                 </thead>
@@ -204,13 +204,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </div>
                                             </td> !-->
                                             <td class="col-auto"><?php echo $conciliacion["CANAL"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
-                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) . "-" . $conciliacion["DV_DEUDOR"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
-                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.'); ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
+                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) . "-" . $conciliacion["DV"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
+                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["ABONADO"], 0, ',', '.'); ?></td>
                                         </tr>
                                     <?php } ?>

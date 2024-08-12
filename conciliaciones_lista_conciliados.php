@@ -177,15 +177,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </div>
                                         </th>
                                         !-->
+                                        <th>CN</th>
                                         <th>CUENTA</th>
-                                        <th>CARTERA</th>
-                                        <th>SUBPRODUCTO</th>
-                                        <th>TRANSACCION</th>
-                                        <th>RUT DEUD</th>
-                                        <th>N° DOC</th>
                                         <th>F. VENC</th>
-                                        <th>F. REC</th>
-                                        <th>MONTO DOC</th>
+                                        <th>F. RECEP</th>
+                                        <th>TRANSACCIÓN</th>
+                                        <th>RUT DEUD</th>
+                                        <th>OPERACIÓN</th>
+                                        <th>CARTERA</th>
+                                        <th>SUBPROD</th>
+                                        <th>$ DOC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -203,14 +204,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
                                                 </div>
                                             </td> !-->
+                                            <td class="col-auto"><?php echo $conciliacion["CANAL"]; ?></td>                                
                                             <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
-                                            <td class="col-auto"><?php echo $conciliacion["CARTERA"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
                                             <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) . "-" . $conciliacion["DV"]; ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["CARTERA"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                         </tr>
                                     <?php } ?>
@@ -358,7 +360,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         var table = $('#datatable2').DataTable({
             order: [
-                [0, 'asc']
+                [2, 'asc']
             ],
             columnDefs: [{
                 targets: 0

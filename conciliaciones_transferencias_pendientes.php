@@ -183,7 +183,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <th>MONTO</th>
                                         <th>TRANSACCION</th>
                                         <th>FECHA REC.</th>
-                                        <th>CUENTA</th>
+                                        <th>CTA. BENEF</th>
                                         <th>ASIGNAR</th>
                                     </tr>
                                 </thead>

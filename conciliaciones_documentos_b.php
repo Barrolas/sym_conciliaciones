@@ -276,20 +276,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                         <thead>
                                             <tr>
+                                                <th class="col-1"></th>
                                                 <th>F. VENC</th>
                                                 <th style="display: none;">MONTO</th> <!-- Columna oculta -->
-                                                <th>MONTO</th>
+                                                <th>$ DOC</th>
                                                 <th>OPERACIÓN</th>
                                                 <th>RUT CTE</th>
-                                                <th>CLIENTE</th>
+                                                <th>CARTERA</th>
                                                 <th>SUBPROD</th>
-                                                <th>ESTADO</th>
-                                                <th class="col-1"></th>
+                                                <th>E° DOC</th>
+                                                <th>E° PAREO</th>
+                                                <th>$ AB/PD</th>
+                                                <th style="display: none;">MONTO PAREO</th> <!-- Columna oculta -->
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
-
                                             $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
                                             $params3 = array($rut_deudor);
                                             $stmt3 = sqlsrv_query($conn, $sql3, $params3);
@@ -313,10 +315,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         break;
                                                 }
 
-                                                $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
+                                                $f_venc         = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
+                                                $monto_pareo    = $transferencia["MONTO_PAREO"];
+                                                $id_documento   = isset($transferencia["ID_DOCUMENTO"]) ?   $transferencia["ID_DOCUMENTO"] : '';
+                                                $monto_doc      = isset($transferencia["MONTO"]) ?          $transferencia["MONTO"] : '';
+                                                $fecha_venc     = isset($transferencia["F_VENC"]) ?         $transferencia["F_VENC"] : '';
+                                                $subproducto    = isset($transferencia["SUBPRODUCTO"]) ?    $transferencia["SUBPRODUCTO"] : '';
+                                                $estado_pareo   = isset($transferencia["ESTADO_PAREO"]) ?   $transferencia["ESTADO_PAREO"] : '';
+                                                $monto_pareo    = isset($transferencia["MONTO_PAREO"]) ?    $transferencia["MONTO_PAREO"] : '';
+                                                $n_doc          = isset($transferencia["N_DOC"]) ?          $transferencia["N_DOC"] : '';
+
                                             ?>
 
                                                 <tr>
+                                                    <td class="col-1" style="text-align: center;">
+                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $estado_pareo . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                    </td>
                                                     <td class="f_venc col-auto" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td> <!-- Celda oculta -->
                                                     <td class="valor2 col-auto" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
@@ -325,9 +339,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="nom_cliente col-auto" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
                                                     <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
                                                     <td class="estado_doc col-auto" id="estado_doc"><?php echo $estado_doc_text; ?></td>
-                                                    <td class="col-1" style="text-align: center;">
-                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"] . ',' . $transferencia["F_VENC"] . ',' . $transferencia["SUBPRODUCTO"]; ?>" data-n-doc="<?php echo htmlspecialchars($transferencia['N_DOC']); ?>" />
-                                                    </td>
+                                                    <td class="estado_pareo col-auto" id="estado_pareo"><?php echo $transferencia["ESTADO_PAREO"]; ?></td>
+                                                    <td class="monto_pareo col-auto" id="monto_pareo">$<?php echo number_format($transferencia["MONTO_PAREO"], 0, ',', '.'); ?></td>
+                                                    <td class="monto_pareo_oculto col-auto" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td> <!-- Columna oculta -->
                                                 </tr>
                                             <?php } ?>
                                         </tbody>
@@ -350,7 +364,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             document.getElementById('content').style.display = 'block';
         };
     </script>
-
 
 </body>
 
@@ -383,7 +396,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="assets/js/app.js"></script>
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-
 
 <script>
     function valida_envia() {
@@ -531,12 +543,17 @@ $fecha_proceso = $row["FECHAPROCESO"];
         var table = $('#datatable2').DataTable({
             responsive: true,
             columnDefs: [{
-                targets: [1],
-                visible: false
-            }],
+                    targets: [0], // Índice de la columna que no será ordenable
+                    orderable: false
+                },
+                {
+                    targets: [2, 11],
+                    visible: false
+                }
+            ],
             order: [
-                [7, 'desc'],
-                [0, 'asc']
+                [8, 'desc'],
+                [1, 'asc']
             ],
             createdRow: function(row, data, dataIndex) {
                 // Asignar un ID único a cada fila basado en el índice
@@ -547,21 +564,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Evento para los checkboxes
         var total = 0; // Inicializar el total en 0
         $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-            // Parsea el monto PHP a entero en JavaScript
-            var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
             // Obtener el ID de la fila
             var rowId = $(this).closest('tr').attr('id');
             // Obtener los datos de la fila desde DataTables
             var rowData = table.row('#' + rowId).data();
             // Obtener el valor de la columna oculta (suponiendo que es numérico)
-            var valor = parseFloat(rowData[1]); // Suponiendo que la columna oculta es la segunda columna (índice 1)
+            var valor = parseFloat(rowData[2]); // Suponiendo que la columna oculta es la tercera columna (índice 2)
+            var montoPareo = parseFloat(rowData[11]); // Obtener el valor del monto_pareo (índice 11)
 
             if ($(this).is(':checked')) {
                 // Sumar el valor al total si el checkbox está marcado
-                total += valor;
+                total += valor - montoPareo;
             } else {
                 // Restar el valor del total si el checkbox está desmarcado
-                total -= valor;
+                total -= valor - montoPareo;
             }
 
             // Asegurarse de que el total no sea menor de cero
@@ -569,8 +585,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 total = 0;
             }
 
-            // Comparar el total con montoParseado y actualizar el estado
+            // Actualizar el valor de la entrada total en la interfaz con formato
+            $('#total2').val('$' + formatNumber(total));
+
+            // Actualizar el estado del campo de entrada
             var estado;
+            var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
             if (montoParseado > total && total > 0) {
                 estado = "EXCEDIDO";
             } else if (montoParseado < total) {
@@ -580,9 +600,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             } else {
                 estado = ""; // Estado vacío si no se cumple ninguna condición
             }
-
-            // Actualizar el valor de la entrada total en la interfaz con formato
-            $('#total2').val('$' + formatNumber(total));
 
             // Actualizar el valor del campo de entrada de estado
             $('#estado').val(estado);
@@ -639,7 +656,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 table.search('').columns().search('').draw();
             } else {
                 // Use DataTables search() function to filter the table
-                table.column(4).search(filterValue).draw();
+                table.column(5).search(filterValue).draw();
             }
         });
     });

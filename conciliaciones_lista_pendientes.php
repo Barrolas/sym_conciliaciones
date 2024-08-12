@@ -103,7 +103,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Abonos</b>
+                            <b>Pendientes</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
@@ -177,15 +177,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </div>
                                         </th>
                                         !-->
-                                        <th>CANAL</th>
-                                        <th>F. VENC</th>
-                                        <th>N° DOC</th>
-                                        <th>RUT_DEUDOR</th>
-                                        <th>TRANSACCION</th>
-                                        <th>F. RECEP</th>
                                         <th>CUENTA</th>
-                                        <th>MONTO DOC</th>
-                                        <th>ABONO</th>
+                                        <th>F. VENC</th>
+                                        <th>F. RECEP</th>
+                                        <th>TRANSACCIÓN</th>
+                                        <th>OPERACIÓN</th>
+                                        <th>RUT DEUD</th>
+                                        <th>$ DOC</th>
+                                        <th>CUBIERTO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -203,13 +202,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
                                                 </div>
                                             </td> !-->
-                                            <td class="col-auto"><?php echo $conciliacion["CANAL"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
                                             <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
                                             <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) . "-" . $conciliacion["DV_DEUDOR"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
                                         </tr>
@@ -330,8 +328,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
-
-
 <script>
     // Inicializar Feather Icons
     feather.replace();
@@ -423,7 +419,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Apply filters on page load
         applyFilters();
     });
-
 
 
     <?php if ($op == 1) { ?>
