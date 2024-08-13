@@ -119,31 +119,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             <div class="container-fluid px-3">
                 <div class="row">
                     <div class="col-md-12">
-                    <!--<div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-6">
-                                <label class="col-4" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
-                                <input type="text" class="form-control col-6" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="col-lg-9">
-                                    <label for="cuenta" class="col-4">CUENTA</label>
-                                    <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Todas las cuentas</option>
-                                        <?php
-                                        //$sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
-                                        //$stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
-
-                                        //if ($stmt_cuenta === false) {
-                                        //    die(print_r(sqlsrv_errors(), true));
-                                        //}
-                                        //while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
-                                        //?>
-                                            <option value="<?php //echo $cuenta["CUENTA"] ?>"><?php //echo $cuenta["CUENTA"] ?></option>
-                                        <?php //}; ?>
-                                    </select>
-                                </div>
-                            </div>
-                        </div><!--end form-group-->
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
                             <div class="col-lg-6">
                                 <label class="col-4" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>

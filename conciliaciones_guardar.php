@@ -42,7 +42,7 @@ if (isset($_POST['iddocumento_checkbox'])) {
             $fechas_venc[]          = $valores[2];
             $subproductos[]         = $valores[3];
             $e_pareodocs[]          = $valores[4];
-            $monto_pareodocs[]      = $valores[4];
+            $monto_pareodocs[]      = $valores[5];
             $suma_docs             += $valores[1];
             $cant_docs++;
         }
@@ -78,14 +78,14 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $monto_pareodocs    = array_column($docs_combined, 'e_pareodocs');
 }
 
-
+/*
 print_r($id_documentos);
 print_r($montos_docs);
 print_r($fechas_venc);
 print_r($subproductos);
 print_r($e_pareodocs);
 print_r($monto_pareodocs);
-
+*/
 
 
 //print_r($cant_docs);
@@ -96,6 +96,7 @@ $rut_ordenante                  = $_GET['rut_ordenante'];
 $rut_deudor                     = $_GET['rut_deudor'];
 $transaccion                    = $_GET['transaccion'];
 $cuenta                         = $_GET['cuenta'];
+$fecha_rec                      = $_GET['fecha_rec'];
 $monto_transferido_con_puntos   = $_GET['monto'];
 $monto_transferido              = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
 
@@ -104,55 +105,6 @@ print_r($_POST);
 print_r($_GET);
 print_r($id_documentos);
 exit;
-*/
-
-
-/*
-//Validar el pago
-$valida_pago = 0;
-
-$sql_pago = "{call [_SP_CONCILIACIONES_VALIDA_PAGO] (?, ?, ?, ?)}";
-
-$params_pago = array(
-
-    array($rut_cliente,         SQLSRV_PARAM_IN),
-    array($monto_transferido,   SQLSRV_PARAM_IN),
-    array($suma_docs,           SQLSRV_PARAM_IN),
-    array(&$valida_pago,        SQLSRV_PARAM_OUT)
-
-);
-
-print_r($params_pago);
-exit;
-
-// Ejecutar la consulta
-$stmt_pago = sqlsrv_query($conn, $sql_pago, $params_pago);
-
-if ($stmt_pago === false) {
-    echo "Error in executing statement pago.\n";
-    die(print_r(sqlsrv_errors(), true));
-}
-if ($valida_pago == 0) {
-    header("Location: conciliaciones_transferencias_pendientes.php?op=5");
-}
-
-$tipo_pago = 0;
-
-$sql_tpago = "{call [_SP_CONCILIACIONES_TIPO_PAGO_VALIDA] (?, ?, ?)}";
-
-$params_tpago = array(
-    array($cuenta,          SQLSRV_PARAM_IN),
-    array($rut_cliente,     SQLSRV_PARAM_IN),
-    array(&$tipo_pago,      SQLSRV_PARAM_OUT)
-);
-
-// Ejecutar la consulta
-$stmt_tpago = sqlsrv_query($conn, $sql_tpago, $params_tpago);
-
-if ($stmt_tpago === false) {
-    echo "Error in executing statement tpago.\n";
-    die(print_r(sqlsrv_errors(), true));
-}
 */
 
 $existe_pareo    = 0;
@@ -168,7 +120,7 @@ if ($monto_transferido > $suma_docs) {
 if ($monto_transferido < $suma_docs) {
     $estado_pareo = 3;
 }
-
+/*
 echo "<pre>"; // Esta etiqueta HTML ayuda a mantener el formato
 echo "Monto Transferido:\n";
 print_r($monto_transferido);
@@ -181,21 +133,19 @@ echo "\n\n"; // Dos saltos de línea
 echo "Estado Pareo:\n";
 print_r($estado_pareo);
 echo "</pre>"; // Cierra la etiqueta HTML <pre>
-
+*/
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
 $params1 = array(
     array($rut_ordenante,       SQLSRV_PARAM_IN),
     array($rut_deudor,          SQLSRV_PARAM_IN),
     array($transaccion,         SQLSRV_PARAM_IN),
-    array($monto_transferido,   SQLSRV_PARAM_IN),
-    array($cuenta,              SQLSRV_PARAM_IN),
-    array($cant_docs,           SQLSRV_PARAM_IN),
     array($rut_cliente,         SQLSRV_PARAM_IN),
     array($estado_pareo,        SQLSRV_PARAM_IN),
+    array(&$$existe_pareo ,     SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
 
@@ -208,10 +158,7 @@ if ($stmt1 === false) {
 }
 
 // Verificar la variable de salida $existe
-if ($existe_pareo == 1 && $op == 1) {
-    header("Location: conciliaciones_transferencias_pendientes.php?op=3");
-}
-if ($existe_pareo == 1 && $op == 2) {
+if ($existe_pareo == 1) {
     header("Location: conciliaciones_transferencias_pendientes.php?op=3");
 }
 
@@ -231,7 +178,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     $existe_doc = 0;
 
-    print_r($saldo_disponible);
+    print_r('transferido: ' . $saldo_disponible);
 
     $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?)}";
 
@@ -263,7 +210,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     }
 }
 
-print_r('Leidos: ' . $leidos . ' ');
+//print_r('Leidos: ' . $leidos . ' ');
 
 //if ($existe_doc && $op == 1) {
 //    header("Location: conciliaciones_transferencias_pendientes.php?op=4");
@@ -274,8 +221,8 @@ print_r('Leidos: ' . $leidos . ' ');
 //} else {
 
 //print_r($idpareo_sistema);
-print_r(" pre: " . $saldo_disponible);
-
+//print_r(" lo que quedó despues de restar el doc: " . $saldo_disponible);
+//exit;
 
 if ($saldo_disponible > 0) {
     $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
@@ -284,8 +231,9 @@ if ($saldo_disponible > 0) {
         array($saldo_disponible,    SQLSRV_PARAM_IN)
     );
 }
+
 //print_r($idpareo_sistema);
-print_r(" post: " . $saldo_disponible);
+//print_r(" post: " . $saldo_disponible);
 //exit;
 
 // Ejecutar la consulta

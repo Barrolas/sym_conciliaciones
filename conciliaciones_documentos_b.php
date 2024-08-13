@@ -16,7 +16,6 @@ $rut_deudor     = $_GET["rut_deudor"];
 $cuenta         = $_GET["cuenta"];
 
 $sql1     = "{call [_SP_CONCILIACIONES_TRANSFERENCIAS_ASIGNADAS_CONSULTA](?, ?)}";
-
 $params1 = array(
     array($rut_ordenante,   SQLSRV_PARAM_IN),
     array($transaccion,     SQLSRV_PARAM_IN)
@@ -167,7 +166,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div><!--end col-->
                         </div>
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&op=2" onsubmit="return valida_envia();return false;">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&fecha_rec=<?= $gestion["FECHA"]?>&op=2" onsubmit="return valida_envia();return false;">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">

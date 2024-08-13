@@ -57,20 +57,38 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-
     <style>
-        .table-container {
-            display: flex;
-            flex-direction: column;
+
+        @media (min-width: 1000px) and (max-width: 1299px) {
+            .font_mini {
+                font-size: 12px !important;
+            }
+
+            .font_mini_header {
+                font-size: 11px !important;
+            }
+            .card_width{
+                width: 90% !important;
+                overflow-x: scroll;
+            }
+            .card_content{
+                width: 100% !important;
+                overflow-x: visible;
         }
 
-        .table-wrapper {
-            overflow-x: auto;
-        }
+        @media (min-width: 1300px) {
+            .font_mini {
+                font-size: 15px !important;
+            }
 
-        .table {
-            flex: 1;
+            .font_mini_header {
+                font-size: 15px !important;
+            }
+            .card_width{
+                width: 100% !important;
+            }
         }
+    }
     </style>
 
 </head>
@@ -95,7 +113,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         <!-- Page Content-->
         <div class="page-content" id="content">
             <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_canalizaciones_guardar.php" onsubmit="return valida_envia();return false;">
-                <div class="container">
+                <div class="container-fluid">
                     <!-- Page-Title -->
                     <div class="row">
                         <div class="col-sm-12">
@@ -173,9 +191,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <label for="estado_conc" class="col-12">ESTADO</label>
                                     <select name="estado_conc" id="estado_conc" class="form-control col-12" maxlength="50" autocomplete="off">
                                         <option value="0" selected>Mostrar todos</option>
-                                        <option value="CONCILIADO">CONCILIADO</option>
-                                        <option value="ABONADO">ABONADO</option>
-                                        <option value="PENDIENTE">PENDIENTE</option>
+                                        <option value="CONC">CONCILIADO</option>
+                                        <option value="ABON">ABONADO</option>
+                                        <option value="PEND">PENDIENTE</option>
                                     </select>
                                 </div>
                                 <div class="col-lg-1">
@@ -185,86 +203,80 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         </div><!--end col-->
                     </div>
 
-                    <div class="container d-flex">
-                        <div class="card" style="width: 90%;">
-                            <div class="card-body" style="width: 100%;">
-                                <div class="table-responsive">
-                                    <table id="datatable2" class="table dt-responsive nowrap">
-                                        <thead>
+                    <div class="col-12 px-3">
+                        <div class="card card_content">
+                            <div class="card-body card_width">
+                                <table id="datatable2" class="table dt-responsive nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th class="font_mini_header">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
+                                                    <span>CH</span>
+                                                </div>
+                                            </th>
+                                            <th class="font_mini_header">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <input class="mb-2" type="checkbox" id="select_all_checkbox2" onclick="handleMasterCheckbox(2)">
+                                                    <span>TR</span>
+                                                </div>
+                                            </th>
+                                            <th class="font_mini_header">ID DOC</th>
+                                            <th class="font_mini_header">CUENTA</th>
+                                            <th class="font_mini_header">F. VENC</th>
+                                            <th class="font_mini_header">F. RECEP</th>
+                                            <th class="font_mini_header">TRANSACCIÓN</th>
+                                            <th class="font_mini_header">RUT DEUD</th>
+                                            <th class="font_mini_header">OPERACIÓN</th>
+                                            <th class="font_mini_header">MORA</th>
+                                            <th class="font_mini_header">SUBPROD</th>
+                                            <th class="font_mini_header">CARTERA</th>
+                                            <th class="font_mini_header">E°</th>
+                                            <th class="font_mini_header">$ TRANSF</th>
+                                            <th class="font_mini_header">$ DOC</th>
+                                            <th class="font_mini_header">CUBIERTO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $sql = "EXEC [_SP_CONCILIACIONES_CANALIZACIONES_LISTA]";
+                                        $stmt = sqlsrv_query($conn, $sql);
+                                        if ($stmt === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+                                        while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                            $disabled = ($conciliacion["ESTADO"] === "PEND") ? 'disabled' : '';
+                                        ?>
                                             <tr>
-                                                <th>
-                                                    <div class="d-flex flex-column align-items-center">
-                                                        <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
-                                                        <span>CH</span>
+                                                <td>
+                                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input type="hidden" class="checkbox_type" value="ch">
                                                     </div>
-                                                </th>
-                                                <th>
-                                                    <div class="d-flex flex-column align-items-center">
-                                                        <input class="mb-2" type="checkbox" id="select_all_checkbox2" onclick="handleMasterCheckbox(2)">
-                                                        <span>TR</span>
+                                                </td>
+                                                <td>
+                                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                                        <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input type="hidden" class="checkbox_type" value="tr">
                                                     </div>
-                                                </th>
-                                                <th>ID DOC</th>
-                                                <th>CUENTA</th>
-                                                <th>TRANSACCIÓN</th>
-                                                <th>RUT DEUD</th>
-                                                <th>OPERACIÓN</th>
-                                                <th>$ CUOTA</th>
-                                                <th>MORA</th>
-                                                <th>F. VENC</th>
-                                                <th>ESTADO</th>
-                                                <th>SUBPRODUCTO</th>
-                                                <th>CARTERA</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $sql = "EXEC [_SP_CONCILIACIONES_CANALIZACIONES_LISTA]";
-                                            $stmt = sqlsrv_query($conn, $sql);
-                                            if ($stmt === false) {
-                                                die(print_r(sqlsrv_errors(), true));
-                                            }
-                                            while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                                                $disabled = ($conciliacion["ESTADO"] === "PENDIENTE") ? 'disabled' : '';
-                                            ?>
-                                                <tr>
-                                                    <td>
-                                                        <div class="form-check d-flex justify-content-center align-items-center">
-                                                            <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
-                                                            <input type="hidden" class="checkbox_type" value="ch">
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="form-check d-flex justify-content-center align-items-center">
-                                                            <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $conciliacion["ID_DOC"] . ',' . $conciliacion["PAR_SISTEMA"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
-                                                            <input type="hidden" class="checkbox_type" value="tr">
-                                                        </div>
-                                                    </td>
-                                                    <td><input type="hidden" id="id_doc" value="<?php echo $conciliacion["ID_DOC"]; ?>"></td>
-                                                    <td><?php echo $conciliacion["CUENTA"]; ?></td>
-                                                    <td><?php echo $conciliacion["TRANSACCION"]; ?></td>
-                                                    <td><?php echo trim($conciliacion["RUT_DEUDOR"]) ?></td>
-                                                    <td><?php echo $conciliacion["N_DOC"]; ?></td>
-                                                    <td>$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
-                                                    <td><?php echo $conciliacion['DIAS_MORA'] ?></td>
-                                                    <td>
-                                                        <?php
-                                                        if ($conciliacion["F_VENC"] instanceof DateTime) {
-                                                            echo $conciliacion["F_VENC"]->format('Y/m/d');
-                                                        } else if (is_string($conciliacion["F_VENC"])) {
-                                                            echo date('Y/m/d', strtotime($conciliacion["F_VENC"]));
-                                                        } else {
-                                                            echo 'Fecha no disponible';
-                                                        }
-                                                        ?>
-                                                    </td>
-                                                    <td><?php echo $conciliacion["ESTADO"]; ?></td>
-                                                    <td><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
-                                                    <td><?php echo $conciliacion["CARTERA"]; ?></td>
-                                                </tr> <?php } ?>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                </td>
+                                                <td class="font_mini"><input type="hidden" id="id_doc" value="<?php echo $conciliacion["ID_DOC"]; ?>"></td>
+                                                <td class="font_mini"><?php echo $conciliacion["CUENTA"]; ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["F_VENC"]; ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["F_REC"]; ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["TRANSACCION"]; ?></td>
+                                                <td class="font_mini"><?php echo trim($conciliacion["RUT_DEUDOR"]) ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["N_DOC"]; ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion['DIAS_MORA'] ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["SUBPRODUCTO"]; ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["CARTERA"]; ?></td>
+                                                <td class="font_mini"><?php echo $conciliacion["ESTADO"]; ?></td>
+                                                <td class="font_mini">$<?php echo number_format($conciliacion["MONTO_TRANSFERIDO"], 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($conciliacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($conciliacion["MONTO_CUBIERTO"], 0, ',', '.'); ?></td>
+                                            </tr> <?php } ?>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div> <!-- end col -->
@@ -495,7 +507,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         var table = $('#datatable2').DataTable({
             responsive: true,
             order: [
-                [9, 'asc'] // Ordena la columna 8 en orden ascendente
+                [4, 'asc'] // Ordena la columna 8 en orden ascendente
             ],
             columnDefs: [{
                     targets: 0,
@@ -510,7 +522,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     visible: false
                 },
                 {
-                    targets: 8,
+                    targets: 9,
                     render: function(data, type, row, meta) {
                         if (data > 170) { // Valor desde el cual se mostrará el texto en rojo
                             return '<span class="text-danger"><b>' + data + '</b></span>';
@@ -521,10 +533,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
             ],
             createdRow: function(row, data, dataIndex) {
                 // Verifica el valor en la columna 7 (índice 7)
-                if (data[8] > 170) { // Valor desde el cual se mostrará el fondo en rojo claro
+                if (data[9] > 170) { // Valor desde el cual se mostrará el fondo en rojo claro
                     $(row).css('background-color', 'rgba(255, 0, 0, 0.06)'); // Color rojo claro con transparencia
                 }
-                if (data[8] < 0) { // Valor desde el cual se mostrará el fondo en rojo claro
+                if (data[9] < 0) { // Valor desde el cual se mostrará el fondo en rojo claro
                     $(row).css('background-color', 'rgba(255, 255, 0, 0.15)'); // Color amarillo claro con transparencia
                 }
             }
@@ -564,7 +576,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 var diasMoraFilter = $('#dias_mora').val();
                 var estadoFilter = $('#estado_conc').val();
                 var diasMoraValue = parseFloat(data[7]) || 0; // Convert the value to a number
-                var estadoValue = data[9]; // Assuming column 9 is the ESTADO column
+                var estadoValue = data[10]; // Assuming column 9 is the ESTADO column
 
                 // Filter by dias_mora
                 if (diasMoraFilter === "1") {
