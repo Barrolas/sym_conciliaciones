@@ -166,7 +166,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div><!--end col-->
                         </div>
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&fecha_rec=<?= $gestion["FECHA"]?>&op=2" onsubmit="return valida_envia();return false;">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&fecha_rec=<?= $gestion["FECHA"] ?>&op=2" onsubmit="return valida_envia();return false;">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -291,13 +291,25 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         </thead>
                                         <tbody>
                                             <?php
+                                            // Consulta para obtener documentos asignados
                                             $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
                                             $params3 = array($rut_deudor);
                                             $stmt3 = sqlsrv_query($conn, $sql3, $params3);
+
                                             if ($stmt3 === false) {
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
+
                                             while ($transferencia = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+
+                                                // Variables de documento
+                                                $f_venc         = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
+                                                $id_documento   = isset($transferencia["ID_DOCUMENTO"]) ? $transferencia["ID_DOCUMENTO"] : '';
+                                                $monto_doc      = isset($transferencia["MONTO"]) ? $transferencia["MONTO"] : '';
+                                                $fecha_venc     = isset($transferencia["F_VENC"]) ? $transferencia["F_VENC"] : '';
+                                                $subproducto    = isset($transferencia["SUBPRODUCTO"]) ? $transferencia["SUBPRODUCTO"] : '';
+                                                $n_doc          = isset($transferencia["N_DOC"]) ? $transferencia["N_DOC"] : '';
+
                                                 $estado_doc = $transferencia["ESTADO_DOC"];
                                                 switch ($estado_doc) {
                                                     case '001':
@@ -314,35 +326,66 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         break;
                                                 }
 
-                                                $f_venc         = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
-                                                $monto_pareo    = $transferencia["MONTO_PAREO"];
-                                                $id_documento   = isset($transferencia["ID_DOCUMENTO"]) ?   $transferencia["ID_DOCUMENTO"] : '';
-                                                $monto_doc      = isset($transferencia["MONTO"]) ?          $transferencia["MONTO"] : '';
-                                                $fecha_venc     = isset($transferencia["F_VENC"]) ?         $transferencia["F_VENC"] : '';
-                                                $subproducto    = isset($transferencia["SUBPRODUCTO"]) ?    $transferencia["SUBPRODUCTO"] : '';
-                                                $estado_pareo   = isset($transferencia["ESTADO_PAREO"]) ?   $transferencia["ESTADO_PAREO"] : '';
-                                                $monto_pareo    = isset($transferencia["MONTO_PAREO"]) ?    $transferencia["MONTO_PAREO"] : '';
-                                                $n_doc          = isset($transferencia["N_DOC"]) ?          $transferencia["N_DOC"] : '';
+                                                // Consulta para obtener el monto de abonos (solo si el estado no es '1')
+                                                $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
+                                                $params4 = array($id_documento);
+                                                $stmt4 = sqlsrv_query($conn, $sql4, $params4);
 
+                                                if ($stmt4 === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                $monto_pareo = 0; // Inicializa en 0
+                                                while ($abonos = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
+                                                    $monto_pareo = isset($abonos["MONTO_PAREO"]) ? $abonos["MONTO_PAREO"] : 0;
+                                                }
+
+                                                // Consulta para obtener el estado del documento
+                                                $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                                $params5 = array($id_documento);
+                                                $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+
+                                                if ($stmt5 === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                $estado_pareo_text = 'N/A'; // Valor por defecto
+                                                while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
+                                                    $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
+                                                    switch ($estado_pareo) {
+                                                        case '1':
+                                                            $estado_pareo_text = 'CONC';
+                                                            break;
+                                                        case '2':
+                                                            $estado_pareo_text = 'ABON';
+                                                            break;
+                                                        case '3':
+                                                            $estado_pareo_text = 'PEND';
+                                                            break;
+                                                    }
+                                                }
+
+                                                // Generar HTML
                                             ?>
-
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $estado_pareo . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
                                                     </td>
                                                     <td class="f_venc col-auto" id="f_venc"><?php echo $f_venc; ?></td>
-                                                    <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td> <!-- Celda oculta -->
+                                                    <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
                                                     <td class="valor2 col-auto" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
                                                     <td class="n_doc col-auto" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
                                                     <td class="rut_cliente col-auto" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
                                                     <td class="nom_cliente col-auto" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
                                                     <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
                                                     <td class="estado_doc col-auto" id="estado_doc"><?php echo $estado_doc_text; ?></td>
-                                                    <td class="estado_pareo col-auto" id="estado_pareo"><?php echo $transferencia["ESTADO_PAREO"]; ?></td>
-                                                    <td class="monto_pareo col-auto" id="monto_pareo">$<?php echo number_format($transferencia["MONTO_PAREO"], 0, ',', '.'); ?></td>
-                                                    <td class="monto_pareo_oculto col-auto" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td> <!-- Columna oculta -->
+                                                    <td class="estado_pareo col-auto" id="estado_pareo"><?php echo $estado_pareo_text; ?></td>
+                                                    <td class="monto_pareo col-auto" id="monto_pareo">$<?php echo number_format($monto_pareo, 0, ',', '.'); ?></td>
+                                                    <td class="monto_pareo_oculto col-auto" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td>
                                                 </tr>
-                                            <?php } ?>
+                                            <?php
+                                            }
+                                            ?>
                                         </tbody>
                                     </table>
                                 </div><!-- end card-body -->

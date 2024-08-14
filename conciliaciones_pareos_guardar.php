@@ -23,7 +23,6 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $montos_docs        = array();
     $fechas_venc        = array();
     $subproductos       = array();
-    $e_pareodocs        = array(); // estado de pareo de los documentos (abonado, pendiente, conciliado[?])
     $monto_pareodocs    = array(); // monto de abonos, pendientes.
     $suma_docs          = 0;
     $cant_docs          = 0;
@@ -35,14 +34,13 @@ if (isset($_POST['iddocumento_checkbox'])) {
         $valores = explode(',', $checkbox_value);
 
         // Verificamos que $valores tenga el número correcto de elementos
-        if (count($valores) >= 6) {
+        if (count($valores) >= 5) {
             // $valores[0] contiene ID_DOCUMENTO, $valores[1] contiene MONTO, $valores[2] contiene FECHA_VENCIMIENTO y $valores[3] contiene SUBPRODUCTO
             $id_documentos[]        = $valores[0];
             $montos_docs[]          = $valores[1];
             $fechas_venc[]          = $valores[2];
             $subproductos[]         = $valores[3];
-            $e_pareodocs[]          = $valores[4];
-            $monto_pareodocs[]      = $valores[5];
+            $monto_pareodocs[]      = $valores[4];
             $suma_docs             += $valores[1];
             $cant_docs++;
         }
@@ -59,7 +57,6 @@ if (isset($_POST['iddocumento_checkbox'])) {
             'monto_doc'         => $montos_docs[$index],
             'fecha_venc'        => $fechas_venc[$index],
             'subproducto'       => $subproductos[$index],
-            'e_pareodocs'       => $e_pareodocs[$index],
             'monto_pareodocs'   => $monto_pareodocs[$index]
         ];
     }
@@ -74,8 +71,7 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $montos_docs        = array_column($docs_combined, 'monto_doc');
     $fechas_venc        = array_column($docs_combined, 'fecha_venc');
     $subproductos       = array_column($docs_combined, 'subproducto');
-    $e_pareodocs        = array_column($docs_combined, 'e_pareodocs');
-    $monto_pareodocs    = array_column($docs_combined, 'e_pareodocs');
+    $monto_pareodocs    = array_column($docs_combined, 'monto_pareodocs');
 }
 
 /*
@@ -83,9 +79,9 @@ print_r($id_documentos);
 print_r($montos_docs);
 print_r($fechas_venc);
 print_r($subproductos);
-print_r($e_pareodocs);
 print_r($monto_pareodocs);
 */
+//exit;
 
 
 //print_r($cant_docs);
@@ -184,7 +180,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     $concilia_doc           = 0;
     $idpareo_docdeudores    = 0;
     $tipo_pago              = 0;
-    print_r('transferido: ' . $saldo_disponible);
+    print_r('transferido: ' . $saldo_disponible . "; ");
 
     $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?)}";
 
@@ -206,6 +202,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     }
 
     $leidos++;
+    print_r('id pareo docdeudores: ' . $idpareo_docdeudores . '; ');
 
     if ($concilia_doc == 0) {
 
@@ -237,6 +234,8 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         if ($tipo_pago == 3) {
             $pendientes++;
         }
+
+        print_r('tipo_pago: ' . $tipo_pago . "; ");
     }
 
     if ($concilia_doc == 1) {
@@ -266,7 +265,7 @@ print_r('saldo insuf: ' . $saldo_insuf . '; ');
 
 //print_r($idpareo_sistema);
 print_r(" lo que quedó despues de restar el doc: " . $saldo_disponible . "; ");
-//exit;
+
 
 if ($saldo_disponible > 0) {
     $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
