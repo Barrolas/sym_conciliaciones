@@ -136,7 +136,7 @@ echo "</pre>"; // Cierra la etiqueta HTML <pre>
 */
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?)}";
+$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
 $params1 = array(
@@ -145,7 +145,7 @@ $params1 = array(
     array($transaccion,         SQLSRV_PARAM_IN),
     array($rut_cliente,         SQLSRV_PARAM_IN),
     array($estado_pareo,        SQLSRV_PARAM_IN),
-    array(&$$existe_pareo ,     SQLSRV_PARAM_OUT),
+    array(&$existe_pareo ,      SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
 
@@ -164,32 +164,38 @@ if ($existe_pareo == 1) {
 
 // SP para insertar en DOCDEUDORES
 
-$leidos             = 0;
-$conciliados        = 0;
-$ya_conciliados     = 0;
-$saldo_insuf        = 0;
-$concilia_doc       = 0;
-$saldo_disponible   = $monto_transferido;
+$leidos                 = 0;
+$conciliados            = 0;
+$abonados               = 0;
+$pendientes             = 0;
+$ya_conciliados         = 0;
+$saldo_insuf            = 0;
+$concilia_doc           = 0;
+$idpareo_docdeudores    = 0;
+$tipo_pago              = 0;
+$saldo_disponible       = $monto_transferido;
 
 //print_r($saldo_disponible);
 //exit;
 
 foreach ($id_documentos as $index => $id_docdeudores) {
+
     // Inicializar variable de salida para cada iteración
-
-    $existe_doc = 0;
-
+    $concilia_doc           = 0;
+    $idpareo_docdeudores    = 0;
+    $tipo_pago              = 0;
     print_r('transferido: ' . $saldo_disponible);
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?)}";
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?)}";
 
     $params2 = array(
         array($idpareo_sistema,         SQLSRV_PARAM_IN),
         array($id_docdeudores,          SQLSRV_PARAM_IN),
         array($montos_docs[$index],     SQLSRV_PARAM_IN),
         array($subproductos[$index],    SQLSRV_PARAM_IN),
-        array(&$saldo_disponible,       SQLSRV_PARAM_INOUT),
-        array(&$concilia_doc,           SQLSRV_PARAM_OUT)
+        array(&$idpareo_docdeudores,    SQLSRV_PARAM_OUT),
+        array(&$concilia_doc,           SQLSRV_PARAM_OUT),
+        array(&$saldo_disponible,       SQLSRV_PARAM_INOUT)
     );
 
     $stmt2 = sqlsrv_query($conn, $sql2, $params2);
@@ -203,28 +209,33 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     if ($concilia_doc == 0) {
 
-        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?)}";
+        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?)}";
 
         $params3 = array(
             array($idpareo_sistema,         SQLSRV_PARAM_IN),
+            array($idpareo_docdeudores,     SQLSRV_PARAM_IN),
             array($id_docdeudores,          SQLSRV_PARAM_IN),
+            array($rut_cliente,             SQLSRV_PARAM_IN),
             array($montos_docs[$index],     SQLSRV_PARAM_IN),
             array($subproductos[$index],    SQLSRV_PARAM_IN),
-            array(&$saldo_disponible,       SQLSRV_PARAM_INOUT),
-            array(&$tipo_pago,              SQLSRV_PARAM_OUT)
+            array(&$tipo_pago,              SQLSRV_PARAM_OUT),
+            array(&$saldo_disponible,       SQLSRV_PARAM_INOUT)
         );
 
-        $stmt2 = sqlsrv_query($conn, $sql3, $params3);
+        $stmt3 = sqlsrv_query($conn, $sql3, $params3);
 
         if ($stmt3 === false) {
             echo "Error in executing statement 3.\n";
             die(print_r(sqlsrv_errors(), true));
         }
-        if ($concilia_doc == 1) {
-            $ya_conciliados++;
-
-
+        if ($tipo_pago == 1) {
             $conciliados++;
+        }
+        if ($tipo_pago == 2) {
+            $abonados++;
+        }
+        if ($tipo_pago == 3) {
+            $pendientes++;
         }
     }
 
@@ -237,7 +248,13 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     
 }
 
-//print_r('Leidos: ' . $leidos . ' ');
+print_r('Leidos: ' . $leidos . '; ');
+print_r('conciliados: ' . $conciliados . '; ');
+print_r('abonados: ' . $abonados . '; ');
+print_r('pendientes: ' . $pendientes . '; ');
+print_r('ya conciliados: ' . $ya_conciliados . '; ');
+print_r('saldo insuf: ' . $saldo_insuf . '; ');
+
 
 //if ($existe_doc && $op == 1) {
 //    header("Location: conciliaciones_transferencias_pendientes.php?op=4");
@@ -248,7 +265,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 //} else {
 
 //print_r($idpareo_sistema);
-//print_r(" lo que quedó despues de restar el doc: " . $saldo_disponible);
+print_r(" lo que quedó despues de restar el doc: " . $saldo_disponible . "; ");
 //exit;
 
 if ($saldo_disponible > 0) {
@@ -260,7 +277,7 @@ if ($saldo_disponible > 0) {
 }
 
 //print_r($idpareo_sistema);
-//print_r(" post: " . $saldo_disponible);
+print_r(" post: " . $saldo_disponible);
 //exit;
 
 // Ejecutar la consulta
@@ -270,6 +287,7 @@ if ($stmt_saldo === false) {
     echo "Error in executing statement saldo.\n";
     die(print_r(sqlsrv_errors(), true));
 }
+
 if ($op == 1) {
     header("Location: conciliaciones_transferencias_pendientes.php?op=1");
 }
