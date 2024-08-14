@@ -166,7 +166,8 @@ if ($existe_pareo == 1) {
 
 $leidos             = 0;
 $conciliados        = 0;
-$error              = 0;
+$ya_conciliados     = 0;
+$saldo_insuf        = 0;
 $concilia_doc       = 0;
 $saldo_disponible   = $monto_transferido;
 
@@ -180,11 +181,10 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     print_r('transferido: ' . $saldo_disponible);
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?)}";
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?)}";
 
     $params2 = array(
         array($idpareo_sistema,         SQLSRV_PARAM_IN),
-        array($rut_cliente,             SQLSRV_PARAM_IN),
         array($id_docdeudores,          SQLSRV_PARAM_IN),
         array($montos_docs[$index],     SQLSRV_PARAM_IN),
         array($subproductos[$index],    SQLSRV_PARAM_IN),
@@ -202,12 +202,39 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     $leidos++;
 
     if ($concilia_doc == 0) {
-        $conciliados++;
+
+        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?)}";
+
+        $params3 = array(
+            array($idpareo_sistema,         SQLSRV_PARAM_IN),
+            array($id_docdeudores,          SQLSRV_PARAM_IN),
+            array($montos_docs[$index],     SQLSRV_PARAM_IN),
+            array($subproductos[$index],    SQLSRV_PARAM_IN),
+            array(&$saldo_disponible,       SQLSRV_PARAM_INOUT),
+            array(&$tipo_pago,              SQLSRV_PARAM_OUT)
+        );
+
+        $stmt2 = sqlsrv_query($conn, $sql3, $params3);
+
+        if ($stmt3 === false) {
+            echo "Error in executing statement 3.\n";
+            die(print_r(sqlsrv_errors(), true));
+        }
+        if ($concilia_doc == 1) {
+            $ya_conciliados++;
+
+
+            $conciliados++;
+        }
     }
 
     if ($concilia_doc == 1) {
-        $error++;
+        $ya_conciliados++;
     }
+    if ($concilia_doc == 2) {
+        $saldo_insuf++;
+    }
+    
 }
 
 //print_r('Leidos: ' . $leidos . ' ');
