@@ -272,10 +272,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
 
-                                            
+
                                             $estado_pareo_text = 'N/A'; // Valor por defecto
                                             while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-                                                
+
                                                 $disabled = ($estados["ID_ESTADO"] == 3) ? 'disabled' : '';
 
                                                 $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
@@ -297,20 +297,28 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <tr>
                                                 <td>
                                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"] . ',' . $canalizacion["PAR_SISTEMA"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"] . ',' . $canalizacion["PAR_DOC"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                         <input type="hidden" class="checkbox_type" value="ch">
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"] . ',' . $canalizacion["PAR_SISTEMA"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"] . ',' . $canalizacion["PAR_DOC"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                         <input type="hidden" class="checkbox_type" value="tr">
                                                     </div>
                                                 </td>
                                                 <td class="font_mini"><input type="hidden" id="id_doc" value="<?php echo $canalizacion["ID_DOC"]; ?>"></td>
                                                 <td class="font_mini"><?php echo $canalizacion["CUENTA"]; ?></td>
                                                 <td class="font_mini"><?php echo $canalizacion["F_VENC"]->format('Y/m/d'); ?></td>
-                                                <td class="font_mini"><?php echo $canalizacion["F_REC"]->format('Y/m/d'); ?></td>
+                                                <td class="font_mini">
+                                                    <?php
+                                                    if (isset($canalizacion["F_REC"]) && $canalizacion["F_REC"] instanceof DateTime) {
+                                                        echo $canalizacion["F_REC"]->format('Y/m/d');
+                                                    } else {
+                                                        echo 'Fecha no disponible'; // O cualquier otro mensaje apropiado
+                                                    }
+                                                    ?>
+                                                </td>
                                                 <td class="font_mini"><?php echo $canalizacion["TRANSACCION"]; ?></td>
                                                 <td class="font_mini"><?php echo trim($canalizacion["RUT_DEUDOR"]) ?></td>
                                                 <td class="font_mini"><?php echo $canalizacion["N_DOC"]; ?></td>
@@ -328,7 +336,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     </div> <!-- end col -->
                 </div> <!-- end row -->
                 <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
-                <input type="hidden" id="selected_ids_pareosistema" name="selected_ids_pareosistema[]">
+                <input type="hidden" id="selected_ids_pareodoc" name="selected_ids_pareodoc[]">
                 <input type="hidden" id="selected_types" name="selected_types[]">
             </form>
         </div><!-- container -->
@@ -464,27 +472,27 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <script>
         function valida_envia() {
             var selectedIdsDocs = [];
-            var selectedIdsPareoSistema = [];
+            var selectedIdsPareoDoc = [];
             var selectedTypes = [];
 
             // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
             document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
                 var ids = checkbox.value.split(',');
                 var idDoc = ids[0];
-                var idPareoSistema = ids[1];
+                var idPareoDoc = ids[1];
 
                 // Obtener el valor de data-column
                 var checkboxType = checkbox.getAttribute('data-column');
 
                 // Agregar valores a los arreglos
                 selectedIdsDocs.push(idDoc);
-                selectedIdsPareoSistema.push(idPareoSistema);
+                selectedIdsPareoDoc.push(idPareoDoc);
                 selectedTypes.push(checkboxType);
             });
 
             // Asignar los valores a los campos ocultos
             document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
-            document.getElementById('selected_ids_pareosistema').value = selectedIdsPareoSistema.join(',');
+            document.getElementById('selected_ids_pareodoc').value = selectedIdsPareoDoc.join(',');
             document.getElementById('selected_types').value = selectedTypes.join(',');
 
             return true; // Asegúrate de que el formulario se envíe
@@ -553,7 +561,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
         var table = $('#datatable2').DataTable({
             responsive: true,
             order: [
-                [4, 'asc'] // Ordena la columna 8 en orden ascendente
+                [4, 'asc'], 
+                [7, 'asc'],
+                [8, 'asc']
             ],
             columnDefs: [{
                     targets: 0,

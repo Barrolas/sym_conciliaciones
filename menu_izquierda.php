@@ -34,14 +34,18 @@ error_reporting(E_ALL);
     <div class="menu-content h-100" data-simplebar>
         <ul class="metismenu left-sidenav-menu mb-5">
             <li>
-                <a href="cargas_conciliaciones.php">CARGA CONCILIACIONES</a>
+                <a href="cargas_conciliaciones.php">CARGA CARTOLA</a>
             </li>
             <li>
                 <a href="conciliaciones_transferencias_pendientes.php">TRANSFERENCIAS PENDIENTES</a>
             </li>    
             <li>
-                <a href="conciliaciones_lista_pareados.php">CANALIZACION</a> <!-- conciliaciones_lista_pareados.php -->
+                <a href="conciliaciones_lista_pareados.php">CANALIZACION</a>
             </li>    
+            <li>
+                <a href="conciliaciones_lista_canalizados.php">CANALIZADOS</a> 
+            </li> 
+            <!--   
             <li>
                 <a href="conciliaciones_lista_conciliados.php">CONCILIADOS</a>
             </li>    
@@ -50,7 +54,8 @@ error_reporting(E_ALL);
             </li>    
             <li>
                 <a href="conciliaciones_lista_pendientes.php">PENDIENTES</a>
-            </li>    
+            </li>
+            -->    
             <li>
                 <a href="conciliaciones_lista_saldos.php">SALDOS</a>
             </li>    

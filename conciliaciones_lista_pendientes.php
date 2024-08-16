@@ -178,11 +178,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         </th>
                                         !-->
                                         <th>CUENTA</th>
-                                        <th>F. VENC</th>
                                         <th>F. RECEP</th>
                                         <th>TRANSACCIÓN</th>
-                                        <th>OPERACIÓN</th>
                                         <th>RUT DEUD</th>
+                                        <th>F. VENC</th>
+                                        <th>OPERACIÓN</th>
                                         <th>$ DOC</th>
                                         <th>CUBIERTO</th>
                                     </tr>
@@ -195,19 +195,28 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         die(print_r(sqlsrv_errors(), true));
                                     }
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                        // Supongamos que $conciliacion["F_REC"] es una cadena con fecha en formato 'Y-m-d'
+                                        $fecha = $conciliacion["F_REC"];
+
+                                        // Crear un objeto DateTime a partir de la cadena
+                                        $date = new DateTime($fecha);
+
+                                        // Formatear la fecha en el formato deseado
+                                        $fecha_formateada = $date->format('Y/m/d');
                                     ?>
+
                                         <tr>
                                             <!--<td class="col-1">
                                                 <div class="form-check d-flex justify-content-center align-items-center">
                                                     <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
                                                 </div>
                                             </td> !-->
-                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
-                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_REC"]; ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>
+                                            <td class="col-auto"><?php echo htmlspecialchars($fecha_formateada); ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
+                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) ?></td>
+                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]->format('Y/m/d'); ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
-                                            <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) . "-" . $conciliacion["DV_DEUDOR"]; ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
                                         </tr>
