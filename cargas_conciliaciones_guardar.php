@@ -186,6 +186,13 @@ error_reporting(E_ALL);
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
 
+		$sql = "EXEC [192.168.1.193].conciliacion.[dbo].[InsertarGestionesCompromisos]";
+
+		$stmt = sqlsrv_query($conn3, $sql);
+		if ($stmt === false) {
+			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+		}
+
 		header("Location: cargas_conciliaciones.php?op=1");
 		?>
 	</div>
