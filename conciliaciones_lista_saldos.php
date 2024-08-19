@@ -123,17 +123,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
             <div class="container-fluid px-3">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
+                        <div class="form-group row text-start justify-content-between align-items-center pl-4 mb-3">
                             <div class="col-lg-3">
                                 <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
                                 <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                            </div>
-                            <div class="col-lg-3">
-                                <label for="dias_mora" class="col-12">DIAS MORA</label>
-                                <select name="dias_mora" id="dias_mora" class="form-control col-8" maxlength="50" autocomplete="off">
-                                    <option value="0" selected>Mostrar todos</option>
-                                    <option value="1">170 días o más</option>
-                                </select>
                             </div>
                             <div class="col-lg-3">
                                 <div class="col-lg-9">
@@ -155,8 +148,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </div>
                             </div>
                             <div class="col-lg-3">
+                            </div>
+                            <div class="col-lg-3">
                                 <a href="conciliaciones_exportar_saldos.php">
-                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4">
+                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" id="exportar_btn" disabled>
                                         EXPORTAR
                                     </button>
                                 </a>
@@ -200,7 +195,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
                                                 </div>
                                             </td> !-->
-                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>                                
+                                            <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>
                                             <td class="col-auto">
                                                 <?php
                                                 $fechaOriginal = $conciliacion["F_REC"];
@@ -237,7 +232,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         };
     </script>
 
-
+    <!--
     <script>
         function handleMasterCheckbox(column) {
             // Determinar si el checkbox maestro está marcado o desmarcado
@@ -300,6 +295,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
         }
     </script>
+-->
 
 </body>
 
@@ -370,10 +366,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
             }]
         });
 
+        var rowCount = table.rows().count();
+        var exportButton = document.getElementById('exportar_btn');
+
+        if (rowCount > 0) {
+            exportButton.disabled = false;
+        } else {
+            exportButton.disabled = true;
+        }
+
         // Function to apply filters based on stored values
         function applyFilters() {
             var storedCuentaValue = localStorage.getItem('selected_cuenta');
-            var storedFiltroValue = localStorage.getItem('selected_diasmora');
 
             // Apply cuenta filter
             if (storedCuentaValue && storedCuentaValue !== "0") {
@@ -382,26 +386,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 $('#cuenta').val("0").change(); // Reset to default
             }
 
-            // Apply dias_mora filter
-            if (storedFiltroValue && storedFiltroValue !== "0") {
-                $('#dias_mora').val(storedFiltroValue).change();
-            } else {
-                $('#dias_mora').val("0").change(); // Reset to default
-            }
         }
 
-        // Custom filter function for values >= 170
-        $.fn.dataTable.ext.search.push(
-            function(settings, data, dataIndex) {
-                var filterValue = $('#dias_mora').val();
-                var columnValue = parseFloat(data[7]) || 0; // Convert the value to a number
-
-                if (filterValue === "1") {
-                    return columnValue >= 100; // Rango para dias de mora
-                }
-                return true; // Otherwise, show all rows
-            }
-        );
 
         // Add event listener to the cuenta select element
         $('#cuenta').on('change', function() {
@@ -409,19 +395,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
             localStorage.setItem('selected_cuenta', filterValue);
 
             if (filterValue == "0") {
-                table.column(2).search('').draw(); // Clear the cuenta filter
+                table.column(0).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(2).search(filterValue).draw();
+                table.column(0).search(filterValue).draw();
             }
-        });
-
-        // Add event listener to the dias_mora select element
-        $('#dias_mora').on('change', function() {
-            var filterValue = $(this).val();
-            localStorage.setItem('selected_diasmora', filterValue);
-
-            // Redraw table to apply the dias_mora filter
-            table.draw();
         });
 
         // Apply filters on page load

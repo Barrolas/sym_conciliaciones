@@ -34,7 +34,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <head>
     <meta charset="utf-8" />
-    <title>Conciliaciones</title>
+    <title>Canalizados</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
@@ -89,7 +89,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 <div class="col">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
-                                        <li class="breadcrumb-item active">Conciliaciones</li>
+                                        <li class="breadcrumb-item active">Canalizados</li>
                                     </ol>
                                 </div><!--end col-->
                             </div><!--end col-->
@@ -103,7 +103,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Conciliados</b>
+                            <b>Canalizados</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
@@ -129,11 +129,23 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
                             <div class="col-lg-3">
-                                <label for="dias_mora" class="col-12">DIAS MORA</label>
-                                <select name="dias_mora" id="dias_mora" class="form-control col-8" maxlength="50" autocomplete="off">
-                                    <option value="0" selected>Mostrar todos</option>
-                                    <option value="1">170 días o más</option>
-                                </select>
+                                <div class="col-lg-9">
+                                    <label for="canal_filtro" class="col-4">CANAL</label>
+                                    <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
+                                        <option value="0" selected>Mostrar todos</option>
+                                        <?php
+                                        $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
+                                        $stmt_canal = sqlsrv_query($conn, $sql_canal);
+
+                                        if ($stmt_canal === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+                                        while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
+                                        ?>
+                                            <option value="<?php echo substr($canal['DESCRIPCION'], 0, 6); ?>"><?php echo $canal["DESCRIPCION"] ?></option>
+                                        <?php }; ?>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-lg-3">
                                 <div class="col-lg-9">
@@ -155,8 +167,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </div>
                             </div>
                             <div class="col-lg-3">
-                                <a href="conciliaciones_exportar_saldos.php">
-                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" disabled>
+                                <a href="conciliaciones_exportar_canalizados.php">
+                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" id="exportar_btn" disabled>
                                         EXPORTAR
                                     </button>
                                 </a>
@@ -416,10 +428,27 @@ $fecha_proceso = $row["FECHAPROCESO"];
             }]
         });
 
+        var rowCount = table.rows().count();
+        var exportButton = document.getElementById('exportar_btn');
+
+        if (rowCount > 0) {
+            exportButton.disabled = false;
+        } else {
+            exportButton.disabled = true;
+        }
+
+
         // Function to apply filters based on stored values
         function applyFilters() {
             var storedCuentaValue = localStorage.getItem('selected_cuenta');
+            var storedCanalValue = localStorage.getItem('selected_canal');
             var storedFiltroValue = localStorage.getItem('selected_diasmora');
+
+            if (storedCanalValue && storedCanalValue !== "0") {
+                $('#canal_filtro').val(storedCanalValue).change();
+            } else {
+                $('#canal_filtro').val("0").change(); // Reset to default
+            }
 
             // Apply cuenta filter
             if (storedCuentaValue && storedCuentaValue !== "0") {
@@ -427,6 +456,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             } else {
                 $('#cuenta').val("0").change(); // Reset to default
             }
+
 
             // Apply dias_mora filter
             if (storedFiltroValue && storedFiltroValue !== "0") {
@@ -455,9 +485,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
             localStorage.setItem('selected_cuenta', filterValue);
 
             if (filterValue == "0") {
-                table.column(2).search('').draw(); // Clear the cuenta filter
+                table.column(1).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(2).search(filterValue).draw();
+                table.column(1).search(filterValue).draw();
+            }
+        });
+
+        $('#canal_filtro').on('change', function() {
+            var filterValue = $(this).val();
+            localStorage.setItem('selected_canal', filterValue);
+
+            if (filterValue == "0") {
+                table.column(0).search('').draw(); // Clear the cuenta filter
+            } else {
+                table.column(0).search(filterValue).draw();
             }
         });
 
