@@ -186,6 +186,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <th>OPERACIÓN</th>
                                         <th>TIPO</th>
                                         <th>MONTO</th>
+                                        <th>ELIMINAR</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -244,7 +245,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </div>
                                             </td>
                                             -->
-                                            <td class="col-auto"><?php echo $detalles["CANALIZACION"]; ?></td>
+                                            <td class="col-auto"><?php echo mb_substr($detalles["CANALIZACION"], 0, 6); ?></td>
                                             <td class="col-auto"><?php echo $detalles["CUENTA"]; ?></td>
                                             <td class="col-auto"><?php echo $detalles["RUT_CLIENTE"]; ?></td>
                                             <td class="col-auto"><?php echo $detalles["RUT_DEUDOR"]; ?></td>
@@ -252,6 +253,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
                                             <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
+                                            <td class="col-auto">
+                                                <?php
+                                                // Convertir DateTime a cadena en el formato deseado
+                                                $f_venc = $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : $detalles["F_VENC"];
+                                                ?>
+                                                <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                    <i class="feather-24" data-feather="x"></i>
+                                                </a>
+                                            </td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
@@ -480,7 +490,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Estado actualizado.',
+            title: 'Canalizacion eliminada.',
             showConfirmButton: false,
             timer: 3000,
         });
