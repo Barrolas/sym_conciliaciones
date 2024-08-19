@@ -181,7 +181,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
 
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="#" class="btn btn-icon btn-rounded btn-success ml-2"> 
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2"> 
                                                         <i class="feather-24" data-feather="plus"></i>
                                                     </a>
                                                 </td>

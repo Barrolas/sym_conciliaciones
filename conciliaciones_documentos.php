@@ -190,7 +190,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                         </div>
 
                         <?php if ($existe == 1) { ?>
-                            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&op=2" onsubmit="return valida_envia2();return false;">
+                            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&op=2" onsubmit="return valida_envia2();return false;">
                                 <div class="card ">
                                     <div class="card-header" style="background-color: #0055a6">
                                         <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -204,7 +204,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                 <input id="rut_deudor" type="text" name="rut_deudor" maxlength="8" class="form-control mb-0" placeholder="Sin dígito verificador" value="<?php echo htmlspecialchars($rut_deudor); ?>" disabled>
                                                             </div>
                                                             <div class="col-auto mr-0">
-                                                                <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> CONCILIAR</button>
+                                                                <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
                                                             </div>
                                                             <div class="col-auto">
                                                                 <button type="button" class="btn btn-md btn-secondary" onclick="limpiarFormulario();"><i class="fa fa-times"></i> LIMPIAR</button>
@@ -324,60 +324,115 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                 <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                                                     <thead>
                                                                         <tr>
+                                                                            <th class="col-1"></th>
                                                                             <th>F. VENC</th>
                                                                             <th style="display: none;">MONTO</th> <!-- Columna oculta -->
-                                                                            <th>MONTO</th>
-                                                                            <th>N° DOC</th>
-                                                                            <th>RUT CLIENTE</th>
-                                                                            <th>CLIENTE</th>
-                                                                            <th>SUBPRODUCTO</th>
-                                                                            <th>ESTADO</th>
-                                                                            <th class="col-1"></th>
+                                                                            <th>$ DOC</th>
+                                                                            <th>OPERACIÓN</th>
+                                                                            <th>RUT CTE</th>
+                                                                            <th>CARTERA</th>
+                                                                            <th>SUBPROD</th>
+                                                                            <th>E° DOC</th>
+                                                                            <th>E° PAREO</th>
+                                                                            <th>$ AB/PD</th>
+                                                                            <th style="display: none;">MONTO PAREO</th> <!-- Columna oculta -->
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         <?php
-                                                                        if ($rut_deudor != 0) {
-                                                                            $sql = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES](?)}";
-                                                                            $params = array($rut_deudor);
-                                                                            $stmt = sqlsrv_query($conn, $sql, $params);
-                                                                            if ($stmt === false) {
+                                                                        // Consulta para obtener documentos asignados
+                                                                        $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
+                                                                        $params3 = array($rut_deudor);
+                                                                        $stmt3 = sqlsrv_query($conn, $sql3, $params3);
+
+                                                                        if ($stmt3 === false) {
+                                                                            die(print_r(sqlsrv_errors(), true));
+                                                                        }
+
+                                                                        while ($transferencia = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+
+                                                                            // Variables de documento
+                                                                            $f_venc         = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
+                                                                            $id_documento   = isset($transferencia["ID_DOCUMENTO"]) ? $transferencia["ID_DOCUMENTO"] : '';
+                                                                            $monto_doc      = isset($transferencia["MONTO"]) ? $transferencia["MONTO"] : '';
+                                                                            $fecha_venc     = isset($transferencia["F_VENC"]) ? $transferencia["F_VENC"] : '';
+                                                                            $subproducto    = isset($transferencia["SUBPRODUCTO"]) ? $transferencia["SUBPRODUCTO"] : '';
+                                                                            $n_doc          = isset($transferencia["N_DOC"]) ? $transferencia["N_DOC"] : '';
+
+                                                                            $estado_doc = $transferencia["ESTADO_DOC"];
+                                                                            switch ($estado_doc) {
+                                                                                case '001':
+                                                                                    $estado_doc_text = 'VIGENTE';
+                                                                                    break;
+                                                                                case '014':
+                                                                                    $estado_doc_text = 'PAGADO';
+                                                                                    break;
+                                                                                case '333':
+                                                                                    $estado_doc_text = 'NO VIGENTE';
+                                                                                    break;
+                                                                                default:
+                                                                                    $estado_doc_text = $estado_doc;
+                                                                                    break;
+                                                                            }
+
+                                                                            // Consulta para obtener el monto de abonos (solo si el estado no es '1')
+                                                                            $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
+                                                                            $params4 = array($id_documento);
+                                                                            $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+
+                                                                            if ($stmt4 === false) {
                                                                                 die(print_r(sqlsrv_errors(), true));
                                                                             }
-                                                                            while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                                                                                $estado_doc = $transferencia["ESTADO_DOC"];
-                                                                                switch ($estado_doc) {
-                                                                                    case '001':
-                                                                                        $estado_doc_text = 'VIGENTE';
+
+                                                                            $monto_pareo = 0; // Inicializa en 0
+                                                                            while ($abonos = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
+                                                                                $monto_pareo = isset($abonos["MONTO_PAREO"]) ? $abonos["MONTO_PAREO"] : 0;
+                                                                            }
+
+                                                                            // Consulta para obtener el estado del documento
+                                                                            $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                                                            $params5 = array($id_documento);
+                                                                            $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+
+                                                                            if ($stmt5 === false) {
+                                                                                die(print_r(sqlsrv_errors(), true));
+                                                                            }
+
+                                                                            $estado_pareo_text = 'N/A'; // Valor por defecto
+                                                                            while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
+                                                                                $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
+                                                                                switch ($estado_pareo) {
+                                                                                    case '1':
+                                                                                        $estado_pareo_text = 'CONC';
                                                                                         break;
-                                                                                    case '014':
-                                                                                        $estado_doc_text = 'PAGADO';
+                                                                                    case '2':
+                                                                                        $estado_pareo_text = 'ABON';
                                                                                         break;
-                                                                                    case '333':
-                                                                                        $estado_doc_text = 'NO VIGENTE';
-                                                                                        break;
-                                                                                    default:
-                                                                                        $estado_doc_text = $estado_doc;
+                                                                                    case '3':
+                                                                                        $estado_pareo_text = 'PEND';
                                                                                         break;
                                                                                 }
-
-                                                                                $f_venc = (new DateTime($transferencia["F_VENC"]))->format('Y-m-d');
-                                                                        ?>
-                                                                                <tr>
-                                                                                    <td class="f_venc" id="f_venc"><?php echo $f_venc; ?></td>
-                                                                                    <td class="valor" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td> <!-- Celda oculta -->
-                                                                                    <td class="valor2" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
-                                                                                    <td class="n_doc" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
-                                                                                    <td class="rut_cliente" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
-                                                                                    <td class="nom_cliente" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
-                                                                                    <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
-                                                                                    <td class="estado_doc" id="estado_doc"><?php echo $estado_doc_text; ?></td>
-                                                                                    <td style="text-align: center;">
-                                                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" id="iddocumento_checkbox[]" value="<?php echo $transferencia["ID_DOCUMENTO"] . ',' . $transferencia["MONTO"] . ',' . $transferencia["F_VENC"]; ?>" data-n-doc="<?php echo htmlspecialchars($transferencia['N_DOC']); ?>" />
-                                                                                    </td>
-                                                                                </tr>
-                                                                        <?php
                                                                             }
+
+                                                                            // Generar HTML
+                                                                        ?>
+                                                                            <tr>
+                                                                                <td class="col-1" style="text-align: center;">
+                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                                                </td>
+                                                                                <td class="f_venc col-auto" id="f_venc"><?php echo $f_venc; ?></td>
+                                                                                <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
+                                                                                <td class="valor2 col-auto" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
+                                                                                <td class="n_doc col-auto" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
+                                                                                <td class="rut_cliente col-auto" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
+                                                                                <td class="nom_cliente col-auto" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
+                                                                                <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
+                                                                                <td class="estado_doc col-auto" id="estado_doc"><?php echo $estado_doc_text; ?></td>
+                                                                                <td class="estado_pareo col-auto" id="estado_pareo"><?php echo $estado_pareo_text; ?></td>
+                                                                                <td class="monto_pareo col-auto" id="monto_pareo">$<?php echo number_format($monto_pareo, 0, ',', '.'); ?></td>
+                                                                                <td class="monto_pareo_oculto col-auto" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td>
+                                                                            </tr>
+                                                                        <?php
                                                                         }
                                                                         ?>
                                                                     </tbody>
@@ -465,37 +520,105 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
             // Validación adicional basada en el estado calculado
             if (estadoFinal === "ABONADO") {
                 Swal.fire({
-                    width: 600,
-                    icon: 'info',
-                    title: 'El tipo cartera no permite abonos.',
-                    showConfirmButton: false
+                    title: 'Confirmación',
+                    text: 'Este tipo de cartera no permite abonos, ¿Desea continuar con el envío del formulario de todos modos?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Continuar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        return false; // Cancelar el envío del formulario si el usuario cancela
+                    } else {
+                        // Si se confirma, continuar con el envío del formulario
+                        document.getElementById('form_concilia').submit();
+                    }
                 });
-                return false; // Devuelve false si la validación no pasa
+                return false; // Evitar el envío inmediato del formulario
             }
         }
 
-        // Validación de la fecha de vencimiento
+        // Nueva validación: Confirmación del usuario si hay fechas de vencimiento futuras
+        var confirmacionRequerida_fecha = false;
+
         for (var checkbox of checkboxes) {
             var fechaVencimientoStr = checkbox.value.split(',')[2]; // Extrae la fecha de vencimiento como cadena
             var fechaVencimiento = new Date(fechaVencimientoStr); // Convierte la cadena en un objeto Date
             fechaVencimiento.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
 
-            console.log("Fecha Actual:", fechaActual);
-            console.log("Fecha Vencimiento:", fechaVencimiento);
+            // Obtener la fecha actual
+            var fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
 
             if (fechaVencimiento > fechaActual) { // Compara con la fecha actual
-                Swal.fire({
-                    width: 600,
-                    icon: 'error',
-                    title: 'Todos los documentos seleccionados deben tener una fecha de vencimiento igual o anterior a la fecha actual.',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return false; // Cancelar el envío del formulario
+                confirmacionRequerida_fecha = true;
+                break; // Salir del bucle si se encuentra una fecha futura
             }
         }
 
-        return true; // Permitir el envío del formulario si todas las validaciones pasan
+        if (confirmacionRequerida_fecha) {
+            Swal.fire({
+                title: 'Confirmación',
+                text: 'Algunos documentos tienen fechas de vencimiento futuras. ¿Desea continuar con el envío del formulario?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return false; // Cancelar el envío del formulario si el usuario cancela
+                } else {
+                    // Si se confirma, continuar con el envío del formulario
+                    document.getElementById('form_concilia').submit();
+                }
+            });
+            return false; // Evitar el envío inmediato del formulario
+        }
+
+        // Si no se requiere confirmación, permitir el envío del formulario
+        return true;
+
+        // Nueva validación: Confirmación del usuario si el estado del documento es PAGADO o NO VIGENTE
+        var confirmacionRequerida = false;
+
+        for (var checkbox of checkboxes) {
+            // Obtener la fila del checkbox seleccionado
+            var fila = checkbox.closest('tr');
+            var estadoDoc = fila.querySelector('.estado_doc').textContent.trim(); // Obtén el estado del documento de la celda correspondiente
+
+            if (estadoDoc === 'PAGADO' || estadoDoc === 'NO VIGENTE') {
+                confirmacionRequerida = true;
+                break;
+            }
+        }
+
+        if (confirmacionRequerida) {
+            Swal.fire({
+                title: 'Confirmación',
+                text: 'Algunos documentos están en estado PAGADO o NO VIGENTE. ¿Desea continuar?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return false; // Cancelar el envío del formulario si el usuario cancela
+                } else {
+                    // Si se confirma, continuar con el envío del formulario
+                    document.getElementById('form_concilia').submit();
+                }
+            });
+            return false; // Evitar el envío inmediato del formulario
+        }
+
+        // Si no se requiere confirmación, permitir el envío del formulario
+        return true;
     }
 </script>
 
@@ -506,75 +629,80 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    // DataTables Initialization
     $(document).ready(function() {
+        // Inicialización de DataTables
         var table = $('#datatable2').DataTable({
             responsive: true,
             columnDefs: [{
-                targets: [1],
-                visible: false
-            }],
+                    targets: [0], // Índice de la columna que no será ordenable
+                    orderable: false
+                },
+                {
+                    targets: [2, 11],
+                    visible: false
+                }
+            ],
             order: [
-                [7, 'desc'],
-                [0, 'asc']
-            ]
+                [8, 'desc'],
+                [1, 'asc']
+            ],
+            createdRow: function(row, data, dataIndex) {
+                // Asignar un ID único a cada fila basado en el índice
+                $(row).attr('id', 'row-' + dataIndex);
+            }
         });
 
         // Evento para los checkboxes
-        var total = 0;
+        var total = 0; // Inicializar el total en 0
         $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-            // Parsea el monto PHP a entero en JavaScript
-            var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
-            // Obtener el índice de la fila
-            var rowIndex = $(this).closest('tr').index();
+            // Obtener el ID de la fila
+            var rowId = $(this).closest('tr').attr('id');
             // Obtener los datos de la fila desde DataTables
-            var rowData = table.row(rowIndex).data();
+            var rowData = table.row('#' + rowId).data();
             // Obtener el valor de la columna oculta (suponiendo que es numérico)
-            var valor = parseFloat(rowData[1]); // Suponiendo que la columna oculta es la segunda columna (índice 1)
+            var valor = parseFloat(rowData[2]); // Suponiendo que la columna oculta es la tercera columna (índice 2)
+            var montoPareo = parseFloat(rowData[11]); // Obtener el valor del monto_pareo (índice 11)
 
             if ($(this).is(':checked')) {
                 // Sumar el valor al total si el checkbox está marcado
-                total += valor;
+                total += valor - montoPareo;
             } else {
                 // Restar el valor del total si el checkbox está desmarcado
-                total -= valor;
+                total -= valor - montoPareo;
             }
 
-            // Comparar el total con montoParseado y actualizar el estado
-            var estado;
-            //alert(montoParseado)
-            //alert(total)
-            if (montoParseado > total && total > 0) {
-                estado = "EXCEDIDO";
-            } else if (montoParseado < total) {
-                estado = "ABONADO";
-            } else if (montoParseado = total) {
-                estado = "CONCILIADO";
+            // Asegurarse de que el total no sea menor de cero
+            if (total < 0) {
+                total = 0;
             }
 
             // Actualizar el valor de la entrada total en la interfaz con formato
             $('#total2').val('$' + formatNumber(total));
 
+            // Actualizar el estado del campo de entrada
+            var estado;
+            var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
+            if (montoParseado > total && total > 0) {
+                estado = "EXCEDIDO";
+            } else if (montoParseado < total) {
+                estado = "ABONADO";
+            } else if (montoParseado == total) { // Corregir = a ==
+                estado = "CONCILIADO";
+            } else {
+                estado = ""; // Estado vacío si no se cumple ninguna condición
+            }
+
             // Actualizar el valor del campo de entrada de estado
             $('#estado').val(estado);
 
+            // Actualizar el monto_checkbox de la misma fila
+            var montoCheckbox = $(this).closest('tr').find('.monto_checkbox');
+            montoCheckbox.prop('checked', this.checked);
+
+            // Actualizar el botón CONCILIAR
+            updateConciliarButton();
         });
-    });
-</script>
 
-<script>
-    $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-        // Obtener el índice de la fila
-        var rowIndex = $(this).closest('tr').index();
-
-        // Obtener el monto_checkbox de la misma fila y marcarlo si iddocumento_checkbox está marcado
-        var montoCheckbox = $(this).closest('tr').find('.monto_checkbox');
-        montoCheckbox.prop('checked', this.checked);
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
         // Función para actualizar el estado del botón de CONCILIAR
         function updateConciliarButton() {
             var checkboxes = $('#datatable2 .iddocumento_checkbox');
@@ -619,7 +747,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                 table.search('').columns().search('').draw();
             } else {
                 // Use DataTables search() function to filter the table
-                table.column(4).search(filterValue).draw();
+                table.column(5).search(filterValue).draw();
             }
         });
     });
@@ -628,7 +756,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 <script>
     function limpiarFormulario() {
         // Redireccionar para limpiar
-        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>';
+        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>';
     }
 </script>
 
@@ -638,6 +766,16 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
     // Initialize Bootstrap Tooltip
     $(function() {
         $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+<script>
+    document.getElementById('gestion').addEventListener('wheel', function(e) {
+        e.preventDefault(); // Previene el desplazamiento predeterminado
+
+        var scrollSpeed = 1; // Ajusta este valor para cambiar la velocidad
+
+        this.scrollTop += e.deltaY / scrollSpeed;
     });
 </script>
 
@@ -662,6 +800,14 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
             timer: 3000,
         });
     <?php } ?>
+</script>
+
+
+<script>
+    function limpiarFormulario() {
+        // Redireccionar para limpiar
+        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>';
+    }
 </script>
 
 </html>
