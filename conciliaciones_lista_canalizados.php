@@ -125,7 +125,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
                             <div class="col-lg-3">
-                                <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA ACTUALIZACIÓN</label>
+                                <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
                                 <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
                             <div class="col-lg-3">
@@ -442,9 +442,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         // Function to apply filters based on stored values
         function applyFilters() {
-            var storedCuentaValue = localStorage.getItem('selected_cuenta');
-            var storedCanalValue = localStorage.getItem('selected_canal');
-            var storedFiltroValue = localStorage.getItem('selected_diasmora');
+            var storedCuentaValue = sessionStorage.getItem('selected_cuenta');
+            var storedCanalValue = sessionStorage.getItem('selected_canal');
+            var storedFiltroValue = sessionStorage.getItem('selected_diasmora');
 
             if (storedCanalValue && storedCanalValue !== "0") {
                 $('#canal_filtro').val(storedCanalValue).change();
@@ -484,7 +484,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Add event listener to the cuenta select element
         $('#cuenta').on('change', function() {
             var filterValue = $(this).val();
-            localStorage.setItem('selected_cuenta', filterValue);
+            sessionStorage.setItem('selected_cuenta', filterValue);
 
             if (filterValue == "0") {
                 table.column(1).search('').draw(); // Clear the cuenta filter
@@ -495,7 +495,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         $('#canal_filtro').on('change', function() {
             var filterValue = $(this).val();
-            localStorage.setItem('selected_canal', filterValue);
+            sessionStorage.setItem('selected_canal', filterValue);
 
             if (filterValue == "0") {
                 table.column(0).search('').draw(); // Clear the cuenta filter
@@ -507,7 +507,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Add event listener to the dias_mora select element
         $('#dias_mora').on('change', function() {
             var filterValue = $(this).val();
-            localStorage.setItem('selected_diasmora', filterValue);
+            sessionStorage.setItem('selected_diasmora', filterValue);
 
             // Redraw table to apply the dias_mora filter
             table.draw();

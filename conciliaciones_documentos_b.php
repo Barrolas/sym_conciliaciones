@@ -88,7 +88,43 @@ $fecha_proceso = $row["FECHAPROCESO"];
             overflow-y: auto;
             scroll-behavior: smooth;
         }
+
+        .form-control {
+            height: 28px;
+            /* Ajusta la altura según sea necesario */
+        }
     </style>
+    <style>
+        @media (min-width: 1000px) and (max-width: 1299px) {
+            .font_mini {
+                font-size: 12px !important;
+            }
+
+            .font_mini_input {
+                font-size: 12px !important;
+
+            }
+
+            .font_mini_header {
+                font-size: 11px !important;
+            }
+
+
+            @media (min-width: 1300px) {
+                .font_mini {
+                    font-size: 15px !important;
+                }
+                .font_mini_input {
+                    font-size: 15px !important;
+                }
+
+                .font_mini_header {
+                    font-size: 15px !important;
+                }
+            }
+        }
+    </style>
+
 
 </head>
 
@@ -151,7 +187,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <div class="col-md-12">
                                 <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
                                     <div class="col-lg-4">
-                                        <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA ACTUALIZACIÓN</label>
+                                        <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
                                         <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                     </div>
                                     <div class="col-lg-3">
@@ -276,18 +312,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                         <thead>
                                             <tr>
-                                                <th class="col-1"></th>
-                                                <th>F. VENC</th>
-                                                <th style="display: none;">MONTO</th> <!-- Columna oculta -->
-                                                <th>$ DOC</th>
-                                                <th>OPERACIÓN</th>
-                                                <th>RUT CTE</th>
-                                                <th>CARTERA</th>
-                                                <th>SUBPROD</th>
-                                                <th>E° DOC</th>
-                                                <th>E° PAREO</th>
-                                                <th>$ AB/PD</th>
-                                                <th style="display: none;">MONTO PAREO</th> <!-- Columna oculta -->
+                                                <th class="col-1 font_mini_header"></th>
+                                                <th class="font_mini_header">F. VENC</th>
+                                                <th class="font_mini_header" style="display: none;">MONTO</th> <!-- Columna oculta -->
+                                                <th class="font_mini_header">$ DOC</th>
+                                                <th class="font_mini_header">$ INGRESADO</th>
+                                                <th class="font_mini_header">OPERACIÓN</th>
+                                                <th class="font_mini_header">RUT CTE</th>
+                                                <th class="font_mini_header">CARTERA</th>
+                                                <th class="font_mini_header">SUBPROD</th>
+                                                <th class="font_mini_header">E° DOC</th>
+                                                <th class="font_mini_header">E° PAREO</th>
+                                                <th class="font_mini_header">$ AB/PD</th>
+                                                <th class="font_mini_header" style="display: none;">$ PAREO</th> <!-- Columna oculta -->
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -372,17 +409,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="col-1" style="text-align: center;">
                                                         <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
                                                     </td>
-                                                    <td class="f_venc col-auto" id="f_venc"><?php echo $f_venc; ?></td>
-                                                    <td class="valor col-auto" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
-                                                    <td class="valor2 col-auto" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
-                                                    <td class="n_doc col-auto" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
-                                                    <td class="rut_cliente col-auto" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
-                                                    <td class="nom_cliente col-auto" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
-                                                    <td class="subproducto col-auto" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
-                                                    <td class="estado_doc col-auto" id="estado_doc"><?php echo $estado_doc_text; ?></td>
-                                                    <td class="estado_pareo col-auto" id="estado_pareo"><?php echo $estado_pareo_text; ?></td>
-                                                    <td class="monto_pareo col-auto" id="monto_pareo">$<?php echo number_format($monto_pareo, 0, ',', '.'); ?></td>
-                                                    <td class="monto_pareo_oculto col-auto" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td>
+                                                    <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
+                                                    <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
+                                                    <td class="valor2 col-auto font_mini" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
+                                                    <td class="interes col-auto font_mini" id="interes">
+                                                        <input type="text" value="0" class="monto_ingresado font_mini_input form-control" disabled>
+                                                    </td>
+                                                    <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
+                                                    <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
+                                                    <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
+                                                    <td class="subproducto col-auto font_mini" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
+                                                    <td class="estado_doc col-auto font_mini" id="estado_doc"><?php echo $estado_doc_text; ?></td>
+                                                    <td class="estado_pareo col-auto font_mini" id="estado_pareo"><?php echo $estado_pareo_text; ?></td>
+                                                    <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($monto_pareo, 0, ',', '.'); ?></td>
+                                                    <td class="monto_pareo_oculto col-auto font_mini" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td>
                                                 </tr>
                                             <?php
                                             }
@@ -575,133 +615,121 @@ $fecha_proceso = $row["FECHAPROCESO"];
 </script>
 
 <script>
-    // Variable para mantener el total de los valores seleccionados
     // Función para formatear números con separadores de miles
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Función para limpiar el número formateado y obtener el valor numérico real
+    function cleanNumber(numStr) {
+        return parseFloat(numStr.replace(/\./g, '').replace(',', '.')) || 0;
     }
 
     $(document).ready(function() {
         // Inicialización de DataTables
         var table = $('#datatable2').DataTable({
             responsive: true,
-            columnDefs: [{
-                    targets: [0], // Índice de la columna que no será ordenable
-                    orderable: false
-                },
-                {
-                    targets: [2, 11],
-                    visible: false
-                }
+            columnDefs: [
+                { targets: [0], orderable: false }, // Columna no ordenable
+                { targets: [2, 12], visible: false } // Columnas ocultas
             ],
-            order: [
-                [8, 'desc'],
-                [1, 'asc']
-            ],
+            order: [[9, 'desc'], [1, 'asc']],
             createdRow: function(row, data, dataIndex) {
-                // Asignar un ID único a cada fila basado en el índice
                 $(row).attr('id', 'row-' + dataIndex);
             }
         });
 
-        // Evento para los checkboxes
-        var total = 0; // Inicializar el total en 0
-        $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-            // Obtener el ID de la fila
-            var rowId = $(this).closest('tr').attr('id');
-            // Obtener los datos de la fila desde DataTables
-            var rowData = table.row('#' + rowId).data();
-            // Obtener el valor de la columna oculta (suponiendo que es numérico)
-            var valor = parseFloat(rowData[2]); // Suponiendo que la columna oculta es la tercera columna (índice 2)
-            var montoPareo = parseFloat(rowData[11]); // Obtener el valor del monto_pareo (índice 11)
+        // Función para actualizar el total
+        function actualizarTotal() {
+            let total = 0; // Reiniciar el total
 
-            if ($(this).is(':checked')) {
-                // Sumar el valor al total si el checkbox está marcado
-                total += valor - montoPareo;
-            } else {
-                // Restar el valor del total si el checkbox está desmarcado
-                total -= valor - montoPareo;
-            }
+            $('#datatable2 .iddocumento_checkbox:checked').each(function() {
+                var rowId = $(this).closest('tr').attr('id');
+                var rowData = table.row('#' + rowId).data();
+                var montoPareo = parseFloat(rowData[12]) || 0;
+                
+                // Obtener el valor del input con clase 'monto_ingresado' limpiando el formato
+                var montoInteres = cleanNumber($('.monto_ingresado').filter(function() {
+                    return $(this).closest('tr').attr('id') === rowId;
+                }).val());
 
-            // Asegurarse de que el total no sea menor de cero
-            if (total < 0) {
-                total = 0;
-            }
+                // Si montoInteres es distinto de cero, usar su valor
+                var valor = montoInteres > 0 ? montoInteres : parseFloat(rowData[2]) || 0;
 
-            // Actualizar el valor de la entrada total en la interfaz con formato
+                total += (valor - montoPareo);
+            });
+
+            total = Math.max(total, 0); // Asegurarse de que el total no sea menor de cero
+
             $('#total2').val('$' + formatNumber(total));
 
-            // Actualizar el estado del campo de entrada
-            var estado;
             var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
+            var estado;
             if (montoParseado > total && total > 0) {
                 estado = "EXCEDIDO";
             } else if (montoParseado < total) {
                 estado = "ABONADO";
-            } else if (montoParseado == total) { // Corregir = a ==
+            } else if (montoParseado == total) {
                 estado = "CONCILIADO";
             } else {
-                estado = ""; // Estado vacío si no se cumple ninguna condición
+                estado = "";
             }
 
-            // Actualizar el valor del campo de entrada de estado
             $('#estado').val(estado);
-
-            // Actualizar el monto_checkbox de la misma fila
-            var montoCheckbox = $(this).closest('tr').find('.monto_checkbox');
-            montoCheckbox.prop('checked', this.checked);
-
-            // Actualizar el botón CONCILIAR
             updateConciliarButton();
+        }
+
+        // Evento para los checkboxes
+        $('#datatable2').on('change', '.iddocumento_checkbox', function() {
+            var rowId = $(this).closest('tr').attr('id');
+            var isChecked = $(this).is(':checked');
+            var $inputInteres = $('.monto_ingresado').filter(function() {
+                return $(this).closest('tr').attr('id') === rowId;
+            });
+
+            if (isChecked) {
+                $inputInteres.prop('disabled', false);
+                // Si el input está vacío, establecer el valor en 0
+                if ($inputInteres.val().trim() === '') {
+                    $inputInteres.val('0');
+                }
+            } else {
+                $inputInteres.prop('disabled', true).val('0'); // Deshabilitar el input y establecer su valor en 0
+            }
+
+            actualizarTotal();
+            updateConciliarButton();
+        });
+
+        // Evento para el input del monto ingresado
+        $('#datatable2').on('input', '.monto_ingresado', function() {
+            var $input = $(this);
+            var cleanValue = cleanNumber($input.val());
+
+            // Si el input está vacío, establecer el valor en 0
+            if ($input.val().trim() === '') {
+                $input.val('0');
+            } else {
+                $input.val(formatNumber(cleanValue));
+            }
+
+            actualizarTotal();
         });
 
         // Función para actualizar el estado del botón de CONCILIAR
         function updateConciliarButton() {
-            var checkboxes = $('#datatable2 .iddocumento_checkbox');
-            var checkedCount = checkboxes.filter(':checked').length;
-            var clienteSeleccionado = $('#cliente').val(); // Usar .val() para obtener el valor seleccionado
+            var checkedCount = $('#datatable2 .iddocumento_checkbox:checked').length;
+            var clienteSeleccionado = $('#cliente').val();
 
-            console.log("Checkboxes seleccionados: " + checkedCount); // Depuración
-            console.log("Cliente seleccionado: " + clienteSeleccionado); // Depuración
-
-            // Habilitar el botón solo si hay al menos un checkbox marcado y un cliente seleccionado distinto de 0
-            var shouldEnableButton = checkedCount > 0 && clienteSeleccionado !== "0";
-            console.log("Botón habilitado: " + shouldEnableButton); // Depuración
-
-            $('#conciliarButton').prop('disabled', !shouldEnableButton);
+            $('#conciliarButton').prop('disabled', !(checkedCount > 0 && clienteSeleccionado !== "0"));
         }
 
         // Llamar a la función al cargar la página
         updateConciliarButton();
 
         // Añadir evento change a todos los checkboxes y al select de cliente para actualizar el botón cuando cambien
-        $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-            updateConciliarButton();
-        });
-
-        $('#cliente').on('change', function() {
-            updateConciliarButton();
-        });
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
-        // Initialize the DataTable
-        var table = $('#datatable2').DataTable();
-
-        // Add event listener to the select element
-        $('#cliente').on('change', function() {
-            var filterValue = $(this).val();
-
-            if (filterValue == "0") {
-                // Clear all filters
-                table.search('').columns().search('').draw();
-            } else {
-                // Use DataTables search() function to filter the table
-                table.column(5).search(filterValue).draw();
-            }
-        });
+        $('#datatable2').on('change', '.iddocumento_checkbox', updateConciliarButton);
+        $('#cliente').on('change', updateConciliarButton);
     });
 </script>
 

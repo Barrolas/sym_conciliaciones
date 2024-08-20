@@ -125,7 +125,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-between align-items-center pl-4 mb-3">
                             <div class="col-lg-3">
-                                <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA ACTUALIZACIÓN</label>
+                                <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
                                 <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
                             <div class="col-lg-3">
@@ -377,7 +377,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         // Function to apply filters based on stored values
         function applyFilters() {
-            var storedCuentaValue = localStorage.getItem('selected_cuenta');
+            var storedCuentaValue = sessionStorage.getItem('selected_cuenta');
 
             // Apply cuenta filter
             if (storedCuentaValue && storedCuentaValue !== "0") {
@@ -392,7 +392,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Add event listener to the cuenta select element
         $('#cuenta').on('change', function() {
             var filterValue = $(this).val();
-            localStorage.setItem('selected_cuenta', filterValue);
+            sessionStorage.setItem('selected_cuenta', filterValue);
 
             if (filterValue == "0") {
                 table.column(0).search('').draw(); // Clear the cuenta filter

@@ -174,7 +174,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                             <div class="col-md-12">
                                 <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
                                     <div class="col-lg-4">
-                                        <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA ACTUALIZACIÓN</label>
+                                        <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
                                         <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                     </div>
                                     <div class="col-lg-3">
