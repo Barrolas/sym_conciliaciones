@@ -124,8 +124,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             }
         }
     </style>
-
-
 </head>
 
 <body class="dark-sidenav">
