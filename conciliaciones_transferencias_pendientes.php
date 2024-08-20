@@ -121,7 +121,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
                             <div class="col-lg-6">
-                                <label class="col-4" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
+                                <label class="col-4" for="fecha_ultima_cartola">ÚLTIMA ACTUALIZACIÓN</label>
                                 <input type="text" class="form-control col-6" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
                             <div class="col-lg-6">

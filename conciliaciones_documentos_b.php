@@ -151,7 +151,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <div class="col-md-12">
                                 <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
                                     <div class="col-lg-4">
-                                        <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA CARTOLA</label>
+                                        <label class="col-12" for="fecha_ultima_cartola">ÚLTIMA ACTUALIZACIÓN</label>
                                         <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                     </div>
                                     <div class="col-lg-3">
@@ -201,7 +201,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <div class="col-lg-7 d-flex align-items-center">
                                                         <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
                                                         <div class="col-lg-8">
-                                                            <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["RUT"] . ' - ' . $gestion["NOMBRE"] ?>" disabled />
+                                                            <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["RUT"] . ' - ' . htmlspecialchars($gestion["NOMBRE"], ENT_QUOTES, 'UTF-8') ?>"
+                                                                disabled />
                                                         </div>
                                                     </div>
                                                 </div>

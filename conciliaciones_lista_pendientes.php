@@ -155,8 +155,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </div>
                             </div>
                             <div class="col-lg-3">
-                                <a href="conciliaciones_exportar_saldos.php">
-                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" disabled>
+                                <a href="conciliaciones_exportar_pendientes.php">
+                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" id="exportar_btn" disabled>
                                         EXPORTAR
                                     </button>
                                 </a>
@@ -195,31 +195,40 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         die(print_r(sqlsrv_errors(), true));
                                     }
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                                        // Supongamos que $conciliacion["F_REC"] es una cadena con fecha en formato 'Y-m-d'
-                                        $fecha = $conciliacion["F_REC"];
+                                        // Manejo de F_REC
+                                        $fecha_rec = $conciliacion["F_REC"];
+                                        if ($fecha_rec instanceof DateTime) {
+                                            // Si ya es un objeto DateTime, solo formatear
+                                            $fecha_formateada_rec = $fecha_rec->format('Y/m/d');
+                                        } else {
+                                            // Si es una cadena, intentar convertirla
+                                            $date_rec = DateTime::createFromFormat('d/m/Y', $fecha_rec);
+                                            $fecha_formateada_rec = $date_rec !== false ? $date_rec->format('Y/m/d') : 'Fecha inválida';
+                                        }
 
-                                        // Crear un objeto DateTime a partir de la cadena
-                                        $date = new DateTime($fecha);
-
-                                        // Formatear la fecha en el formato deseado
-                                        $fecha_formateada = $date->format('Y/m/d');
+                                        // Manejo de F_VENC
+                                        $fecha_venc = $conciliacion["F_VENC"];
+                                        if ($fecha_venc instanceof DateTime) {
+                                            // Si ya es un objeto DateTime, solo formatear
+                                            $fecha_formateada_venc = $fecha_venc->format('Y/m/d');
+                                        } else {
+                                            // Si es una cadena, intentar convertirla
+                                            $date_venc = DateTime::createFromFormat('d/m/Y', $fecha_venc);
+                                            $fecha_formateada_venc = $date_venc !== false ? $date_venc->format('Y/m/d') : 'Fecha inválida';
+                                        }
                                     ?>
 
                                         <tr>
-                                            <!--<td class="col-1">
-                                                <div class="form-check d-flex justify-content-center align-items-center">
-                                                    <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
-                                                </div>
-                                            </td> !-->
                                             <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>
-                                            <td class="col-auto"><?php echo htmlspecialchars($fecha_formateada); ?></td>
+                                            <td class="col-auto"><?php echo htmlspecialchars($fecha_formateada_rec); ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
                                             <td class="col-auto"><?php echo trim($conciliacion["RUT_DEUDOR"]) ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]->format('Y/m/d'); ?></td>
+                                            <td class="col-auto"><?php echo htmlspecialchars($fecha_formateada_venc); ?></td>
                                             <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
                                         </tr>
+
                                     <?php } ?>
                                 </tbody>
                             </table>
@@ -370,6 +379,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 //orderable: false
             }]
         });
+
+        var rowCount = table.rows().count();
+        var exportButton = document.getElementById('exportar_btn');
+
+        if (rowCount > 0) {
+            exportButton.disabled = false;
+        } else {
+            exportButton.disabled = true;
+        }
 
         // Function to apply filters based on stored values
         function applyFilters() {
