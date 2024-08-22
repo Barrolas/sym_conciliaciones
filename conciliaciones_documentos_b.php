@@ -99,7 +99,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <style>
         @media (min-width: 1000px) and (max-width: 1299px) {
             .font_mini {
-                font-size: 12px !important;
+                font-size: 11px !important;
             }
 
             .font_mini_input {

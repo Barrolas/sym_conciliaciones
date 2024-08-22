@@ -23,8 +23,8 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $montos_docs        = array();
     $fechas_venc        = array();
     $subproductos       = array();
-    $monto_pareodocs    = array(); 
-    $montos_ingresados  = array(); 
+    $monto_pareodocs    = array();
+    $montos_ingresados  = array();
     $suma_docs          = 0;
     $cant_docs          = 0;
 
@@ -36,7 +36,6 @@ if (isset($_POST['iddocumento_checkbox'])) {
 
         // Verificamos que $valores tenga el número correcto de elementos
         if (count($valores) >= 6) {
-            // $valores[0] contiene ID_DOCUMENTO, $valores[1] contiene MONTO, $valores[2] contiene FECHA_VENCIMIENTO y $valores[3] contiene SUBPRODUCTO
             $id_documentos[]        = $valores[0];
             $montos_docs[]          = $valores[1];
             $fechas_venc[]          = $valores[2];
@@ -48,9 +47,6 @@ if (isset($_POST['iddocumento_checkbox'])) {
         }
     }
 
-    //print_r($cant_docs);
-    //exit;
-
     // Combinar los arreglos en uno solo
     $docs_combined = [];
     foreach ($id_documentos as $index => $id) {
@@ -60,9 +56,19 @@ if (isset($_POST['iddocumento_checkbox'])) {
             'fecha_venc'        => $fechas_venc[$index],
             'subproducto'       => $subproductos[$index],
             'monto_pareodocs'   => $monto_pareodocs[$index],
-            'montos_ingresados' => $montos_ingresados[$index]
+            'monto_ingresado'   => $montos_ingresados[$index]
         ];
     }
+
+    // Reemplazar el monto del documento si el monto ingresado es distinto de cero
+    foreach ($docs_combined as $index => $doc) {
+        if ($doc['monto_ingresado'] != '0') {
+            $docs_combined[$index]['monto_doc'] = $doc['monto_ingresado'];
+        }
+    }
+
+    // Eliminar el arreglo de montos ingresados ya que ya no es necesario
+    unset($montos_ingresados);
 
     // Ordenar el arreglo combinado por fecha de vencimiento
     usort($docs_combined, function ($a, $b) {
@@ -75,7 +81,7 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $fechas_venc        = array_column($docs_combined, 'fecha_venc');
     $subproductos       = array_column($docs_combined, 'subproducto');
     $monto_pareodocs    = array_column($docs_combined, 'monto_pareodocs');
-    $montos_ingresados  = array_column($docs_combined, 'montos_ingresados');
+    // Ya no se usa $montos_ingresados
 }
 
 /*
@@ -149,7 +155,7 @@ $params1 = array(
     array($rut_cliente,         SQLSRV_PARAM_IN),
     array($estado_pareo,        SQLSRV_PARAM_IN),
     array($idusuario,           SQLSRV_PARAM_IN),
-    array(&$existe_pareo ,      SQLSRV_PARAM_OUT),
+    array(&$existe_pareo,      SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
 
@@ -177,7 +183,12 @@ $saldo_insuf            = 0;
 $concilia_doc           = 0;
 $idpareo_docdeudores    = 0;
 $tipo_pago              = 0;
-$saldo_disponible       = $monto_transferido;
+
+if ($monto_diferencia == 0) {
+    $saldo_disponible = $monto_transferido;
+} else {
+    $saldo_disponible = $monto_diferencia;
+};
 
 //print_r($saldo_disponible);
 //exit;
@@ -190,15 +201,14 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     $tipo_pago              = 0;
     print_r('transferido: ' . $saldo_disponible . "; ");
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?)}";
 
     $params2 = array(
-        array($idpareo_sistema,             SQLSRV_PARAM_IN),
-        array($id_docdeudores,              SQLSRV_PARAM_IN),
-        array($montos_docs[$index],         SQLSRV_PARAM_IN),
-        array($montos_ingresados[$index],   SQLSRV_PARAM_IN),
+        array($idpareo_sistema,        SQLSRV_PARAM_IN),
+        array($id_docdeudores,         SQLSRV_PARAM_IN),
+        array($montos_docs[$index],    SQLSRV_PARAM_IN),
         array($subproductos[$index],        SQLSRV_PARAM_IN),
-        array($idusuario,                   SQLSRV_PARAM_IN),
+        array($idusuario,              SQLSRV_PARAM_IN),
         array(&$idpareo_docdeudores,        SQLSRV_PARAM_OUT),
         array(&$concilia_doc,               SQLSRV_PARAM_OUT),
         array(&$saldo_disponible,           SQLSRV_PARAM_INOUT)
@@ -216,7 +226,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     if ($concilia_doc == 0) {
 
-        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?)}";
 
         $params3 = array(
             array($idpareo_sistema,             SQLSRV_PARAM_IN),
@@ -224,7 +234,6 @@ foreach ($id_documentos as $index => $id_docdeudores) {
             array($id_docdeudores,              SQLSRV_PARAM_IN),
             array($rut_cliente,                 SQLSRV_PARAM_IN),
             array($montos_docs[$index],         SQLSRV_PARAM_IN),
-            array($montos_ingresados[$index],   SQLSRV_PARAM_IN),
             array($subproductos[$index],        SQLSRV_PARAM_IN),
             array(&$tipo_pago,                  SQLSRV_PARAM_OUT),
             array(&$saldo_disponible,           SQLSRV_PARAM_INOUT)
@@ -255,15 +264,14 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     if ($concilia_doc == 2) {
         $saldo_insuf++;
     }
-    
 }
 
-print_r('Leidos: ' . $leidos . '; ');
-print_r('conciliados: ' . $conciliados . '; ');
-print_r('abonados: ' . $abonados . '; ');
-print_r('pendientes: ' . $pendientes . '; ');
-print_r('ya conciliados: ' . $ya_conciliados . '; ');
-print_r('saldo insuf: ' . $saldo_insuf . '; ');
+print_r('Leidos: '          . $leidos           . '; ');
+print_r('conciliados: '     . $conciliados      . '; ');
+print_r('abonados: '        . $abonados         . '; ');
+print_r('pendientes: '      . $pendientes       . '; ');
+print_r('ya conciliados: '  . $ya_conciliados   . '; ');
+print_r('saldo insuf: '     . $saldo_insuf      . '; ');
 
 
 //if ($existe_doc && $op == 1) {

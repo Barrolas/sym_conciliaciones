@@ -335,9 +335,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         </div>
                     </div> <!-- end col -->
                 </div> <!-- end row -->
-                <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
+                <input type="hidden" id="selected_ids_docs"     name="selected_ids_docs[]">
                 <input type="hidden" id="selected_ids_pareodoc" name="selected_ids_pareodoc[]">
-                <input type="hidden" id="selected_types" name="selected_types[]">
+                <input type="hidden" id="selected_types"        name="selected_types[]">
             </form>
         </div><!-- container -->
         <?php include('footer.php'); ?>
