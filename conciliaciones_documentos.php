@@ -455,13 +455,13 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                         ?>
                                                                             <tr>
                                                                                 <td class="col-1" style="text-align: center;">
-                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $monto_ingresado . ',' . $f_venc . ',' . $subproducto . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
                                                                                 </td>
                                                                                 <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                                                 <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
                                                                                 <td class="valor2 col-auto font_mini" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
                                                                                 <td class="interes col-auto font_mini" id="interes">
-                                                                                    <input type="text" value="0" class="monto_ingresado font_mini_input form-control" disabled>
+                                                                                    <input type="text" value="0" class="monto_ingresado font_mini_input form-control" name="monto_ingresado" disabled>
                                                                                 </td>
                                                                                 <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
                                                                                 <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
@@ -677,11 +677,19 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         // Inicialización de DataTables
         var table = $('#datatable2').DataTable({
             responsive: true,
-            columnDefs: [
-                { targets: [0], orderable: false }, // Columna no ordenable
-                { targets: [2, 12], visible: false } // Columnas ocultas
+            columnDefs: [{
+                    targets: [0],
+                    orderable: false
+                }, // Columna no ordenable
+                {
+                    targets: [2, 12],
+                    visible: false
+                } // Columnas ocultas
             ],
-            order: [[9, 'desc'], [1, 'asc']],
+            order: [
+                [9, 'desc'],
+                [1, 'asc']
+            ],
             createdRow: function(row, data, dataIndex) {
                 $(row).attr('id', 'row-' + dataIndex);
             }
@@ -695,7 +703,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                 var rowId = $(this).closest('tr').attr('id');
                 var rowData = table.row('#' + rowId).data();
                 var montoPareo = parseFloat(rowData[12]) || 0;
-                
+
                 // Obtener el valor del input con clase 'monto_ingresado' limpiando el formato
                 var montoInteres = cleanNumber($('.monto_ingresado').filter(function() {
                     return $(this).closest('tr').attr('id') === rowId;

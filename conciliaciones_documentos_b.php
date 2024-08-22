@@ -32,6 +32,8 @@ $gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
 $existe     = 0;
 $idestado   = 0;
 $estado     = '';
+$monto_ingresado = 0;
+$monto_diferencia = 0;
 
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
@@ -114,6 +116,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 .font_mini {
                     font-size: 15px !important;
                 }
+
                 .font_mini_input {
                     font-size: 15px !important;
                 }
@@ -200,7 +203,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div><!--end col-->
                         </div>
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?= $gestion["MONTO"] ?>&fecha_rec=<?= $gestion["FECHA"] ?>&op=2" onsubmit="return valida_envia();return false;">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?php echo $gestion["MONTO"] ?>&fecha_rec=<?php echo $gestion["FECHA"] ?>&monto_diferencia=<?php echo isset($monto_diferencia) ? $monto_diferencia : '0' ?>&op=2" onsubmit="return valida_envia();return false;">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -232,20 +235,32 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <div class="col-md-12">
 
                                                 <div class="form-group row text-center justify-content-between">
-                                                    <div class="col-lg-7 d-flex align-items-center">
+                                                    <div class="col-lg-8 d-flex align-items-center">
                                                         <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
                                                         <div class="col-lg-8">
                                                             <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $gestion["RUT"] . ' - ' . htmlspecialchars($gestion["NOMBRE"], ENT_QUOTES, 'UTF-8') ?>"
                                                                 disabled />
                                                         </div>
                                                     </div>
+                                                    <div class="col-lg-4 d-flex align-items-center justify-content-end">
+                                                        <label for="estado" class="col-lg-3 col-form-label">ESTADO</label>
+                                                        <div class="col-lg-8">
+                                                            <input type="text" name="estado" id="estado" class="form-control" maxlength="50" autocomplete="off" value="<?php echo htmlspecialchars($estado); ?>" disabled />
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <div class="form-group row text-center justify-content-between">
                                                     <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                        <label for="monto" class="col-lg-4 col-form-label">MONTO</label>
+                                                        <label for="monto" class="col-lg-4 col-form-label">TRANSF</label>
                                                         <div class="col-lg-8">
                                                             <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $gestion["MONTO"] ?>" disabled />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-4 d-flex align-items-center justify-content-end">
+                                                        <label for="monto_diferencia" class="col-lg-3 col-form-label">MONTO</label>
+                                                        <div class="col-lg-8">
+                                                            <input type="text" name="monto_diferencia" id="monto_diferencia" class="form-control monto_diferencia" maxlength="50" autocomplete="off" value="<?php echo $monto_diferencia; ?>" />
                                                         </div>
                                                     </div>
                                                     <div class="col-lg-4 d-flex align-items-start">
@@ -253,12 +268,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         <div class="col-lg-8">
                                                             <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
                                                             <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                        <label for="estado" class="col-lg-3 col-form-label">ESTADO</label>
-                                                        <div class="col-lg-8">
-                                                            <input type="text" name="estado" id="estado" class="form-control" maxlength="50" autocomplete="off" value="<?php echo htmlspecialchars($estado); ?>" disabled />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -342,7 +351,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $f_venc         = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
                                                 $id_documento   = isset($transferencia["ID_DOCUMENTO"]) ? $transferencia["ID_DOCUMENTO"] : '';
                                                 $monto_doc      = isset($transferencia["MONTO"]) ? $transferencia["MONTO"] : '';
-                                                $fecha_venc     = isset($transferencia["F_VENC"]) ? $transferencia["F_VENC"] : '';
+                                                $fecha_venc     = isset($transferencia["F_VENC"]) ? $transferencia["F_VENC"] : 'holi';
                                                 $subproducto    = isset($transferencia["SUBPRODUCTO"]) ? $transferencia["SUBPRODUCTO"] : '';
                                                 $n_doc          = isset($transferencia["N_DOC"]) ? $transferencia["N_DOC"] : '';
 
@@ -405,13 +414,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                        <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo . ',' . $monto_ingresado; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
                                                     </td>
                                                     <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
                                                     <td class="valor2 col-auto font_mini" id="valor_cuota2">$<?php echo number_format($transferencia["MONTO"], 0, ',', '.'); ?></td>
                                                     <td class="interes col-auto font_mini" id="interes">
-                                                        <input type="text" value="0" class="monto_ingresado font_mini_input form-control" disabled>
+                                                        <input type="text" value="<?php echo $monto_ingresado; ?>" class="monto_ingresado font_mini_input form-control" disabled />
                                                     </td>
                                                     <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
                                                     <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
@@ -421,10 +430,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="estado_pareo col-auto font_mini" id="estado_pareo"><?php echo $estado_pareo_text; ?></td>
                                                     <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($monto_pareo, 0, ',', '.'); ?></td>
                                                     <td class="monto_pareo_oculto col-auto font_mini" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td>
-                                                </tr>
-                                            <?php
-                                            }
-                                            ?>
+                                                </tr> <?php
+                                                    }
+                                                        ?>
                                         </tbody>
                                     </table>
                                 </div><!-- end card-body -->
@@ -606,13 +614,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
             });
             return false; // Evitar el envío inmediato del formulario
         }
-
         // Si no se requiere confirmación, permitir el envío del formulario
         return true;
     }
 </script>
 
 <script>
+$(document).ready(function() {
     // Función para formatear números con separadores de miles
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -623,112 +631,173 @@ $fecha_proceso = $row["FECHAPROCESO"];
         return parseFloat(numStr.replace(/\./g, '').replace(',', '.')) || 0;
     }
 
-    $(document).ready(function() {
-        // Inicialización de DataTables
-        var table = $('#datatable2').DataTable({
-            responsive: true,
-            columnDefs: [
-                { targets: [0], orderable: false }, // Columna no ordenable
-                { targets: [2, 12], visible: false } // Columnas ocultas
-            ],
-            order: [[9, 'desc'], [1, 'asc']],
-            createdRow: function(row, data, dataIndex) {
-                $(row).attr('id', 'row-' + dataIndex);
+    // Inicializar DataTable
+    var table = $('#datatable2').DataTable({
+        responsive: true,
+        columnDefs: [{
+                targets: [0],
+                orderable: false
+            },
+            {
+                targets: [2, 12],
+                visible: false
             }
+        ],
+        order: [
+            [9, 'desc'],
+            [1, 'asc']
+        ],
+        createdRow: function(row, data, dataIndex) {
+            $(row).attr('id', 'row-' + dataIndex);
+        }
+    });
+
+    // Actualizar Total
+    function actualizarTotal() {
+        let total = 0;
+
+        $('#datatable2 .iddocumento_checkbox:checked').each(function() {
+            var rowId = $(this).closest('tr').attr('id');
+            var rowData = table.row('#' + rowId).data();
+            var montoPareo = parseFloat(rowData[12]) || 0;
+
+            var montoInteres = cleanNumber($('.monto_ingresado').filter(function() {
+                return $(this).closest('tr').attr('id') === rowId;
+            }).val());
+
+            var valor = montoInteres > 0 ? montoInteres : parseFloat(rowData[2]) || 0;
+
+            total += (valor - montoPareo);
         });
 
-        // Función para actualizar el total
-        function actualizarTotal() {
-            let total = 0; // Reiniciar el total
+        total = Math.max(total, 0);
 
-            $('#datatable2 .iddocumento_checkbox:checked').each(function() {
-                var rowId = $(this).closest('tr').attr('id');
-                var rowData = table.row('#' + rowId).data();
-                var montoPareo = parseFloat(rowData[12]) || 0;
-                
-                // Obtener el valor del input con clase 'monto_ingresado' limpiando el formato
-                var montoInteres = cleanNumber($('.monto_ingresado').filter(function() {
-                    return $(this).closest('tr').attr('id') === rowId;
-                }).val());
+        $('#total2').val('$' + formatNumber(total));
 
-                // Si montoInteres es distinto de cero, usar su valor
-                var valor = montoInteres > 0 ? montoInteres : parseFloat(rowData[2]) || 0;
+        var montoOriginal = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
+        var montoDiferencia = cleanNumber($('#monto_diferencia').val());
 
-                total += (valor - montoPareo);
-            });
-
-            total = Math.max(total, 0); // Asegurarse de que el total no sea menor de cero
-
-            $('#total2').val('$' + formatNumber(total));
-
-            var montoParseado = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
-            var estado;
-            if (montoParseado > total && total > 0) {
-                estado = "EXCEDIDO";
-            } else if (montoParseado < total) {
-                estado = "ABONADO";
-            } else if (montoParseado == total) {
-                estado = "CONCILIADO";
-            } else {
-                estado = "";
-            }
-
-            $('#estado').val(estado);
-            updateConciliarButton();
+        if (montoDiferencia > 0) {
+            montoOriginal = montoDiferencia;
         }
 
-        // Evento para los checkboxes
-        $('#datatable2').on('change', '.iddocumento_checkbox', function() {
-            var rowId = $(this).closest('tr').attr('id');
-            var isChecked = $(this).is(':checked');
+        var estado;
+        if (montoOriginal > total && total > 0) {
+            estado = "EXCEDIDO";
+        } else if (montoOriginal < total) {
+            estado = "ABONADO";
+        } else if (montoOriginal == total) {
+            estado = "CONCILIADO";
+        } else {
+            estado = "";
+        }
+
+        $('#estado').val(estado);
+        updateConciliarButton();
+    }
+
+    // Manejar cambios en los checkboxes
+    $('#datatable2').on('change', '.iddocumento_checkbox', function() {
+        var rowId = $(this).closest('tr').attr('id');
+        var isChecked = $(this).is(':checked');
+        var $inputInteres = $('.monto_ingresado').filter(function() {
+            return $(this).closest('tr').attr('id') === rowId;
+        });
+
+        if (isChecked) {
+            $inputInteres.prop('disabled', false);
+            if ($inputInteres.val().trim() === '') {
+                $inputInteres.val('0');
+            }
+        } else {
+            $inputInteres.prop('disabled', true).val('0');
+        }
+
+        actualizarTotal();
+        updateConciliarButton();
+    });
+
+    // Manejar el formato de monto_ingresado
+    $('#datatable2').on('input', '.monto_ingresado', function() {
+        var $input = $(this);
+        var cleanValue = cleanNumber($input.val());
+
+        if ($input.val().trim() === '') {
+            $input.val('0');
+        } else {
+            $input.val(formatNumber(cleanValue));
+        }
+
+        actualizarTotal();
+    });
+
+    // Manejar el formato y validación de monto_diferencia
+    function validarMontoDiferencia() {
+        var $input = $('#monto_diferencia');
+        var montoOriginal = <?php echo intval(preg_replace('/[^0-9]/', '', $gestion['MONTO'])); ?>;
+        var montoDiferencia = cleanNumber($input.val());
+
+        if (montoDiferencia === 0) {
+            $input.val('0');
+            return;
+        }
+
+        if (montoDiferencia > (montoOriginal + 1000)) {
+            montoDiferencia = montoOriginal + 1000;
+        } else if (montoDiferencia < (montoOriginal - 1000)) {
+            montoDiferencia = montoOriginal - 1000;
+        }
+
+        if (montoDiferencia === montoOriginal) {
+            montoDiferencia = 0;
+        }
+
+        $input.val(formatNumber(montoDiferencia));
+    }
+
+    $('#monto_diferencia').on('input', function() {
+        $(this).val(formatNumber(cleanNumber($(this).val())));
+    });
+
+    $('#monto_diferencia').on('blur', function() {
+        validarMontoDiferencia();
+        actualizarTotal();
+    });
+
+    function updateConciliarButton() {
+        var checkedCount = $('#datatable2 .iddocumento_checkbox:checked').length;
+        var clienteSeleccionado = $('#cliente').val();
+
+        $('#conciliarButton').prop('disabled', !(checkedCount > 0 && clienteSeleccionado !== "0"));
+    }
+
+    updateConciliarButton();
+    $('#datatable2').on('change', '.iddocumento_checkbox', updateConciliarButton);
+    $('#cliente').on('change', updateConciliarButton);
+
+    // Actualizar el valor de los checkboxes con los valores actuales de monto_ingresado
+    $('#form_concilia').on('submit', function(event) {
+        $('#datatable2 .iddocumento_checkbox:checked').each(function() {
+            var $checkbox = $(this);
+            var rowId = $checkbox.closest('tr').attr('id');
             var $inputInteres = $('.monto_ingresado').filter(function() {
                 return $(this).closest('tr').attr('id') === rowId;
             });
 
-            if (isChecked) {
-                $inputInteres.prop('disabled', false);
-                // Si el input está vacío, establecer el valor en 0
-                if ($inputInteres.val().trim() === '') {
-                    $inputInteres.val('0');
-                }
-            } else {
-                $inputInteres.prop('disabled', true).val('0'); // Deshabilitar el input y establecer su valor en 0
-            }
-
-            actualizarTotal();
-            updateConciliarButton();
+            // Actualizar el valor del checkbox con el valor actual del input monto_ingresado
+            var checkboxValue = $checkbox.val().split(',');
+            checkboxValue[5] = cleanNumber($inputInteres.val()); // Actualizar monto_ingresado
+            $checkbox.val(checkboxValue.join(','));
         });
 
-        // Evento para el input del monto ingresado
-        $('#datatable2').on('input', '.monto_ingresado', function() {
-            var $input = $(this);
-            var cleanValue = cleanNumber($input.val());
+        var montoDiferencia = cleanNumber($('#monto_diferencia').val());
+        var formAction = $(this).attr('action');
 
-            // Si el input está vacío, establecer el valor en 0
-            if ($input.val().trim() === '') {
-                $input.val('0');
-            } else {
-                $input.val(formatNumber(cleanValue));
-            }
-
-            actualizarTotal();
-        });
-
-        // Función para actualizar el estado del botón de CONCILIAR
-        function updateConciliarButton() {
-            var checkedCount = $('#datatable2 .iddocumento_checkbox:checked').length;
-            var clienteSeleccionado = $('#cliente').val();
-
-            $('#conciliarButton').prop('disabled', !(checkedCount > 0 && clienteSeleccionado !== "0"));
-        }
-
-        // Llamar a la función al cargar la página
-        updateConciliarButton();
-
-        // Añadir evento change a todos los checkboxes y al select de cliente para actualizar el botón cuando cambien
-        $('#datatable2').on('change', '.iddocumento_checkbox', updateConciliarButton);
-        $('#cliente').on('change', updateConciliarButton);
+        // Reemplazar el valor de monto_diferencia en el action del formulario
+        var actionUpdated = formAction.replace(/&monto_diferencia=[^&]*/, '&monto_diferencia=' + encodeURIComponent(montoDiferencia));
+        $(this).attr('action', actionUpdated);
     });
+});
 </script>
 
 <script>
