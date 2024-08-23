@@ -14,6 +14,8 @@ if (isset($_GET["op"])) {
     $op = $_GET["op"];
 };
 
+$matched = 0;
+
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
 
@@ -181,13 +183,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
 
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>" class="btn btn-icon btn-rounded btn-success ml-2"> 
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2"> 
                                                         <i class="feather-24" data-feather="plus"></i>
                                                     </a>
                                                 </td>
                                             <?php } else { ?>
                                                 <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos_b.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>" class="btn btn-icon btn-rounded btn-info ml-2">
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=1" class="btn btn-icon btn-rounded btn-info ml-2">
                                                         <i class="feather-24" data-feather="folder"></i>
                                                     </a>
                                                 </td>

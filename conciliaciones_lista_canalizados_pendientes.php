@@ -26,7 +26,6 @@ $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
 $fecha_proceso = $row["FECHAPROCESO"];
 
-
 ?>
 
 <!DOCTYPE html>
@@ -57,8 +56,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-
-
 </head>
 
 <body class="dark-sidenav">
@@ -103,7 +100,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Canalizados</b>
+                            <b>Canalizados pendientes</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
@@ -167,7 +164,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </div>
                             </div>
                             <div class="col-lg-3">
-                                <a href="conciliaciones_exportar_canalizados.php">
+                                <a href="conciliaciones_exportar_canalizados_pendientes.php">
                                     <button type="button" class="btn btn-primary waves-effect waves-light mt-4" id="exportar_btn" disabled>
                                         EXPORTAR
                                     </button>
@@ -197,13 +194,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <th>F. VENC</th>
                                         <th>OPERACIÓN</th>
                                         <th>TIPO</th>
-                                        <th>MONTO</th>
+                                        <th>$ DOC</th>
+                                        <th>DIF</th>
                                         <th>ELIMINAR</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PENDIENTES_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
@@ -265,6 +263,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
                                             <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
+                                            <td class="col-auto">$<?php echo number_format($detalles["DIFERENCIA_TRANSF"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">
                                                 <?php
                                                 // Convertir DateTime a cadena en el formato deseado

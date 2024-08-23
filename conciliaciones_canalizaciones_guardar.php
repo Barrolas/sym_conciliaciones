@@ -10,10 +10,10 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Obtener parámetros
-$op = isset($_GET["op"]) ? $_GET["op"] : 0;
-$selected_ids_docs = isset($_POST['selected_ids_docs']) ? $_POST['selected_ids_docs'] : [];
-$selected_ids_pareodoc = isset($_POST['selected_ids_pareodoc']) ? $_POST['selected_ids_pareodoc'] : [];
-$selected_types = isset($_POST['selected_types']) ? $_POST['selected_types'] : [];
+$op                     = isset($_GET["op"]) ? $_GET["op"] : 0;
+$selected_ids_docs      = isset($_POST['selected_ids_docs']) ? $_POST['selected_ids_docs'] : [];
+$selected_ids_pareodoc  = isset($_POST['selected_ids_pareodoc']) ? $_POST['selected_ids_pareodoc'] : [];
+$selected_types         = isset($_POST['selected_types']) ? $_POST['selected_types'] : [];
 
 // Depuración: imprimir datos recibidos
 echo "<h3>Datos recibidos:</h3>";

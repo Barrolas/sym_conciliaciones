@@ -54,7 +54,10 @@ error_reporting(E_ALL);
             </li>
             -->
             <li>
-                <a href="conciliaciones_lista_pendientes.php">PENDIENTES</a>
+                <a href="conciliaciones_lista_canalizados_pendientes.php">CANALIZADOS PENDIENTES</a>
+            </li>
+            <li>
+                <a href="conciliaciones_lista_pendientes.php">PAREADOS PENDIENTES</a>
             </li>
             <li>
                 <a href="conciliaciones_lista_saldos.php">SALDOS</a>

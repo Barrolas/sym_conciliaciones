@@ -236,6 +236,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <th class="font_mini_header">$ TRANSF</th>
                                             <th class="font_mini_header">$ DOC</th>
                                             <th class="font_mini_header">CUBIERTO</th>
+                                            <th class="font_mini_header">$ DIF</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -328,6 +329,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_TRANSFERIDO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_CUBIERTO"], 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($canalizacion["DIFERENCIA_TRANSF"], 0, ',', '.'); ?></td>
                                             </tr> <?php } ?>
                                     </tbody>
                                 </table>
@@ -580,7 +582,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 {
                     targets: 9,
                     render: function(data, type, row, meta) {
-                        if (data > 170) { // Valor desde el cual se mostrará el texto en rojo
+                        if (data > 169) { // Valor desde el cual se mostrará el texto en rojo
                             return '<span class="text-danger"><b>' + data + '</b></span>';
                         }
                         return data;
@@ -589,7 +591,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             ],
             createdRow: function(row, data, dataIndex) {
                 // Verifica el valor en la columna 7 (índice 7)
-                if (data[9] > 170) { // Valor desde el cual se mostrará el fondo en rojo claro
+                if (data[9] > 169) { // Valor desde el cual se mostrará el fondo en rojo claro
                     $(row).css('background-color', 'rgba(255, 0, 0, 0.06)'); // Color rojo claro con transparencia
                 }
                 if (data[9] < 0) { // Valor desde el cual se mostrará el fondo en rojo claro
@@ -636,7 +638,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                 // Filter by dias_mora
                 if (diasMoraFilter === "1") {
-                    if (diasMoraValue < 170) {
+                    if (diasMoraValue < 169) {
                         return false; // Exclude rows that don't meet the criteria
                     }
                 }
