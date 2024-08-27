@@ -8,26 +8,36 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$cuenta                 = $_POST['cuenta_benef'];
-$rut_cliente            = $_POST['rut_cliente'];
-$es_entrecuenta         = 0;
+header('Content-Type: application/json'); // Establece el tipo de contenido como JSON
+
+$cuenta                 = $_POST['cuenta'] ?? ''; // Asegúrate de que las variables estén definidas
+$rut_cliente            = $_POST['rut_cliente'] ?? '';
+$es_entrecuentas         = 0;
 $cuenta_correspondiente = '';
 
-
-$sql = "{call [_SP_CONCILIACIONES_CONSULTA_ENTRECUENTAS] (?, ?)}";
+// Preparar la consulta y los parámetros
+$sql = "{call [_SP_CONCILIACIONES_CONSULTA_ENTRECUENTAS] (?, ?, ?, ?)}";
 $params = [
-    [$cuenta,                   SQLSRV_PARAM_IN],
-    [$rut_cliente,              SQLSRV_PARAM_IN],
-    [&$es_entrecuenta,          SQLSRV_PARAM_INOUT],
-    [&$cuenta_correspondiente,  SQLSRV_PARAM_INOUT]
+    [$cuenta, SQLSRV_PARAM_IN],
+    [$rut_cliente, SQLSRV_PARAM_IN],
+    [&$es_entrecuentas, SQLSRV_PARAM_INOUT],
+    [&$cuenta_correspondiente, SQLSRV_PARAM_INOUT]
 ];
+
 $stmt = sqlsrv_query($conn, $sql, $params);
 
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true));
+    // Si hay un error en la consulta, devuelve un JSON con el mensaje de error
+    echo json_encode([
+        'error' => 'Error en la consulta SQL',
+        'details' => sqlsrv_errors()
+    ]);
+    exit();
 }
 
-echo $es_entrecuenta;
-echo $cuenta_correspondiente;
-
+// Devuelve un JSON con las variables
+echo json_encode([
+    'es_entrecuentas' => $es_entrecuentas,
+    'cuenta_correspondiente' => $cuenta_correspondiente
+]);
 ?>

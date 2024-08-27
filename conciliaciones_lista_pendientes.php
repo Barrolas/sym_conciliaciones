@@ -386,7 +386,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         // Function to apply filters based on stored values
         function applyFilters() {
-            var storedCuentaValue = sessionStorage.getItem('selected_cuenta');
+            var storedCuentaValue = sessionStorage.getItem('selected_cuenta_5');
 
             // Apply cuenta filter
             if (storedCuentaValue && storedCuentaValue !== "0") {
@@ -400,7 +400,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Add event listener to the cuenta select element
         $('#cuenta').on('change', function() {
             var filterValue = $(this).val();
-            sessionStorage.setItem('selected_cuenta', filterValue);
+            sessionStorage.setItem('selected_cuenta_5', filterValue);
 
             if (filterValue == "0") {
                 table.column(0).search('').draw(); // Clear the cuenta filter

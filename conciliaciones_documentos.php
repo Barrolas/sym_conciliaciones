@@ -163,14 +163,18 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         }
 
         .form-control {
-            height: 28px;
+            height: 36px;
             /* Ajusta la altura según sea necesario */
         }
     </style>
     <style>
         @media (min-width: 1000px) and (max-width: 1299px) {
             .font_mini {
-                font-size: 11px !important;
+                font-size: 10px !important;
+            }
+
+            .font_mini_extra {
+                font-size: 10px !important;
             }
 
             .font_mini_input {
@@ -179,7 +183,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
             }
 
             .font_mini_header {
-                font-size: 11px !important;
+                font-size: 10px !important;
             }
 
 
@@ -315,6 +319,9 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     <div class="col-auto p-0">
                                                                                         <button type="submit" class="btn btn-md btn-secondary ml-0 mb-0" id="search_button" style="transform: translateX(-6px);"><i class="fa fa-search custom-size py-1"></i></button>
                                                                                     </div>
+                                                                                    <div class="col-auto p-0">
+                                                                                        <button type="button" class="btn btn-md btn-info ml-3 mb-0" id="search_button" style="transform: translateX(-6px);" href="conciliaciones_documentos_diferencias.php?transaccion=<?php echo $transaccion ;?>&rut_ordenante=<?php echo $rut_ordenante ;?>&cuenta=<?php echo $cuenta ;?>">DIFERENCIAS<i class="fa fa-search custom-size py-1 ml-2"></i></button>
+                                                                                    </div>
                                                                                 </div>
                                                                             </td>
                                                                         <?php }; ?>
@@ -364,6 +371,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     <div class="col-lg-8">
                                                                                         <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
                                                                                         <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
+                                                                                        <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -428,9 +436,10 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                             <th class="font_mini_header">CARTERA</th>
                                                                             <th class="font_mini_header">SUBPROD</th>
                                                                             <th class="font_mini_header">E° DOC</th>
-                                                                            <th class="font_mini_header">E° PAREO</th>
+                                                                            <th class="font_mini_header">E° PAR</th>
                                                                             <th class="font_mini_header">$ AB/PD</th>
                                                                             <th class="font_mini_header" style="display: none;">$ PAREO</th> <!-- Columna oculta -->
+                                                                            <th class="font_mini_header">DIF</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -453,6 +462,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                             $fecha_venc     = isset($transferencia["F_VENC"]) ? $transferencia["F_VENC"] : 'holi';
                                                                             $subproducto    = isset($transferencia["SUBPRODUCTO"]) ? $transferencia["SUBPRODUCTO"] : '';
                                                                             $n_doc          = isset($transferencia["N_DOC"]) ? $transferencia["N_DOC"] : '';
+                                                                            $prestamos      = isset($transferencia["PRESTAMOS"]) ? $transferencia["PRESTAMOS"] : '';
 
                                                                             $estado_doc = $transferencia["ESTADO_DOC"];
                                                                             switch ($estado_doc) {
@@ -508,12 +518,11 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                         break;
                                                                                 }
                                                                             }
-
                                                                             // Generar HTML
                                                                         ?>
                                                                             <tr>
                                                                                 <td class="col-1" style="text-align: center;">
-                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo . ',' . $monto_ingresado; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo . ',' . $monto_ingresado  . ',' . $prestamos; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
                                                                                 </td>
                                                                                 <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                                                 <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
@@ -521,7 +530,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                 <td class="interes col-auto font_mini" id="interes">
                                                                                     <input type="text" value="<?php echo $monto_ingresado; ?>" class="monto_ingresado font_mini_input form-control" disabled />
                                                                                 </td>
-                                                                                <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
+                                                                                <td class="n_doc col-auto font_mini_extra" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
                                                                                 <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
                                                                                 <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
                                                                                 <td class="subproducto col-auto font_mini" id="subproducto"><?php echo $transferencia["SUBPRODUCTO"]; ?></td>
@@ -529,6 +538,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                 <td class="estado_pareo col-auto font_mini" id="estado_pareo"><?php echo $estado_pareo_text; ?></td>
                                                                                 <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($monto_pareo, 0, ',', '.'); ?></td>
                                                                                 <td class="monto_pareo_oculto col-auto font_mini" id="monto_pareo_oculto" style="display: none;"><?php echo $monto_pareo; ?></td>
+                                                                                <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($prestamos, 0, ',', '.'); ?></td>
                                                                             </tr> <?php
                                                                                 }
                                                                                     ?>
@@ -584,6 +594,56 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 
+<script language="javascript">
+    // Incrusta el valor de PHP en una variable de JavaScript
+    var cuenta = '<?= $cuenta ?>';
+
+    $(document).ready(function() {
+        $("#cliente").on('change', function() {
+            $("#cliente option:selected").each(function() {
+                var rut_cliente = $(this).val();
+                var cuenta = '<?= $cuenta ?>'; // Verifica que esta variable esté definida en el contexto PHP
+
+                if (rut_cliente && cuenta) {
+                    $.post("get_cuentas_validar.php", {
+                        cuenta: cuenta,
+                        rut_cliente: rut_cliente
+                    }, function(response) {
+                        console.log("Respuesta del servidor: ", response); // Verifica la respuesta del servidor
+
+                        // Si la respuesta ya es un objeto, no es necesario usar JSON.parse
+                        var data = response;
+
+                        // Asegúrate de que data sea un objeto
+                        if (typeof data === 'object') {
+                            var es_entrecuentas = data.es_entrecuentas;
+                            var cuenta_correspondiente = data.cuenta_correspondiente;
+
+                            document.getElementById('es_entrecuentas').value = es_entrecuentas;
+                            console.log("es_entrecuentas: ", es_entrecuentas);
+                            console.log("cuenta_correspondiente: ", cuenta_correspondiente);
+
+                            if (es_entrecuentas == 1) {
+                                Swal.fire({
+                                    title: 'Advertencia',
+                                    text: `El cliente elegido no corresponde a la cuenta donde se realizó la transferencia. El movimiento quedará como "entre-cuentas". La cuenta correspondiente es: ${cuenta_correspondiente}.`,
+                                    icon: 'warning',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        } else {
+                            console.error("La respuesta del servidor no es un objeto válido");
+                        }
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error en la solicitud AJAX:", textStatus, errorThrown);
+                    });
+                } else {
+                    console.error("rut_cliente o cuenta están indefinidos");
+                }
+            });
+        });
+    });
+</script>
 
 <script>
     function valida_envia() {

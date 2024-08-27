@@ -128,8 +128,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div>
                             <div class="col-lg-6">
                                 <div class="col-lg-9">
-                                    <label for="cuenta" class="col-4">CUENTA</label>
-                                    <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
+                                    <label for="cuenta_filter" class="col-4">CUENTA</label>
+                                    <select name="cuenta_filter" id="cuenta_filter" class="form-control" maxlength="50" autocomplete="off">
                                         <option value="0" selected>Todas las cuentas</option>
                                         <?php
                                         $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
@@ -282,13 +282,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
             var table = $('#datatable2').DataTable();
 
             function applyFilter() {
-                var storedCuentaValue = sessionStorage.getItem('selected_cuenta');
+                var storedCuentaValue = sessionStorage.getItem('selected_cuenta_1');
                 var storedPageLength = sessionStorage.getItem('page_length');
 
                 if (storedCuentaValue && storedCuentaValue !== "0") {
-                    $('#cuenta').val(storedCuentaValue).change();
+                    $('#cuenta_filter').val(storedCuentaValue).change();
                 } else {
-                    $('#cuenta').val("0").change(); // Reset to default
+                    $('#cuenta_filter').val("0").change(); // Reset to default
                 }
 
                 if (storedPageLength) {
@@ -296,9 +296,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 }
             }
 
-            $('#cuenta').on('change', function() {
+            $('#cuenta_filter').on('change', function() {
                 var filterValue = $(this).val();
-                sessionStorage.setItem('selected_cuenta', filterValue);
+                sessionStorage.setItem('selected_cuenta_1', filterValue);
 
                 if (filterValue === "0") {
                     table.search('').columns().search('').draw();
@@ -347,7 +347,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 seenTransactions.add(transaccion);
                 // Solo agregar el asterisco si hay más de una fila para la transacción
                 if (transactionCounts[transaccion] > 1) {
-                    data[0] = rut + ' <span><i class="far fa-bookmark text-primary pl-2"</i></span>'; // Añadir asterisco en rojo
+                    data[0] = rut + ''; // Añadir asterisco en rojo
                 }
                 this.data(data); // Actualizar la fila con el nuevo valor
             }

@@ -17,14 +17,15 @@ $op = isset($_GET["op"]) ? $_GET["op"] : 0;
 if (isset($_POST['iddocumento_checkbox'])) {
 
     // Creamos arreglos vacíos para almacenar los valores separados
-    $id_documentos      = array();
-    $montos_docs        = array();
-    $fechas_venc        = array();
-    $subproductos       = array();
-    $monto_pareodocs    = array();
-    $montos_ingresados  = array();
-    $suma_docs          = 0;
-    $cant_docs          = 0;
+    $id_documentos          = array();
+    $montos_docs            = array();
+    $fechas_venc            = array();
+    $subproductos           = array();
+    $monto_pareodocs        = array();
+    $montos_ingresados      = array();
+    $prestamos_ingresados   = array();
+    $suma_docs              = 0;
+    $cant_docs              = 0;
 
     // Recorremos cada valor del arreglo de checkboxes
     foreach ($_POST['iddocumento_checkbox'] as $checkbox_value) {
@@ -33,13 +34,14 @@ if (isset($_POST['iddocumento_checkbox'])) {
         $valores = explode(',', $checkbox_value);
 
         // Verificamos que $valores tenga el número correcto de elementos
-        if (count($valores) >= 6) {
+        if (count($valores) >= 7) {
             $id_documentos[]        = $valores[0];
             $montos_docs[]          = $valores[1];
             $fechas_venc[]          = $valores[2];
             $subproductos[]         = $valores[3];
             $monto_pareodocs[]      = $valores[4];
             $montos_ingresados[]    = $valores[5];
+            $prestamos_ingresados[] = $valores[6];
             $suma_docs             += $valores[1];
             $cant_docs++;
         }
@@ -49,12 +51,13 @@ if (isset($_POST['iddocumento_checkbox'])) {
     $docs_combined = [];
     foreach ($id_documentos as $index => $id) {
         $docs_combined[] = [
-            'id_documento'      => $id,
-            'monto_doc'         => $montos_docs[$index],
-            'fecha_venc'        => $fechas_venc[$index],
-            'subproducto'       => $subproductos[$index],
-            'monto_pareodocs'   => $monto_pareodocs[$index],
-            'monto_ingresado'   => $montos_ingresados[$index]
+            'id_documento'          => $id,
+            'monto_doc'             => $montos_docs[$index],
+            'fecha_venc'            => $fechas_venc[$index],
+            'subproducto'           => $subproductos[$index],
+            'monto_pareodocs'       => $monto_pareodocs[$index],
+            'monto_ingresado'       => $montos_ingresados[$index],
+            'prestamos_ingresados'  => $prestamos_ingresados[$index]
         ];
     }
 
@@ -74,11 +77,12 @@ if (isset($_POST['iddocumento_checkbox'])) {
     });
 
     // Descomponer el arreglo ordenado en los arreglos originales
-    $id_documentos      = array_column($docs_combined, 'id_documento');
-    $montos_docs        = array_column($docs_combined, 'monto_doc');
-    $fechas_venc        = array_column($docs_combined, 'fecha_venc');
-    $subproductos       = array_column($docs_combined, 'subproducto');
-    $monto_pareodocs    = array_column($docs_combined, 'monto_pareodocs');
+    $id_documentos          = array_column($docs_combined, 'id_documento');
+    $montos_docs            = array_column($docs_combined, 'monto_doc');
+    $fechas_venc            = array_column($docs_combined, 'fecha_venc');
+    $subproductos           = array_column($docs_combined, 'subproducto');
+    $monto_pareodocs        = array_column($docs_combined, 'monto_pareodocs');
+    $prestamos_ingresados   = array_column($docs_combined, 'prestamos_ingresados');
     // Ya no se usa $montos_ingresados
 }
 
@@ -95,6 +99,7 @@ print_r($monto_pareodocs);
 //exit;
 
 $rut_cliente                    = $_POST['cliente'];
+$es_entrecuentas                = $_POST['es_entrecuentas'];
 $rut_ordenante                  = $_GET['rut_ordenante'];
 $rut_deudor                     = $_GET['rut_deudor'];
 $transaccion                    = $_GET['transaccion'];
@@ -105,10 +110,11 @@ $monto_transferido_con_puntos   = $_GET['monto'];
 $monto_transferido              = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
 $idusuario                      = 1;
 $trae_cobertura                 = 0;
+$diferencia_prestamo            = ($monto_diferencia - $monto_transferido);
 
 //print_r($_POST) . ";";
 //print_r($_GET);
-//print_r($monto_diferencia);
+//print_r($monto_diferencia - $monto_transferido);
 //exit;
 
 $existe_pareo    = 0;
@@ -126,7 +132,7 @@ if ($monto_transferido < $suma_docs) {
 }
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
 $params1 = array(
@@ -137,6 +143,7 @@ $params1 = array(
     array($rut_cliente,         SQLSRV_PARAM_IN),
     array($estado_pareo,        SQLSRV_PARAM_IN),
     array($idusuario,           SQLSRV_PARAM_IN),
+    array($es_entrecuentas,     SQLSRV_PARAM_IN),
     array(&$existe_pareo,       SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
@@ -177,10 +184,12 @@ if ($monto_diferencia == 0) {
 foreach ($id_documentos as $index => $id_docdeudores) {
 
     // Inicializar variables
-    $concilia_doc        = 0;
-    $idpareo_docdeudores = 0;
-    $tipo_pago           = 0;
-    $aplica_cobertura    = 0; 
+    $concilia_doc           = 0;
+    $idpareo_docdeudores    = 0;
+    $tipo_pago              = 0;
+    $haber                  = 0;
+    $deuda                  = 0;
+    $aplica_cobertura       = 0;
     print_r('transferido: ' . $saldo_disponible . "; ");
 
     // Determinar si estamos en la última iteración
@@ -188,16 +197,17 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         $aplica_cobertura = 1;  // Aplicar cobertura solo en la última iteración
     }
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?)}";
+    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
     $params2 = [
-        [$idpareo_sistema,        SQLSRV_PARAM_IN],
-        [$id_docdeudores,         SQLSRV_PARAM_IN],
-        [$montos_docs[$index],    SQLSRV_PARAM_IN],
-        [$subproductos[$index],   SQLSRV_PARAM_IN],
-        [$idusuario,              SQLSRV_PARAM_IN],
-        [&$idpareo_docdeudores,   SQLSRV_PARAM_OUT],
-        [&$concilia_doc,          SQLSRV_PARAM_OUT],
-        [&$saldo_disponible,      SQLSRV_PARAM_INOUT]
+        [$idpareo_sistema,              SQLSRV_PARAM_IN],
+        [$id_docdeudores,               SQLSRV_PARAM_IN],
+        [$montos_docs[$index],          SQLSRV_PARAM_IN],
+        [$subproductos[$index],         SQLSRV_PARAM_IN],
+        [$prestamos_ingresados[$index], SQLSRV_PARAM_IN],
+        [$idusuario,                    SQLSRV_PARAM_IN],
+        [&$idpareo_docdeudores,         SQLSRV_PARAM_OUT],
+        [&$concilia_doc,                SQLSRV_PARAM_OUT],
+        [&$saldo_disponible,            SQLSRV_PARAM_INOUT]
     ];
 
     $stmt2 = sqlsrv_query($conn, $sql2, $params2);
@@ -210,22 +220,45 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     print_r('id pareo docdeudores: ' . $idpareo_docdeudores . '; ');
 
     if ($concilia_doc == 0) {
-        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         $params3 = [
-            [$idpareo_sistema,         SQLSRV_PARAM_IN],
-            [$idpareo_docdeudores,     SQLSRV_PARAM_IN],
-            [$id_docdeudores,          SQLSRV_PARAM_IN],
-            [$rut_cliente,             SQLSRV_PARAM_IN],
-            [$montos_docs[$index],     SQLSRV_PARAM_IN],
-            [$subproductos[$index],    SQLSRV_PARAM_IN],
-            [$aplica_cobertura,        SQLSRV_PARAM_IN],  
-            [&$tipo_pago,              SQLSRV_PARAM_OUT],
-            [&$saldo_disponible,       SQLSRV_PARAM_INOUT]
+            [$idpareo_sistema,          SQLSRV_PARAM_IN],
+            [$idpareo_docdeudores,      SQLSRV_PARAM_IN],
+            [$id_docdeudores,           SQLSRV_PARAM_IN],
+            [$rut_cliente,              SQLSRV_PARAM_IN],
+            [$montos_docs[$index],      SQLSRV_PARAM_IN],
+            [$subproductos[$index],     SQLSRV_PARAM_IN],
+            [$aplica_cobertura,         SQLSRV_PARAM_IN],
+            [&$tipo_pago,               SQLSRV_PARAM_OUT],
+            [&$deuda,                   SQLSRV_PARAM_OUT],
+            [&$saldo_disponible,        SQLSRV_PARAM_INOUT]
         ];
 
         $stmt3 = sqlsrv_query($conn, $sql3, $params3);
         if ($stmt3 === false) {
             echo "Error in executing statement 3.\n";
+            die(print_r(sqlsrv_errors(), true));
+        }
+
+        $sql4 = "{call [_SP_CONCILIACIONES_MOVIMIENTO_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $params4 = [
+            [$id_docdeudores,           SQLSRV_PARAM_IN],
+            [$cuenta,                   SQLSRV_PARAM_IN],
+            [$transaccion,              SQLSRV_PARAM_IN],
+            [$idpareo_sistema,          SQLSRV_PARAM_IN],
+            [$idpareo_docdeudores,      SQLSRV_PARAM_IN],
+            [$fecha_rec,                SQLSRV_PARAM_IN],
+            [$montos_docs[$index],      SQLSRV_PARAM_IN],
+            [$deuda,                    SQLSRV_PARAM_IN],
+            [$aplica_cobertura,         SQLSRV_PARAM_IN],
+            [$diferencia_prestamo,      SQLSRV_PARAM_IN],
+            [$es_entrecuentas,          SQLSRV_PARAM_IN],
+            [$idusuario,                SQLSRV_PARAM_IN]
+        ];
+
+        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+        if ($stmt4 === false) {
+            echo "Error in executing statement 4.\n";
             die(print_r(sqlsrv_errors(), true));
         }
 

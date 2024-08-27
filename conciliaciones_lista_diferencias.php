@@ -190,64 +190,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 </div>
             </th>
             -->
-                                        <th>CANAL</th>
-                                        <th>CUENTA</th>
-                                        <th>RUT CTE</th>
-                                        <th>RUT DEU</th>
                                         <th>F. VENC</th>
                                         <th>OPERACIÓN</th>
-                                        <th>TIPO</th>
                                         <th>MONTO</th>
                                         <th>ELIMINAR</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-
-                                        $id_documento = $conciliacion['ID_DOC'];
-
-                                        // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                        $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                        $params4 = array($id_documento);
-                                        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-
-                                        if ($stmt4 === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-
-                                        // Procesar resultados de la consulta de detalles
-                                        $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
-
-                                        // Consulta para obtener el estado del documento
-                                        $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                        $params5 = array($id_documento);
-                                        $stmt5 = sqlsrv_query($conn, $sql5, $params5);
-
-                                        if ($stmt5 === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-
-                                        $estado_pareo_text = 'N/A'; // Valor por defecto
-                                        while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-                                            $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
-                                            switch ($estado_pareo) {
-                                                case '1':
-                                                    $estado_pareo_text = 'CONC';
-                                                    break;
-                                                case '2':
-                                                    $estado_pareo_text = 'ABON';
-                                                    break;
-                                                case '3':
-                                                    $estado_pareo_text = 'PEND';
-                                                    break;
-                                            }
-                                        }
                                     ?>
                                         <tr>
                                             <!--
@@ -257,14 +213,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </div>
                                             </td>
                                             -->
-                                            <td class="col-auto"><?php echo mb_substr($detalles["CANALIZACION"], 0, 6); ?></td>
-                                            <td class="col-auto"><?php echo $detalles["CUENTA"]; ?></td>
-                                            <td class="col-auto"><?php echo $detalles["RUT_CLIENTE"]; ?></td>
-                                            <td class="col-auto"><?php echo $detalles["RUT_DEUDOR"]; ?></td>
                                             <td class="col-auto"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
                                             <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
-                                            <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
-                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
+                                            <td class="col-auto">$<?php echo number_format($detalles["MONTO"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">
                                                 <?php
                                                 // Convertir DateTime a cadena en el formato deseado
