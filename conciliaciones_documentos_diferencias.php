@@ -19,11 +19,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-/*
-$matched        = isset($_GET["matched"]) ? $_GET["matched"] : 0;
-$op             = isset($_GET["op"]) ? $_GET["op"] : 0;
-*/
-
 $transaccion    = $_GET["transaccion"];
 
 $sql_detalles   = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION](?)}";
@@ -38,22 +33,11 @@ if ($stmt_detalles === false) {
 }
 $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
-/*
-$sql1     = "{call [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]}";
-$stmt1 = sqlsrv_query($conn, $sql1, $params1);
-if ($stmt1 === false) {
-    echo "Error in executing statement 1.\n";
-    die(print_r(sqlsrv_errors(), true));
-}
-$detalles = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
-*/
-
 $cuenta         = $detalles['CUENTA_BENEF'];
-//$rut_deudor     = $detalles['RUT_DEUDOR'];
 $nom_ordenante  = $detalles['NOMBRE_ORDENANTE'];
 $fecha_rec      = $detalles['FECHA_RECEP'];
 $rut_ordenante  = $detalles['RUT_ORDENANTE'];
-//$rut_cliente    = $detalles['RUT_CLIENTE'];
+$monto_transf   = $detalles['MONTO_TRANSACCION'];
 
 $existe             = 0;
 $idestado           = 0;
@@ -215,7 +199,7 @@ $monto_diferencia   = 0;
                         </div>
 
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?php $detalles['MONTO_TRANSACCION'] ?>&fecha_rec=<?php echo $fecha_rec ?>" onsubmit="return valida_envia();return false;">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&monto=<?php echo $detalles['MONTO_TRANSACCION'] ?>&fecha_rec=<?php echo $fecha_rec ?>">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -242,42 +226,40 @@ $monto_diferencia   = 0;
                                     </table>
                                 </div><!--end card-header-->
                                 <div class="card-body ">
-                                    <form class="form-horizontal " id="validate" role="form" class="needs-validation" autocomplete="on">
-                                        <div class="row text-start">
-                                            <div class="col-md-12">
+                                    <div class="row text-start">
+                                        <div class="col-md-12">
 
-                                                <div class="form-group row text-center justify-content-between">
-                                                    <div class="col-lg-8 d-flex align-items-center">
-                                                        <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
-                                                        <div class="col-lg-8">
-                                                            <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $rut_ordenante . ' - ' . htmlspecialchars($nom_ordenante, ENT_QUOTES, 'UTF-8') ?>"
-                                                                disabled />
-                                                        </div>
+                                            <div class="form-group row text-center justify-content-between">
+                                                <div class="col-lg-8 d-flex align-items-center">
+                                                    <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
+                                                    <div class="col-lg-8">
+                                                        <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $rut_ordenante . ' - ' . htmlspecialchars($nom_ordenante, ENT_QUOTES, 'UTF-8') ?>"
+                                                            disabled />
                                                     </div>
                                                 </div>
-
-                                                <div class="form-group row text-center justify-content-between">
-                                                    <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                        <label for="monto" class="col-lg-4 col-form-label">TRANSF</label>
-                                                        <div class="col-lg-8">
-                                                            <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $detalles['MONTO_TRANSACCION'] ?>" disabled />
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-lg-4 d-flex align-items-start">
-                                                        <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
-                                                        <div class="col-lg-8">
-                                                            <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
-                                                            <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
-                                                            <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <hr>
-
                                             </div>
+
+                                            <div class="form-group row text-center justify-content-between">
+                                                <div class="col-lg-4 d-flex align-items-center justify-content-end">
+                                                    <label for="monto" class="col-lg-4 col-form-label">TRANSF</label>
+                                                    <div class="col-lg-8">
+                                                        <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $detalles['MONTO_TRANSACCION'] ?>" disabled />
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 d-flex align-items-start">
+                                                    <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
+                                                    <div class="col-lg-8">
+                                                        <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
+                                                        <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
+                                                        <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
                                         </div>
-                                    </form>
+                                    </div>
 
                                     <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                         <thead>
@@ -306,13 +288,13 @@ $monto_diferencia   = 0;
                                             while ($transferencia = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
 
                                                 // Variables de documento
-                                                $f_venc         = isset($transferencia["F_VENC"]) ? $transferencia["F_VENC"]->format('Y-m-d') : 'holi';
-                                                $id_documento   = isset($transferencia['ID_DOCDEUDORES']) ? $transferencia['ID_DOCDEUDORES'] : '';
-                                                $monto_doc      = isset($transferencia['MONTO']) ? $transferencia['MONTO'] : '';
-                                                $subproducto    = isset($transferencia["SUBPRODUCTO"]) ? $transferencia["SUBPRODUCTO"] : '';
-                                                $n_doc          = isset($transferencia["N_DOC"]) ? $transferencia["N_DOC"] : '';
-                                                $rut_deudor     = isset($transferencia["RUT_DEUDOR"]) ? $transferencia["RUT_DEUDOR"] : '';
-                                                $prestamos      = isset($transferencia["DIFERENCIA"]) ? $transferencia["DIFERENCIA"] : '';
+                                                $f_venc         = isset($transferencia["F_VENC"])           ? $transferencia["F_VENC"]->format('Y-m-d') : 'Error de formato';
+                                                $id_documento   = isset($transferencia['ID_DOCDEUDORES'])   ? $transferencia['ID_DOCDEUDORES'] : '';
+                                                $monto_doc      = isset($transferencia['MONTO'])            ? $transferencia['MONTO'] : '';
+                                                $subproducto    = isset($transferencia["SUBPRODUCTO"])      ? $transferencia["SUBPRODUCTO"] : '';
+                                                $n_doc          = isset($transferencia["N_DOC"])            ? $transferencia["N_DOC"] : '';
+                                                $rut_deudor     = isset($transferencia["RUT_DEUDOR"])       ? $transferencia["RUT_DEUDOR"] : '';
+                                                $prestamos      = isset($transferencia["DIFERENCIA"])       ? $transferencia["DIFERENCIA"] : '';
 
                                                 // Generar HTML
                                             ?>
@@ -383,186 +365,10 @@ $monto_diferencia   = 0;
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 
-<script language="javascript">
-    // Incrusta el valor de PHP en una variable de JavaScript
-    var cuenta = '<?= $cuenta ?>';
-
-    $(document).ready(function() {
-        $("#cliente").on('change', function() {
-            $("#cliente option:selected").each(function() {
-                var rut_cliente = $(this).val();
-                var cuenta = '<?= $cuenta ?>'; // Verifica que esta variable esté definida en el contexto PHP
-
-                if (rut_cliente && cuenta) {
-                    $.post("get_cuentas_validar.php", {
-                        cuenta: cuenta,
-                        rut_cliente: rut_cliente
-                    }, function(response) {
-                        console.log("Respuesta del servidor: ", response); // Verifica la respuesta del servidor
-
-                        // Si la respuesta ya es un objeto, no es necesario usar JSON.parse
-                        var data = response;
-
-                        // Asegúrate de que data sea un objeto
-                        if (typeof data === 'object') {
-                            var es_entrecuentas = data.es_entrecuentas;
-                            var cuenta_correspondiente = data.cuenta_correspondiente;
-
-                            document.getElementById('es_entrecuentas').value = es_entrecuentas;
-                            console.log("es_entrecuentas: ", es_entrecuentas);
-                            console.log("cuenta_correspondiente: ", cuenta_correspondiente);
-
-                            if (es_entrecuentas == 1) {
-                                Swal.fire({
-                                    title: 'Advertencia',
-                                    text: `El cliente elegido no corresponde a la cuenta donde se realizó la transferencia. El movimiento quedará como "entre-cuentas". La cuenta correspondiente es: ${cuenta_correspondiente}.`,
-                                    icon: 'warning',
-                                    confirmButtonText: 'OK'
-                                });
-                            }
-                        } else {
-                            console.error("La respuesta del servidor no es un objeto válido");
-                        }
-                    }).fail(function(jqXHR, textStatus, errorThrown) {
-                        console.error("Error en la solicitud AJAX:", textStatus, errorThrown);
-                    });
-                } else {
-                    console.error("rut_cliente o cuenta están indefinidos");
-                }
-            });
-        });
-    });
-</script>
-
 <script>
     function valida_envia() {
-        var cliente = document.getElementById('cliente').value; // Obtén el RUT del cliente
-        var checkboxes = document.querySelectorAll('.iddocumento_radio:checked');
-        var nDocs = new Set();
-        var estadoFinal = $('#estado').val(); // Obtén el estado calculado
-
-        // Define la fecha actual
-        var fechaActual = new Date();
-        fechaActual.setHours(0, 0, 0, 0); // Establece la hora a 00:00:00 para comparar solo las fechas
-
-        // Verificar si el cliente RUT es 96509669
-        if (cliente == 96509669) {
-            // Validación: Verificar que no haya checkboxes seleccionados con el mismo número de operación
-            for (var checkbox of checkboxes) {
-                var nDoc = checkbox.getAttribute('data-n-doc');
-                if (nDocs.has(nDoc)) {
-                    Swal.fire({
-                        width: 600,
-                        icon: 'error',
-                        title: 'El tipo cartera sólo permite seleccionar más de un documento cuando estos tienen distinto numero de operación.',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                    return false; // Cancelar el envío del formulario
-                }
-                nDocs.add(nDoc);
-            }
-
-            // Validación adicional basada en el estado calculado
-            if (estadoFinal === "ABONADO") {
-                Swal.fire({
-                    title: 'Confirmación',
-                    text: 'Este tipo de cartera no permite abonos, ¿Desea continuar con el envío del formulario de todos modos?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Continuar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (!result.isConfirmed) {
-                        return false; // Cancelar el envío del formulario si el usuario cancela
-                    } else {
-                        // Si se confirma, continuar con el envío del formulario
-                        document.getElementById('form_concilia').submit();
-                    }
-                });
-                return false; // Evitar el envío inmediato del formulario
-            }
-        }
-
-        // Nueva validación: Confirmación del usuario si hay fechas de vencimiento futuras
-        var confirmacionRequerida_fecha = false;
-
-        for (var checkbox of checkboxes) {
-            var fechaVencimientoStr = checkbox.value.split(',')[2]; // Extrae la fecha de vencimiento como cadena
-            var fechaVencimiento = new Date(fechaVencimientoStr); // Convierte la cadena en un objeto Date
-            fechaVencimiento.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
-
-            // Obtener la fecha actual
-            var fechaActual = new Date();
-            fechaActual.setHours(0, 0, 0, 0); // Establece la hora en 00:00:00 para comparaciones de solo fecha
-
-            if (fechaVencimiento > fechaActual) { // Compara con la fecha actual
-                confirmacionRequerida_fecha = true;
-                break; // Salir del bucle si se encuentra una fecha futura
-            }
-        }
-
-        if (confirmacionRequerida_fecha) {
-            Swal.fire({
-                title: 'Confirmación',
-                text: 'Algunos documentos tienen fechas de vencimiento futuras. ¿Desea continuar con el envío del formulario?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Continuar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    return false; // Cancelar el envío del formulario si el usuario cancela
-                } else {
-                    // Si se confirma, continuar con el envío del formulario
-                    document.getElementById('form_concilia').submit();
-                }
-            });
-            return false; // Evitar el envío inmediato del formulario
-        }
-
-        // Si no se requiere confirmación, permitir el envío del formulario
-        return true;
-
-        // Nueva validación: Confirmación del usuario si el estado del documento es PAGADO o NO VIGENTE
-        var confirmacionRequerida = false;
-
-        for (var checkbox of checkboxes) {
-            // Obtener la fila del checkbox seleccionado
-            var fila = checkbox.closest('tr');
-            var estadoDoc = fila.querySelector('.estado_doc').textContent.trim(); // Obtén el estado del documento de la celda correspondiente
-
-            if (estadoDoc === 'PAGADO' || estadoDoc === 'NO VIGENTE') {
-                confirmacionRequerida = true;
-                break;
-            }
-        }
-
-        if (confirmacionRequerida) {
-            Swal.fire({
-                title: 'Confirmación',
-                text: 'Algunos documentos están en estado PAGADO o NO VIGENTE. ¿Desea continuar?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Continuar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    return false; // Cancelar el envío del formulario si el usuario cancela
-                } else {
-                    // Si se confirma, continuar con el envío del formulario
-                    document.getElementById('form_concilia').submit();
-                }
-            });
-            return false; // Evitar el envío inmediato del formulario
-        }
-        // Si no se requiere confirmación, permitir el envío del formulario
+        // Función vacía, sin validaciones activas aun.
+        alert('paso')
         return true;
     }
 </script>

@@ -292,7 +292,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         break;
                                                 }
                                             }
-
+                                        
+                                        
 
                                         ?>
                                             <tr>

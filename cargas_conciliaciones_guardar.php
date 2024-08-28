@@ -37,6 +37,7 @@
 		<?php
 		session_start();
 		include("funciones.php");
+		include("conexiones.php");
 		// CONEXION a ZEUS
 		// SET UP CONEXION SQL SERVER
 		$repositorio    	= "\\\\192.168.1.193";
@@ -45,22 +46,15 @@
 		//$repositorio    	= "\\\\192.168.101.15";
 		//$folder         	= "$repositorio\\excel_pagos\RUTERO";
 
-		$serverName3 = "192.168.101.15\RECOVER";
-		$connectionInfo3 = array("Database" => "SYM", "UID" => "sa", "PWD" => "Hendrix1966.");
-		$conn3           = sqlsrv_connect($serverName3, $connectionInfo3);
-
-		$serverName 		= "192.168.1.193\EXPLOTACION";
-		$connectionInfo 	= array("Database" => "conciliacion", "UID" => "prueba3", "PWD" => "123456789");
-		$conn2           	= sqlsrv_connect($serverName, $connectionInfo);
 
 		noCache();
 
 		// Verificar las conexiones
-		if ($conn3 === false) {
+		if ($conn === false) {
 			die("Error en la conexión a la base de datos SYM: " . print_r(sqlsrv_errors(), true));
 		}
-//		if ($conn2 === false) {
-//		die("Error en la conexión a la base de datos conciliacion: " . print_r(sqlsrv_errors(), true));}
+		//		if ($conn2 === false) {
+		//		die("Error en la conexión a la base de datos conciliacion: " . print_r(sqlsrv_errors(), true));}
 
 
 		/*
@@ -106,12 +100,12 @@ error_reporting(E_ALL);
 
 		$sql = "delete from [192.168.1.193].conciliacion.dbo.[Transferencias_Recibidas]";
 
-		$stmt = sqlsrv_query($conn3, $sql);
+		$stmt = sqlsrv_query($conn, $sql);
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
 		$sql  = "delete from [Transferencias_Recibidas]";
-		$stmt = sqlsrv_query($conn3, $sql);
+		$stmt = sqlsrv_query($conn, $sql);
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
@@ -156,11 +150,11 @@ error_reporting(E_ALL);
 			//echo  $sql . ";<br>";
 
 
-			$stmt = sqlsrv_query($conn3, $sql);
+			$stmt = sqlsrv_query($conn, $sql);
 			if ($stmt === false) {
 				die(print_r(sqlsrv_errors(), true));
 			}
-			if ($conn3 === false) {
+			if ($conn === false) {
 				die(print_r(sqlsrv_errors(), true)); // Mostrar errores de conexión si falló
 			}
 			$count++;
@@ -169,26 +163,36 @@ error_reporting(E_ALL);
 		// Mostrar el total de registros ingresados
 		//echo "Total registros ingresados: " . $count;
 		//		exit;
+		/*if ($sistema == 'desarrollo') {
+			$sql = "insert into [Transferencias_Recibidas]
+			select *
+			from [Transferencias_Recibidas]";
+		} else {
+			$sql = "insert into [192.168.1.193].conciliacion.dbo.[Transferencias_Recibidas]
+			select *
+			from [Transferencias_Recibidas]";
+		}
+	    */
 
 		$sql = "insert into [192.168.1.193].conciliacion.dbo.[Transferencias_Recibidas]
-			select * -- delete
-			from [Transferencias_Recibidas]";
+		select *
+		from [Transferencias_Recibidas]";
 
-		$stmt = sqlsrv_query($conn3, $sql);
+		$stmt = sqlsrv_query($conn, $sql);
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
 
 		$sql = "EXEC [192.168.1.193].conciliacion.dbo.Carga_cartola";
 
-		$stmt = sqlsrv_query($conn3, $sql);
+		$stmt = sqlsrv_query($conn, $sql);
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}
 
 		$sql = "EXEC [192.168.1.193].conciliacion.[dbo].[InsertarGestionesCompromisos]";
 
-		$stmt = sqlsrv_query($conn3, $sql);
+		$stmt = sqlsrv_query($conn, $sql);
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 		}

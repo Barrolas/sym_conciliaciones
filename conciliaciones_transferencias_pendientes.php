@@ -16,8 +16,13 @@ if (isset($_GET["op"])) {
 
 $matched = 0;
 
-$sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+if ($sistema == 'desarrollo') {
+    $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
+    from dbo.Transferencias_Recibidas_Hist";
+} else {
+    $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
+    from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+}
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
@@ -110,7 +115,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         <div class="col-12 mx-2">
                             <p>
                                 Esta herramienta permite visualizar las transferencias aun no pareadas en el sistema. Las trasnferencias con
-                                con botón celeste tienen match de que el rut ordenante es el mismo del rut deudor, en el caso de aquellas 
+                                con botón celeste tienen match de que el rut ordenante es el mismo del rut deudor, en el caso de aquellas
                                 con botón verde, son transferencias con rut deudor indeterminado <b>(No en uso aun)</b>.
                             </p>
                         </div>
@@ -174,7 +179,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                                     ?>
                                         <tr>
-                                            <td class="col-2">  <?php echo $transferencia["RUT"];         ?></td>
+                                            <td class="col-2"> <?php echo $transferencia["RUT"];         ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["NOMBRE"];      ?></td>
                                             <td class="col-auto">$<?php echo $transferencia["MONTO"];       ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["TRANSACCION"]; ?></td>
@@ -183,7 +188,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
 
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2"> 
+                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2">
                                                         <i class="feather-24" data-feather="plus"></i>
                                                     </a>
                                                 </td>
@@ -292,7 +297,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 }
 
                 if (storedPageLength) {
-                    table.page.len(parseInt(storedPageLength)).draw(); 
+                    table.page.len(parseInt(storedPageLength)).draw();
                 }
             }
 
