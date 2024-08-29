@@ -222,6 +222,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         // Procesar resultados de la consulta de detalles
                                         $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
 
+                                        $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?)}";
+                                        $params_diferencia = array($id_documento);
+                                        $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
+
+                                        if ($stmt_diferencia === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+
+                                        $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
+
                                         // Consulta para obtener el estado del documento
                                         $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
                                         $params5 = array($id_documento);
@@ -263,7 +273,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
                                             <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
                                             <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
-                                            <td class="col-auto">$<?php echo number_format($detalles["DIFERENCIA_TRANSF"], 0, ',', '.'); ?></td>
+                                            <td class="col-auto">$<?php echo number_format($diferencia["DIFERENCIA"], 0, ',', '.'); ?></td>
                                             <td class="col-auto">
                                                 <?php
                                                 // Convertir DateTime a cadena en el formato deseado
