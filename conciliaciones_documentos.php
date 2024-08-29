@@ -319,14 +319,14 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     <div class="col-auto p-0">
                                                                                         <button type="submit" class="btn btn-md btn-secondary ml-0 mb-0" id="search_button" style="transform: translateX(-6px);"><i class="fa fa-search custom-size py-1"></i></button>
                                                                                     </div>
-                                                                                    <div class="col-auto p-0">
-                                                                                        <a class="btn btn-md btn-info ml-3 mb-0" id="search_button" style="transform: translateX(-6px);" href="conciliaciones_documentos_diferencias.php?transaccion=<?php echo $transaccion; ?>&rut_ordenante=<?php echo $rut_ordenante; ?>&cuenta=<?php echo $cuenta; ?>">
-                                                                                            DIFERENCIAS <i class="fa fa-search custom-size py-1 ml-2"></i>
-                                                                                        </a>
-                                                                                    </div>
                                                                                 </div>
                                                                             </td>
                                                                         <?php }; ?>
+                                                                        <td align="right">
+                                                                            <a class="btn btn-md btn-info ml-3 mb-0" id="search_button" style="transform: translateX(-6px);" href="conciliaciones_documentos_diferencias.php?transaccion=<?php echo $transaccion; ?>&rut_ordenante=<?php echo $rut_ordenante; ?>&cuenta=<?php echo $cuenta; ?>">
+                                                                                DIFERENCIAS <i class="fa fa-search custom-size py-1 ml-2"></i>
+                                                                            </a>
+                                                                        </td>
                                                                         <td align="right">
                                                                             <a align="right" href="conciliaciones_transferencias_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
                                                                         </td>

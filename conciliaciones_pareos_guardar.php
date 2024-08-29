@@ -161,6 +161,23 @@ if ($existe_pareo == 1) {
     header("Location: conciliaciones_transferencias_pendientes.php?op=3");
 }
 
+$sql_tipo_ps = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_DETALLES_INSERTA](?, ?, ?)}";
+
+$params_tipo_ps = array(
+    array($transaccion,         SQLSRV_PARAM_IN),
+    array($idpareo_sistema,     SQLSRV_PARAM_IN),
+    array($idusuario,           SQLSRV_PARAM_IN)
+);
+
+// Ejecutar la consulta
+$stmt_tipo_ps = sqlsrv_query($conn, $sql_tipo_ps, $params_tipo_ps);
+
+if ($stmt_tipo_ps === false) {
+    echo "Error in executing statement tipo_ps.\n";
+    die(print_r(sqlsrv_errors(), true));
+}
+
+
 $leidos                 = 0;
 $conciliados            = 0;
 $abonados               = 0;
