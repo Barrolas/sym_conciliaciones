@@ -40,11 +40,19 @@
 		include("conexiones.php");
 		// CONEXION a ZEUS
 		// SET UP CONEXION SQL SERVER
+
 		$repositorio    	= "\\\\192.168.1.193";
 		$folder         	= "$repositorio\\excel_PAGOS";
 
 		//$repositorio    	= "\\\\192.168.101.15";
 		//$folder         	= "$repositorio\\excel_pagos\RUTERO";
+		$serverName3        = "192.168.101.15\RECOVER";
+		$connectionInfo3    = array("Database" => "SYM-desarrollo", "UID" => "sa", "PWD" => "Hendrix1966.");
+		$conn3              = sqlsrv_connect($serverName3, $connectionInfo3);
+
+		$serverName 		= "192.168.1.193\EXPLOTACION";
+		$connectionInfo 	= array("Database" => "conciliacion", "UID" => "prueba3", "PWD" => "123456789");
+		$conn2           	= sqlsrv_connect($serverName, $connectionInfo);
 
 
 		noCache();
@@ -241,6 +249,5 @@ error_reporting(E_ALL);
 <script src="assets/js/app.js"></script>
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-
 
 </html>

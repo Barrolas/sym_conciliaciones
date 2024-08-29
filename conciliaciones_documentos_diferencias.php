@@ -212,10 +212,11 @@ $monto_diferencia   = 0;
                                                         <div class="col-auto mr-0">
                                                             <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
                                                         </div>
-
+                                                        <!--
                                                         <div class="col-auto">
                                                             <button type="button" class="btn btn-md btn-secondary" onclick="limpiarFormulario();"><i class="fa fa-times"></i> LIMPIAR</button>
                                                         </div>
+                                                        -->
                                                     </div>
                                                 </td>
                                                 <td align="right">
