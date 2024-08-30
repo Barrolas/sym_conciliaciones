@@ -63,6 +63,9 @@ error_reporting(E_ALL);
                 <a href="conciliaciones_lista_saldos.php">SALDOS</a>
             </li>
             <li>
+                <a href="conciliaciones_lista_movimientos.php">MOVIMIENTOS</a>
+            </li>
+            <li>
                 <a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a>
             </li>
         </ul>

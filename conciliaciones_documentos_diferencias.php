@@ -42,6 +42,7 @@ $monto_transf   = $detalles['MONTO_TRANSACCION'];
 $existe             = 0;
 $idestado           = 0;
 $estado             = '';
+$rut_deudor         = 0;
 $monto_ingresado    = 0;
 $monto_diferencia   = 0;
 
@@ -278,6 +279,7 @@ $monto_diferencia   = 0;
                                         </thead>
                                         <tbody>
                                             <?php
+
                                             // Consulta para obtener documentos asignados
                                             $sql3 = "{call [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]}";
                                             $stmt3 = sqlsrv_query($conn, $sql3);
@@ -286,18 +288,42 @@ $monto_diferencia   = 0;
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
 
-                                            while ($transferencia = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+                                            while ($diferencias = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
 
-                                                // Variables de documento
-                                                $f_venc         = isset($transferencia["F_VENC"])           ? $transferencia["F_VENC"]->format('Y-m-d') : 'Error de formato';
-                                                $id_documento   = isset($transferencia['ID_DOCDEUDORES'])   ? $transferencia['ID_DOCDEUDORES'] : '';
-                                                $monto_doc      = isset($transferencia['MONTO'])            ? $transferencia['MONTO'] : '';
-                                                $subproducto    = isset($transferencia["SUBPRODUCTO"])      ? $transferencia["SUBPRODUCTO"] : '';
-                                                $n_doc          = isset($transferencia["N_DOC"])            ? $transferencia["N_DOC"] : '';
-                                                $rut_deudor     = isset($transferencia["RUT_DEUDOR"])       ? $transferencia["RUT_DEUDOR"] : '';
-                                                $prestamos      = isset($transferencia["DIFERENCIA"])       ? $transferencia["DIFERENCIA"] : '';
+                                                $id_documento = $diferencias['ID_DOCDEUDORES'];
 
-                                                // Generar HTML
+                                                // Consulta para obtener documentos asignados
+                                                $sql_4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                                $params_4 = array($id_documento);  // Primero defines los parámetros
+                                                $stmt_4 = sqlsrv_query($conn, $sql_4, $params_4);  // Luego ejecutas la consulta con los parámetros
+
+                                                if ($stmt_4 === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                $consulta = sqlsrv_fetch_array($stmt_4, SQLSRV_FETCH_ASSOC);
+                                                $rut_deudor = $consulta['RUT_DEUDOR'];
+
+                                                // Consulta para obtener documentos asignados
+                                                $sql_5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
+                                                $params_5 = array($rut_deudor);
+                                                $stmt_5 = sqlsrv_query($conn, $sql_5, $params_5);
+
+                                                if ($stmt_5 === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                $docdetalles = sqlsrv_fetch_array($stmt_5, SQLSRV_FETCH_ASSOC);
+
+
+                                                $f_venc         = isset($docdetalles["F_VENC"])         ? $docdetalles["F_VENC"] : 'Error de formato';
+                                                $monto_doc      = isset($docdetalles['MONTO'])          ? $docdetalles['MONTO'] : '';
+                                                $subproducto    = isset($docdetalles["SUBPRODUCTO"])    ? $docdetalles["SUBPRODUCTO"] : '';
+                                                $n_doc          = isset($docdetalles["N_DOC"])          ? $docdetalles["N_DOC"] : '';
+                                                $rut_deudor     = isset($consulta["RUT_DEUDOR"])        ? $consulta ["RUT_DEUDOR"] : '';
+                                                $rut_cliente    = isset($docdetalles["RUT_CLIENTE"])    ? $docdetalles["RUT_CLIENTE"] : '';
+                                                $nom_cliente    = isset($docdetalles["NOM_CLIENTE"])    ? $docdetalles["NOM_CLIENTE"] : '';
+                                                $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
@@ -306,10 +332,10 @@ $monto_diferencia   = 0;
                                                     <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $prestamos; ?></td>
                                                     <td class="monto_doc col-auto font_mini" id="monto_doc">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
-                                                    <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($transferencia["N_DOC"]); ?></td>
-                                                    <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $transferencia["RUT_CLIENTE"]; ?></td>
-                                                    <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $transferencia["NOM_CLIENTE"]; ?></td>
-                                                    <td class="rut_deudor col-auto  font_mini" id="rut_deudor"><?php echo $transferencia["RUT_DEUDOR"]; ?></td>
+                                                    <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($n_doc); ?></td>
+                                                    <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $rut_cliente; ?></td>
+                                                    <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $nom_cliente; ?></td>
+                                                    <td class="rut_deudor col-auto  font_mini" id="rut_deudor"><?php echo $rut_deudor; ?></td>
                                                     <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($prestamos, 0, ',', '.'); ?></td>
                                                 </tr> <?php
                                                     }

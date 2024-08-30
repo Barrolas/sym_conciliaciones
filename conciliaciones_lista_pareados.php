@@ -237,6 +237,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <th class="font_mini_header">$ DOC</th>
                                             <th class="font_mini_header">CUBIERTO</th>
                                             <th class="font_mini_header">$ DIF</th>
+                                            <th class="font_mini_header">ENTRECTA</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -277,7 +278,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $estado_pareo_text = 'N/A'; // Valor por defecto
                                             while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
 
-                                                $disabled = ($estados["ID_ESTADO"] == 3) ? 'disabled' : '';
+                                                $disabled = ($estados["ID_ESTADO"] == 3 || $estados['ENTRECUENTAS'] == 1) ? 'disabled' : '';
 
                                                 $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
                                                 switch ($estado_pareo) {
@@ -291,9 +292,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         $estado_pareo_text = 'PEND';
                                                         break;
                                                 }
+
+                                                $entrecuenta = isset($estados['ENTRECUENTAS']) ? $estados['ENTRECUENTAS'] : NULL;
                                             }
-                                        
-                                        
+
+
 
                                         ?>
                                             <tr>
@@ -331,6 +334,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_CUBIERTO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["DIFERENCIA_TRANSF"], 0, ',', '.'); ?></td>
+                                                <td class="font_mini"><?php echo $entrecuenta ?></td>
                                             </tr> <?php } ?>
                                     </tbody>
                                 </table>
@@ -338,9 +342,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         </div>
                     </div> <!-- end col -->
                 </div> <!-- end row -->
-                <input type="hidden" id="selected_ids_docs"     name="selected_ids_docs[]">
+                <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
                 <input type="hidden" id="selected_ids_pareodoc" name="selected_ids_pareodoc[]">
-                <input type="hidden" id="selected_types"        name="selected_types[]">
+                <input type="hidden" id="selected_types" name="selected_types[]">
             </form>
         </div><!-- container -->
         <?php include('footer.php'); ?>
@@ -564,7 +568,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         var table = $('#datatable2').DataTable({
             responsive: true,
             order: [
-                [4, 'asc'], 
+                [4, 'asc'],
                 [7, 'asc'],
                 [8, 'asc']
             ],
@@ -581,9 +585,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     visible: false
                 },
                 {
+                    targets: 3,
+                    render: function(data, type, row, meta) {
+                        // Verificar si el valor de la columna 17 es 1
+                        if (row[16] == 1) {
+                            // Aplicar estilo rojo al valor de la columna 3
+                            return '<span class="text-danger"><b>' + data + '</b></span>';
+                        }
+                        return data;
+                    }
+                },
+                {
                     targets: 9,
                     render: function(data, type, row, meta) {
-                        if (data > 169) { // Valor desde el cual se mostrará el texto en rojo
+                        if (data > 169) {
                             return '<span class="text-danger"><b>' + data + '</b></span>';
                         }
                         return data;
@@ -591,12 +606,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 }
             ],
             createdRow: function(row, data, dataIndex) {
-                // Verifica el valor en la columna 7 (índice 7)
-                if (data[9] > 169) { // Valor desde el cual se mostrará el fondo en rojo claro
-                    $(row).css('background-color', 'rgba(255, 0, 0, 0.06)'); // Color rojo claro con transparencia
-                }
-                if (data[9] < 0) { // Valor desde el cual se mostrará el fondo en rojo claro
-                    $(row).css('background-color', 'rgba(255, 255, 0, 0.15)'); // Color amarillo claro con transparencia
+                var value = data[9];
+
+                if (value > 169) {
+                    $(row).css('background-color', 'rgba(255, 0, 0, 0.06)');
+                } else if (value < 0) {
+                    $(row).css('background-color', 'rgba(255, 255, 0, 0.15)');
                 }
             }
         });
