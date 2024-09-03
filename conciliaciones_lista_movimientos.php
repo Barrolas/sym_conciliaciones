@@ -55,9 +55,48 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="plugins/dropify/css/dropify.min.css" rel="stylesheet">
     <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/simplebar@latest/dist/simplebar.min.css" />
+    <script src="https://unpkg.com/simplebar@latest/dist/simplebar.min.js"></script>
+
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 
+    <style>
+        @media (min-width: 1000px) and (max-width: 1299px) {
+
+            .font_mini {
+                font-size: 10px !important;
+            }
+
+            .font_mini_header {
+                font-size: 10px !important;
+            }
+
+            .card_width {
+                width: 90% !important;
+                overflow-x: scroll;
+            }
+
+            .card_content {
+                width: 100% !important;
+                overflow-x: visible;
+            }
+
+            @media (min-width: 1300px) {
+                .font_mini {
+                    font-size: 15px !important;
+                }
+
+                .font_mini_header {
+                    font-size: 15px !important;
+                }
+
+                .card_width {
+                    width: 100% !important;
+                }
+            }
+        }
+    </style>
 
 </head>
 
@@ -183,18 +222,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>ID PS</th>
-                                        <th>TICKET</th>
-                                        <th>MOVIMIENTO</th>
-                                        <th>TRANSACCIÓN</th>
-                                        <th>CTA BENEF</th>
-                                        <th>F REC</th>
-                                        <th>F VTO</th>
-                                        <th>OPERACIÓN</th>
-                                        <th>$ DOC</th>
-                                        <th>HABER</th>
-                                        <th>DEBE</th>
-                                        <th>ESTADO</th>
+                                        <th class="font_mini">ID</th>
+                                        <th class="font_mini">TKT</th>
+                                        <th class="font_mini">MOVIMIENTO</th>
+                                        <th class="font_mini">TRANSACCIÓN</th>
+                                        <th class="font_mini">CTA BENEF</th>
+                                        <th class="font_mini">F REC</th>
+                                        <th class="font_mini">F VTO</th>
+                                        <th class="font_mini">OPERACIÓN</th>
+                                        <th class="font_mini">$ DOC</th>
+                                        <th class="font_mini">HABER</th>
+                                        <th class="font_mini">DEBE</th>
+                                        <th class="font_mini">ESTADO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -205,6 +244,46 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         die(print_r(sqlsrv_errors(), true));
                                     }
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+
+
+                                        $id_documento = $conciliacion['ID_DOCDEUDORES'];
+
+                                        // Consulta para obtener el monto de abonos (solo si el estado no es '1')
+                                        $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
+                                        $params4 = array($id_documento);
+                                        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+
+                                        if ($stmt4 === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+
+                                        // Procesar resultados de la consulta de detalles
+                                        $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
+
+                                        // Consulta para obtener el estado del documento
+                                        $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                        $params5 = array($id_documento);
+                                        $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+
+                                        if ($stmt5 === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+
+                                        $estado_pareo_text = 'N/A'; // Valor por defecto
+                                        while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
+                                            $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
+                                            switch ($estado_pareo) {
+                                                case '1':
+                                                    $estado_pareo_text = 'CONC';
+                                                    break;
+                                                case '2':
+                                                    $estado_pareo_text = 'ABON';
+                                                    break;
+                                                case '3':
+                                                    $estado_pareo_text = 'PEND';
+                                                    break;
+                                            }
+                                        }
                                     ?>
                                         <tr>
                                             <!--
@@ -214,18 +293,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </div>
                                             </td>
                                             -->
-                                            <td class="col-auto"><?php echo $conciliacion["ID_PS"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["TICKET"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["MOVIMIENTO"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["CTA_BENEF"]; ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_RECEPCION"]->format('Y/m/d'); ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["F_VENC"]->format('Y/m/d'); ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["N_DOC"]; ?></td>
-                                            <td class="col-auto">$<?php echo number_format($conciliacion["MONTO"], 0, ',', '.'); ?></td>
-                                            <td class="col-auto">$<?php echo number_format($conciliacion["HABER"], 0, ',', '.'); ?></td>
-                                            <td class="col-auto">$<?php echo number_format($conciliacion["DEBE"], 0, ',', '.'); ?></td>
-                                            <td class="col-auto"><?php echo $conciliacion["ESTADO"]; ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["ID_PS"]; ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["TICKET"]; ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["MOVIMIENTO"]; ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["TRANSACCION"]; ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["CTA_BENEF"]; ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["F_RECEPCION"]->format('Y/m/d'); ?></td>
+                                            <td class="font_mini"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
+                                            <td class="font_mini"><?php echo $detalles["N_DOC"]; ?></td>
+                                            <td class="font_mini">$<?php echo number_format($detalles["MONTO"], 0, ',', '.'); ?></td>
+                                            <td class="font_mini">$<?php echo number_format($conciliacion["HABER"], 0, ',', '.'); ?></td>
+                                            <td class="font_mini">$<?php echo number_format($conciliacion["DEBE"], 0, ',', '.'); ?></td>
+                                            <td class="font_mini"><?php echo $estado_pareo_text; ?></td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>

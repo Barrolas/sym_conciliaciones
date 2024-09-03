@@ -15,7 +15,7 @@ error_reporting(E_ALL);
 
 </head>
 
-<div class="left-sidenav border-0">
+<div class="left-sidenav sidebar border-0">
     <!-- LOGO -->
     <div class="brand">
         <a href="menu_principal.php" class="logo">

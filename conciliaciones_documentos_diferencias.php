@@ -293,7 +293,7 @@ $monto_diferencia   = 0;
                                                 $id_documento = $diferencias['ID_DOCDEUDORES'];
 
                                                 // Consulta para obtener documentos asignados
-                                                $sql_4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                                $sql_4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
                                                 $params_4 = array($id_documento);  // Primero defines los parámetros
                                                 $stmt_4 = sqlsrv_query($conn, $sql_4, $params_4);  // Luego ejecutas la consulta con los parámetros
 

@@ -160,12 +160,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
+                                        <th>FECHA REC.</th>
                                         <th>RUT ORD</th>
                                         <th>NOMBRE</th>
-                                        <th>MONTO</th>
                                         <th>TRANSACCION</th>
-                                        <th>FECHA REC.</th>
                                         <th>CTA. BENEF</th>
+                                        <th>MONTO</th>
                                         <th>ASIGNAR</th>
                                     </tr>
                                 </thead>
@@ -179,12 +179,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                                     ?>
                                         <tr>
+                                            <td class="col-auto"> <?php echo $transferencia["FECHA"];       ?></td>
                                             <td class="col-2"> <?php echo $transferencia["RUT"];         ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["NOMBRE"];      ?></td>
-                                            <td class="col-auto">$<?php echo $transferencia["MONTO"];       ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"> <?php echo $transferencia["FECHA"];       ?></td>
                                             <td class="col-auto"><?php echo $transferencia["CUENTA"];      ?></td>
+                                            <td class="col-auto">$<?php echo $transferencia["MONTO"];       ?></td>
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
 
@@ -273,7 +273,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
     $(document).ready(function() {
         var table = $('#datatable2').DataTable({
             order: [
-                [4, 'desc'],
                 [0, 'asc']
             ]
 
@@ -308,7 +307,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 if (filterValue === "0") {
                     table.search('').columns().search('').draw();
                 } else {
-                    table.column(5).search(filterValue).draw();
+                    table.column(4).search(filterValue).draw();
                 }
             });
 
@@ -321,7 +320,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             // Apply the filter and page length on page load
             applyFilter();
         });
-
+/*
         // Mantener un seguimiento de las transacciones que ya se han visto
         var seenTransactions = new Set();
         var transactionCounts = {};
@@ -356,7 +355,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 }
                 this.data(data); // Actualizar la fila con el nuevo valor
             }
-        });
+        });*/
     });
 
 
