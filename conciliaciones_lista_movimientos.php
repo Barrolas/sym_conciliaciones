@@ -451,14 +451,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         var table = $('#datatable2').DataTable({
             order: [
-                [0, 'asc'],
-                [4, 'asc'],
-                [3, 'asc']
-            ],
-            columnDefs: [{
-                targets: 0
-                //orderable: false
-            }]
+                [0, 'desc'],
+            ]
         });
 
         var rowCount = table.rows().count();
