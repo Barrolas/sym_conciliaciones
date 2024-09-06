@@ -43,6 +43,12 @@ $hojaBancoVigente_ch->setTitle("CH B. Vigente");
 $hojaBancoCastigo_ch = $documento->createSheet();
 $hojaBancoCastigo_ch->setTitle("CH B. Castigo");
 
+$hojaHipotecario_tr = $documento->createSheet();
+$hojaHipotecario_tr->setTitle("TR HIPOT");
+
+$hojaHipotecario_ch = $documento->createSheet();
+$hojaHipotecario_ch->setTitle("CH HIPOT");
+
 function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
 {
     $highestColumn  = $sheet->getHighestColumn();
@@ -82,6 +88,8 @@ $numeroDeFilaBancoCastigo_tr    = 2;
 $numeroDeFilaCMR_ch             = 2;
 $numeroDeFilaBancoVigente_ch    = 2;
 $numeroDeFilaBancoCastigo_ch    = 2;
+$numeroDeFilaHipotecario_tr     = 2;
+$numeroDeFilaHipotecario_ch     = 2;
 
 while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
@@ -129,8 +137,8 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $deud_dv        = $p_sistema['DEUDOR_DV'];
     $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
     $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
-    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
-    $cant_docs      = $qtydocs['CANT_DOCS'];
+    $pago_docs      = $pagodocs ['DESCRIPCION_PAGOS'];
+    $cant_docs      = $qtydocs  ['CANT_DOCS'];
     //Variables pareo docs
     $operacion      = $p_docs['N_DOC'];
     $monto_doc      = $p_docs['MONTO_DOCUMENTO'];
@@ -284,6 +292,81 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $numeroDeFilaBancoCastigo_ch++;
     }
 }
+/* ======================================================HIPOTECARIOS=====================================================*/
+
+$sql_hipotecario = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PROCESADOS_HIPOTECARIOS_LISTA]";
+$stmt_hipotecario = sqlsrv_query($conn, $sql_hipotecario);
+if ($stmt_hipotecario === false) {
+    die(print_r(sqlsrv_errors(), true));
+}
+
+$numeroDeFilaHipotecario_tr     = 2;
+$numeroDeFilaHipotecario_ch     = 2;
+
+while ($hipotecario = sqlsrv_fetch_array($stmt_hipotecario, SQLSRV_FETCH_ASSOC)) {
+
+    //Variables pareo sistema
+    $id_ps_hipotecario          = $hipotecario['ID_PS'];
+    $ord_rut_hipotecario        = $hipotecario['ORDENANTE_RUT'];
+    $ord_dv_hipotecario         = $hipotecario['ORDENANTE_DV'];
+    $ord_banco_hipotecario      = $hipotecario['ORDENANTE_BANCO'];
+    $ord_cta_hipotecario        = $hipotecario['ORDENANTE_CUENTA'];
+    $monto_tr_hipotecario       = $hipotecario['MONTO_TRANSACCION'];
+    $deud_rut_hipotecario       = $hipotecario['DEUDOR_RUT'];
+    $deud_dv_hipotecario        = $hipotecario['DEUDOR_DV'];
+    $operacion_hipotecario      = $hipotecario['N_DOC'];
+    $monto_doc_hipotecario      = $hipotecario['MONTO_DOCUMENTO'];
+    $producto_hipotecario       = $hipotecario['SUBPRODUCTO'];
+    $cartera_hipotecario        = $hipotecario['CARTERA'];
+    $benef_cta_hipotecario      = $hipotecario['CUENTA_BENEFICIARIO'];
+    $tipo_canal_hipotecario     = $hipotecario['CANAL'];
+
+/* ======================================================HIPOTECARIOS=====================================================*/
+
+    // Bloque Hipotecario CHEQUE
+    if ($tipo_canal_hipotecario == 1 && $benef_cta_hipotecario == '29743125' && $producto_hipotecario == 'HIPOTECARIO') {
+        // Escribir encabezado de los productos para Banco Vigente
+        $encabezadoHipotecario_ch = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
+        $hojaHipotecario_ch->fromArray($encabezadoHipotecario_ch, null, 'A1');
+
+        $hojaHipotecario_ch->setCellValueByColumnAndRow        (1, $numeroDeFilaHipotecario_ch, $id_ps_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaHipotecario_ch, $ord_rut_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaHipotecario_ch, $ord_dv_hipotecario,     DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow        (4, $numeroDeFilaHipotecario_ch, $ord_banco_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaHipotecario_ch, $ord_cta_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow        (6, $numeroDeFilaHipotecario_ch, $monto_tr_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaHipotecario_ch, $deud_rut_hipotecario,   DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaHipotecario_ch, $deud_dv_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaHipotecario_ch, $operacion_hipotecario,  DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow        (10,$numeroDeFilaHipotecario_ch, $monto_doc_hipotecario);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow        (11,$numeroDeFilaHipotecario_ch, $cartera_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaHipotecario_ch, $benef_cta_hipotecario,  DataType::TYPE_STRING);
+
+        $numeroDeFilaHipotecario_ch++;
+    }
+
+    // Bloque Hipotecario CHEQUE
+    if ($tipo_canal_hipotecario == 2 && $benef_cta_hipotecario == '29743125' && $producto_hipotecario == 'HIPOTECARIO') {
+        // Escribir encabezado de los productos para Banco Vigente
+        $encabezadoHipotecario_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
+        $hojaHipotecario_tr->fromArray($encabezadoHipotecario_tr, null, 'A1');
+
+        $hojaHipotecario_tr->setCellValueByColumnAndRow        (1, $numeroDeFilaHipotecario_tr, $id_ps_hipotecario);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaHipotecario_tr, $ord_rut_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaHipotecario_tr, $ord_dv_hipotecario,     DataType::TYPE_STRING);
+        $hojaHipotecario_tr->setCellValueByColumnAndRow        (4, $numeroDeFilaHipotecario_tr, $ord_banco_hipotecario);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaHipotecario_tr, $ord_cta_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_tr->setCellValueByColumnAndRow        (6, $numeroDeFilaHipotecario_tr, $monto_tr_hipotecario);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaHipotecario_tr, $deud_rut_hipotecario,   DataType::TYPE_STRING);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaHipotecario_tr, $deud_dv_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaHipotecario_tr, $operacion_hipotecario,  DataType::TYPE_STRING);
+        $hojaHipotecario_tr->setCellValueByColumnAndRow        (10,$numeroDeFilaHipotecario_tr, $monto_doc_hipotecario);
+        $hojaHipotecario_tr->setCellValueByColumnAndRow        (11,$numeroDeFilaHipotecario_tr, $cartera_hipotecario);
+        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaHipotecario_tr, $benef_cta_hipotecario,  DataType::TYPE_STRING);
+
+        $numeroDeFilaHipotecario_tr++;
+    }
+}
 
 // Ajustar el ancho de las columnas en ambas hojas
 autoSizeColumns($hojaCMR_tr);
@@ -292,6 +375,8 @@ autoSizeColumns($hojaBancoCastigo_tr);
 autoSizeColumns($hojaCMR_ch);
 autoSizeColumns($hojaBancoVigente_ch);
 autoSizeColumns($hojaBancoCastigo_ch);
+autoSizeColumns($hojaHipotecario_ch);
+autoSizeColumns($hojaHipotecario_tr);
 
 // Guardar el archivo
 $writer = new Xlsx($documento);
