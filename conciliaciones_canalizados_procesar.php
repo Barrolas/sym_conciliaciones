@@ -93,7 +93,6 @@ if ($stmt_actualiza === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-
 // Redirigir a otra página
 header("Location: conciliaciones_lista_pareados.php?op=1");
 exit;

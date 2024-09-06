@@ -68,6 +68,9 @@ error_reporting(E_ALL);
             <li>
                 <a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a>
             </li>
+            <li>
+                <a href="conciliaciones_exportar_canalizados.php">EXPORTAR CANALIZADOS</a>
+            </li>
         </ul>
     </div>
 

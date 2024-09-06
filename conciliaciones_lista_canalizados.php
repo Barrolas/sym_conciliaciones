@@ -333,7 +333,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                     <div class="tab-pane fade" id="historial" role="tabpanel" aria-labelledby="historial-tab">
 
-
+                        
 
                     </div> <!--final del tab -->
                 </div> <!--final de los tabs -->
