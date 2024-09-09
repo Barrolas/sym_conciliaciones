@@ -79,9 +79,20 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     if ($stmt4 === false) {
         die(print_r(sqlsrv_errors(), true));
     }
-
     // Procesar resultados de la consulta de detalles
     $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
+
+    $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?)}";
+    $params_diferencia = array($id_documento);
+    $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
+
+    if ($stmt_diferencia === false) {
+        die(print_r(sqlsrv_errors(), true));
+    }
+
+    $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
+
+
 
     // Consulta para obtener el estado del documento
     $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
@@ -120,7 +131,7 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $hojaDeProductos->setCellValueByColumnAndRow(7, $numeroDeFila, $estado_pareo_text);
     $formattedValue = number_format($conciliacion["MONTO"], 0, ',', '.');
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(8, $numeroDeFila, $formattedValue, DataType::TYPE_STRING);
-    $formattedValue2 = number_format($detalles["DIFERENCIA_TRANSF"], 0, ',', '.');
+    $formattedValue2 = number_format($diferencia["DIFERENCIA"], 0, ',', '.');
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(9, $numeroDeFila, $formattedValue2, DataType::TYPE_STRING);
     
     $numeroDeFila++;
