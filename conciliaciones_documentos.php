@@ -548,9 +548,16 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     ?>
                                                                     </tbody>
                                                                 </table>
+
+
                                                             </div><!-- end card-body -->
                                                         </div><!-- end card -->
                                                     </form>
+                                                    <div class="text-center">
+                                                        <button id="btn-devolucion" class="btn btn-danger">
+                                                            <i class="fas fa-receipt pr-2"></i> GENERAR DEVOLUCIÓN
+                                                        </button>
+                                                    </div>
                                     </div><!-- end col -->
                                 </div><!-- end row -->
                     </div><!-- container-fluid -->
@@ -994,6 +1001,35 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         var scrollSpeed = 1; // Ajusta este valor para cambiar la velocidad
 
         this.scrollTop += e.deltaY / scrollSpeed;
+    });
+</script>
+
+<script>
+    document.getElementById('btn-devolucion').addEventListener('click', function(e) {
+        e.preventDefault(); // Previene el comportamiento por defecto del botón
+
+        Swal.fire({
+            title: 'Confirmación',
+            text: '¿Confirma que desea dejar esta transferencia como devolución?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, confirmar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Aquí puedes agregar el código para manejar la confirmación
+                Swal.fire(
+                    'Confirmado',
+                    'La transferencia ha sido marcada como devolución.',
+                    'success'
+                ).then(() => {
+                    // Aquí puedes redirigir a otra página o realizar una acción después de la confirmación
+                    window.location.href = 'conciliaciones_devoluciones_guardar.php?transaccion=<?php echo urlencode($transaccion); ?>&rut_ordenante=<?php echo urlencode($rut_ordenante); ?>&cuenta=<?php echo urlencode($cuenta); ?>&fecha_rec=<?php echo urlencode($gestion["FECHA"]); ?>&monto=<?php echo urlencode($gestion["MONTO"]); ?>';
+                });
+            }
+        });
     });
 </script>
 

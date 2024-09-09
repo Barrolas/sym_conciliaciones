@@ -194,7 +194,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PENDIENTES_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));

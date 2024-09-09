@@ -237,7 +237,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <th class="font_mini_header">$ DOC</th>
                                             <th class="font_mini_header">CUBIERTO</th>
                                             <th class="font_mini_header">$ DIF</th>
-                                            <th class="font_mini_header">ENTRECTA</th>
+                                            <th class="font_mini_header" style="display: none;">ENTRECTA</th>
+                                            <th class="font_mini_header"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -334,7 +335,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_CUBIERTO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["DIFERENCIA_TRANSF"], 0, ',', '.'); ?></td>
-                                                <td class="font_mini"><?php echo $entrecuenta ?></td>
+                                                <td class="font_mini" style="display: none;"><?php echo $entrecuenta ?></td>
+                                                <td class="font_mini">
+                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_pareos_eliminar.php?transaccion=<?php echo $canalizacion["TRANSACCION"]; ?>" class="btn btn-icon btn-rounded btn-danger ml-2">
+                                                        <i class="feather-24" data-feather="x"></i>
+                                                    </a>
+                                                </td>
+
                                             </tr> <?php } ?>
                                     </tbody>
                                 </table>
@@ -577,11 +584,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     orderable: false
                 },
                 {
-                    targets: 1,
+                    targets: [1, 17],
                     orderable: false
                 },
                 {
-                    targets: 2,
+                    targets: [2, 16],
                     visible: false
                 },
                 {
@@ -740,6 +747,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
             title: 'Error: Los documentos seleccionados, ya están conciliados.',
             showConfirmButton: false,
             timer: 2000,
+        });
+    <?php } ?>
+
+    <?php if ($op == 5) { ?>
+        Swal.fire({
+            width: 600,
+            icon: 'success',
+            title: 'Pareo eliminado.',
+            showConfirmButton: false,
+            timer: 3000,
         });
     <?php } ?>
 </script>

@@ -112,6 +112,11 @@ $idusuario                      = 1;
 $trae_cobertura                 = 0;
 $diferencia_prestamo            = ($monto_diferencia - $monto_transferido);
 
+if ($es_entrecuentas == 1) {
+    $tipo_pareosistema          = 3;
+} else {
+    $tipo_pareosistema          = 1;
+}
 //print_r($_POST) . ";";
 //print_r($_GET);
 //print_r($monto_diferencia - $monto_transferido);
@@ -161,11 +166,12 @@ if ($existe_pareo == 1) {
     header("Location: conciliaciones_transferencias_pendientes.php?op=3");
 }
 
-$sql_tipo_ps = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_DETALLES_INSERTA](?, ?, ?)}";
+$sql_tipo_ps = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_DETALLES_INSERTA](?, ?, ?, ?)}";
 
 $params_tipo_ps = array(
     array($transaccion,         SQLSRV_PARAM_IN),
     array($idpareo_sistema,     SQLSRV_PARAM_IN),
+    array($tipo_pareosistema,   SQLSRV_PARAM_IN),
     array($idusuario,           SQLSRV_PARAM_IN)
 );
 
@@ -308,27 +314,54 @@ print_r('ya conciliados: '  . $ya_conciliados   . '; ');
 print_r('saldo insuf: '     . $saldo_insuf      . '; ');
 print_r(" lo que quedó despues de restar el doc: " . $saldo_disponible . "; ");
 print_r(" monto_diferencia: " . $monto_diferencia . ";");
-//exit;
+
 
 if ($saldo_disponible > 0 && $monto_diferencia == 0) {
+
     $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
     $params_saldo = array(
         array($idpareo_sistema,     SQLSRV_PARAM_IN),
         array($saldo_disponible,    SQLSRV_PARAM_IN)
     );
+    // Ejecutar la consulta
+    $stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
+
+    if ($stmt_saldo === false) {
+        echo "Error in executing statement saldo.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+
+    print_r($cuenta);              
+    print_r($transaccion);         
+    print_r($idpareo_sistema);     
+    print_r($fecha_rec);           
+    print_r($idusuario);           
+    print_r($saldo_disponible);
+    //exit;
+
+    $sql_devolucion = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DEVOLUCION_INSERTA] (?, ?, ?, ?, ?, ?)}";
+    $params_devolucion = array(
+        array($cuenta,              SQLSRV_PARAM_IN),
+        array($transaccion,         SQLSRV_PARAM_IN),
+        array($idpareo_sistema,     SQLSRV_PARAM_IN),
+        array($fecha_rec,           SQLSRV_PARAM_IN),
+        array($idusuario,           SQLSRV_PARAM_IN),
+        array($saldo_disponible,    SQLSRV_PARAM_IN)
+    );
+    // Ejecutar la consulta
+    $stmt_devolucion = sqlsrv_query($conn, $sql_devolucion, $params_devolucion);
+
+    if ($stmt_devolucion === false) {
+        echo "Error in executing statement devolucion.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+
 }
 
 //print_r($idpareo_sistema);
 print_r(" post: " . $saldo_disponible);
 //exit;
 
-// Ejecutar la consulta
-$stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
-
-if ($stmt_saldo === false) {
-    echo "Error in executing statement saldo.\n";
-    die(print_r(sqlsrv_errors(), true));
-}
 
 if ($op == 1) {
     header("Location: conciliaciones_transferencias_pendientes.php?op=1");

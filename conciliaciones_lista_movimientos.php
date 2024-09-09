@@ -269,7 +269,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             die(print_r(sqlsrv_errors(), true));
                                         }
 
-                                        $estado_pareo_text = 'N/A'; // Valor por defecto
+                                        $estado_pareo_text = 'OK'; // Valor por defecto
                                         while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
                                             $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
                                             switch ($estado_pareo) {
@@ -299,9 +299,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <td class="font_mini"><?php echo $conciliacion["TRANSACCION"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["CTA_BENEF"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["F_RECEPCION"]->format('Y/m/d'); ?></td>
-                                            <td class="font_mini"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
-                                            <td class="font_mini"><?php echo $detalles["N_DOC"]; ?></td>
-                                            <td class="font_mini">$<?php echo number_format($detalles["MONTO"], 0, ',', '.'); ?></td>
+                                            <td class="font_mini"><?php echo isset($detalles["F_VENC"]) ? $detalles["F_VENC"]->format('Y/m/d') : ''; ?> </td>
+                                            <td class="font_mini">
+                                                <?php echo $detalles["N_DOC"] ?? ''; ?>
+                                            </td>
+                                            <td class="font_mini">
+                                                <?php
+                                                if (isset($detalles["MONTO"]) && $detalles["MONTO"] !== null) {
+                                                    echo number_format($detalles["MONTO"], 0, ',', '.');
+                                                } else {
+                                                    echo '';
+                                                }
+                                                ?>
+                                            </td>
                                             <td class="font_mini">$<?php echo number_format($conciliacion["HABER"], 0, ',', '.'); ?></td>
                                             <td class="font_mini">$<?php echo number_format($conciliacion["DEBE"], 0, ',', '.'); ?></td>
                                             <td class="font_mini"><?php echo $estado_pareo_text; ?></td>
