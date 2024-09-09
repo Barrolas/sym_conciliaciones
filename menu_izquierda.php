@@ -15,7 +15,7 @@ error_reporting(E_ALL);
 
 </head>
 
-<div class="left-sidenav border-0">
+<div class="left-sidenav sidebar border-0">
     <!-- LOGO -->
     <div class="brand">
         <a href="menu_principal.php" class="logo">
@@ -63,7 +63,13 @@ error_reporting(E_ALL);
                 <a href="conciliaciones_lista_saldos.php">SALDOS</a>
             </li>
             <li>
+                <a href="conciliaciones_lista_movimientos.php">MOVIMIENTOS</a>
+            </li>
+            <li>
                 <a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a>
+            </li>
+            <li>
+                <a href="conciliaciones_exportar_canalizados.php">EXPORTAR CANALIZADOS</a>
             </li>
         </ul>
     </div>
