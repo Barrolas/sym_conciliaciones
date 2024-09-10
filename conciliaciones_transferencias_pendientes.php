@@ -154,13 +154,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                             </div>
-                            <div id="filter-icons" class="col-lg-4 mt-5">
-                                <div class="col-lg-9">
+                            <div id="filter-icons" class="col-lg-4 mt-4">
+                                <div class="col-lg-6" id="filter-controls">
+                                    <label for="exclude-checkbox">
+                                        <input type="checkbox" id="exclude-checkbox"> Excluir
+                                    </label>
+                                </div>
+                                <div class="col-lg-6">
                                     <i class="far fa-star icon-filter-filter star" data-tag="star"></i>
                                     <i class="far fa-bell icon-filter-filter bell" data-tag="bell"></i>
                                     <i class="far fa-flag icon-filter-filter flag" data-tag="flag"></i>
                                 </div>
+
                             </div>
+
                         </div><!--end form-group-->
                     </div><!--end col-->
                 </div>
@@ -302,6 +309,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 table.page.len(parseInt(storedPageLength)).draw();
             }
 
+            // Cargar el estado del checkbox "Excluir" desde sessionStorage
+            var storedExcludeState = sessionStorage.getItem('exclude_tags');
+            if (storedExcludeState === 'true') {
+                $('#exclude-checkbox').prop('checked', true);
+            } else {
+                $('#exclude-checkbox').prop('checked', false);
+            }
+
             // Cargar los tags seleccionados desde localStorage
             loadTagStates();
 
@@ -398,10 +413,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
             table.page.len(parseInt(pageLength)).draw(); // Cambia el número de resultados por página
         });
 
+        // Manejo del checkbox "Excluir"
+        $('#exclude-checkbox').on('change', function() {
+            var isChecked = $(this).is(':checked');
+            sessionStorage.setItem('exclude_tags', isChecked);
+            filterTable();
+        });
+
         // Aplicar los filtros y etiquetas a las filas
         function filterTable() {
             var selectedTags = [];
             var selectedCuenta = $('#cuenta_filter').val();
+            var excludeTags = $('#exclude-checkbox').is(':checked');
 
             // Recoger los tags seleccionados de los íconos de filtro
             $('#filter-icons .icon-filter-filter.selected').each(function() {
@@ -421,6 +444,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 });
 
                 var tagMatch = selectedTags.length === 0 || selectedTags.some(tag => rowTags.includes(tag));
+                if (excludeTags) {
+                    tagMatch = !tagMatch; // Invertir la lógica si "Excluir" está seleccionado
+                }
                 var cuentaMatch = selectedCuenta === "0" || rowCuenta === selectedCuenta;
 
                 if (tagMatch && cuentaMatch) {
