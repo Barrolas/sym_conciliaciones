@@ -169,7 +169,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div>
                             <div class="col-lg-3 mt-5">
                                 <button id="clear-filters-btn" class="btn btn-secondary">
-                                    Limpiar filtros
+                                    <i class="fa fa-times pr-2"></i>LIMPIAR
                                 </button>
                             </div>
 
@@ -298,7 +298,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
     });
 
     $(document).ready(function() {
-        var table = $('#datatable2').DataTable();
+
+        var table = $('#datatable2').DataTable({
+            "paging": false, // Deshabilita la paginación
+            "searching": true, // Habilita la búsqueda
+            "ordering": true, // Habilita el ordenamiento
+            "order": [
+                [0, 'asc']
+            ], // Ordenar por la columna de índice 0 en orden ascendente
+            "columnDefs": [{
+                    "orderable": false,
+                    "targets": [6, 7]
+                } // Deshabilitar el ordenamiento para las columnas de índice 6 y 7
+            ]
+        });
 
         function applyFilters() {
             // Cargar valor de cuenta
@@ -455,27 +468,21 @@ $fecha_proceso = $row["FECHAPROCESO"];
             $('#excluir_tags').prop('disabled', !hasSelectedTags);
         }
 
-        // Función para limpiar todos los filtros y etiquetas guardados en localStorage
         function clearFilters() {
-            // Remover los valores relevantes de localStorage
             localStorage.removeItem('selected_cuenta');
             localStorage.removeItem('page_length');
             localStorage.removeItem('exclude_tags');
             localStorage.removeItem('selected_tags');
             localStorage.removeItem('tag_states');
 
-            // Restablecer los campos de filtro a sus valores predeterminados
             $('#cuenta_filter').val("0").change(); // Restablecer filtro de cuenta
             $('#excluir_tags').prop('checked', false); // Restablecer checkbox de exclusión
             $('#filter-icons .icon-filter-filter').removeClass('selected fas').addClass('far'); // Restablecer los íconos de filtro
 
-            // Recargar la tabla sin los filtros aplicados
             table.search('').columns().search('').draw();
         }
 
-        // Manejo del botón "Limpiar filtros"
         $('#clear-filters-btn').on('click', function() {
-            // Confirmar con SweetAlert
             Swal.fire({
                 title: '¿Confirmas la acción?',
                 text: "Esto eliminará todos los filtros y etiquetas aplicadas",
@@ -485,16 +492,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Limpiar los filtros si el usuario confirma
                     clearFilters();
-
-                    // Mostrar una notificación de éxito
                     Swal.fire(
                         'Filtros limpiados',
                         'Todos los filtros y etiquetas se han eliminado.',
                         'success'
                     ).then(() => {
-                        // Recargar la página después de limpiar
                         location.reload();
                     });
                 }
