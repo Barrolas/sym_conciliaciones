@@ -684,8 +684,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Conciliación realizada con éxito.',
-            html: '<p>El proceso se completó satisfactoriamente. Puede revisar los detalles en "Conciliados".</p>',
+            title: 'Proceso realizado con éxito.',
             showConfirmButton: true
         });
     <?php } ?>
