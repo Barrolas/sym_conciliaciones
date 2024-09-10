@@ -61,9 +61,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
     <link href="plugins/dropify/css/dropify.min.css" rel="stylesheet">
     <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/filters.css" rel="stylesheet" type="text/css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
+
 </head>
 
 <body class="dark-sidenav">
@@ -127,11 +131,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-6">
+                            <div class="col-lg-4">
                                 <label class="col-4" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
                                 <input type="text" class="form-control col-6" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
-                            <div class="col-lg-6">
+                            <div class="col-lg-4 mt-3">
                                 <div class="col-lg-9">
                                     <label for="cuenta_filter" class="col-4">CUENTA</label>
                                     <select name="cuenta_filter" id="cuenta_filter" class="form-control" maxlength="50" autocomplete="off">
@@ -150,6 +154,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                             </div>
+                            <div id="filter-icons" class="col-lg-4 mt-5">
+                                <div class="col-lg-9">
+                                    <i class="far fa-star icon-filter-filter star" data-tag="star"></i>
+                                    <i class="far fa-bell icon-filter-filter bell" data-tag="bell"></i>
+                                    <i class="far fa-flag icon-filter-filter flag" data-tag="flag"></i>
+                                </div>
+                            </div>
                         </div><!--end form-group-->
                     </div><!--end col-->
                 </div>
@@ -166,6 +177,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <th>TRANSACCION</th>
                                         <th>CTA. BENEF</th>
                                         <th>MONTO</th>
+                                        <th>ETIQUETAS</th>
                                         <th>ASIGNAR</th>
                                     </tr>
                                 </thead>
@@ -178,16 +190,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     }
                                     while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                                     ?>
-                                        <tr>
-                                            <td class="col-auto"> <?php echo $transferencia["FECHA"];       ?></td>
-                                            <td class="col-2"> <?php echo $transferencia["RUT"];         ?></td>
-                                            <td class="col-auto"> <?php echo $transferencia["NOMBRE"];      ?></td>
+                                        <tr data-id="<?php echo $transferencia["TRANSACCION"]; ?>">
+                                            <td class="col-auto"><?php echo $transferencia["FECHA"]; ?></td>
+                                            <td class="col-2"> <?php echo $transferencia["RUT"]; ?></td>
+                                            <td class="col-auto"> <?php echo $transferencia["NOMBRE"]; ?></td>
                                             <td class="col-auto"> <?php echo $transferencia["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"><?php echo $transferencia["CUENTA"];      ?></td>
-                                            <td class="col-auto">$<?php echo $transferencia["MONTO"];       ?></td>
+                                            <td class="col-auto"><?php echo $transferencia["CUENTA"]; ?></td>
+                                            <td class="col-auto">$<?php echo $transferencia["MONTO"]; ?></td>
+                                            <td class="col-auto">
+                                                <i class="far fa-star icon-row-filter star" data-tag="star"></i>
+                                                <i class="far fa-bell icon-row-filter bell" data-tag="bell"></i>
+                                                <i class="far fa-flag icon-row-filter flag" data-tag="flag"></i>
+                                            </td>
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
-
                                                     <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2">
                                                         <i class="feather-24" data-feather="plus"></i>
                                                     </a>
@@ -269,96 +285,155 @@ $fecha_proceso = $row["FECHAPROCESO"];
         $('[data-toggle="tooltip"]').tooltip();
     });
 
-    // DataTables Initialization
     $(document).ready(function() {
-        var table = $('#datatable2').DataTable({
-            order: [
-                [0, 'asc']
-            ]
+        var table = $('#datatable2').DataTable();
 
-            //    columnDefs: [
-            //        { targets: [3], visible: false } // Ocultar la columna Transaccion
-            //    ]
-        });
-
-        // Function to apply filter based on the stored value
-        $(document).ready(function() {
-            var table = $('#datatable2').DataTable();
-
-            function applyFilter() {
-                var storedCuentaValue = sessionStorage.getItem('selected_cuenta_1');
-                var storedPageLength = sessionStorage.getItem('page_length');
-
-                if (storedCuentaValue && storedCuentaValue !== "0") {
-                    $('#cuenta_filter').val(storedCuentaValue).change();
-                } else {
-                    $('#cuenta_filter').val("0").change(); // Reset to default
-                }
-
-                if (storedPageLength) {
-                    table.page.len(parseInt(storedPageLength)).draw();
-                }
+        // Cargar y aplicar los filtros y etiquetas guardadas al cargar la página
+        function applyFilters() {
+            // Cargar el filtro de cuenta desde sessionStorage
+            var storedCuentaValue = sessionStorage.getItem('selected_cuenta');
+            if (storedCuentaValue) {
+                $('#cuenta_filter').val(storedCuentaValue).change();
             }
 
-            $('#cuenta_filter').on('change', function() {
-                var filterValue = $(this).val();
-                sessionStorage.setItem('selected_cuenta_1', filterValue);
+            // Cargar la longitud de la página desde sessionStorage
+            var storedPageLength = sessionStorage.getItem('page_length');
+            if (storedPageLength) {
+                table.page.len(parseInt(storedPageLength)).draw();
+            }
 
-                if (filterValue === "0") {
-                    table.search('').columns().search('').draw();
-                } else {
-                    table.column(4).search(filterValue).draw();
+            // Cargar los tags seleccionados desde localStorage
+            loadTagStates();
+
+            // Aplicar el filtrado inicial
+            filterTable();
+        }
+
+        // Cargar el estado de las etiquetas desde localStorage
+        function loadTagStates() {
+            var tagStates = JSON.parse(localStorage.getItem('tag_states')) || {};
+            $('#datatable2 tbody tr').each(function() {
+                var rowId = $(this).data('id');
+                if (tagStates[rowId]) {
+                    $(this).find('.icon-row-filter').each(function() {
+                        var tag = $(this).data('tag');
+                        if (tagStates[rowId].includes(tag)) {
+                            $(this).addClass('selected fas').removeClass('far');
+                        } else {
+                            $(this).removeClass('selected fas').addClass('far');
+                        }
+                    });
                 }
             });
+        }
 
-            $('#datatable2_length select').on('change', function() {
-                var pageLength = $(this).val();
-                sessionStorage.setItem('page_length', pageLength);
-                table.page.len(parseInt(pageLength)).draw(); // Cambia el número de resultados por página
+        // Guardar el estado de las etiquetas en localStorage
+        function saveTagStates() {
+            var tagStates = {};
+            $('#datatable2 tbody tr').each(function() {
+                var rowId = $(this).data('id');
+                tagStates[rowId] = [];
+                $(this).find('.icon-row-filter.selected').each(function() {
+                    tagStates[rowId].push($(this).data('tag'));
+                });
+            });
+            localStorage.setItem('tag_states', JSON.stringify(tagStates));
+        }
+
+        // Manejo de los íconos en las filas de la tabla
+        $('#datatable2').on('click', '.icon-row-filter', function() {
+            var $icon = $(this);
+            var isSelected = $icon.hasClass('selected');
+            var rowId = $icon.closest('tr').data('id');
+
+            // Alternar clase de selección
+            $icon.toggleClass('selected', !isSelected);
+            $icon.toggleClass('fas', !isSelected); // Cambiar a solid
+            $icon.toggleClass('far', isSelected); // Cambiar a outlined
+
+            // Guardar el estado de las etiquetas
+            saveTagStates();
+
+            // Aplicar el filtrado después de cambiar etiquetas
+            filterTable();
+        });
+
+        // Manejo de los íconos de filtro
+        $('#filter-icons').on('click', '.icon-filter-filter', function() {
+            var $icon = $(this);
+            var isSelected = $icon.hasClass('selected');
+
+            // Alternar clase de selección
+            $icon.toggleClass('selected', !isSelected);
+            $icon.toggleClass('fas', !isSelected); // Cambiar a solid
+            $icon.toggleClass('far', isSelected); // Cambiar a outlined
+
+            // Guardar el estado de los filtros en localStorage
+            saveSelectedTags();
+
+            // Aplicar el filtrado después de cambiar filtros
+            filterTable();
+        });
+
+        // Guardar el estado de los filtros en localStorage
+        function saveSelectedTags() {
+            var selectedTags = [];
+            $('#filter-icons .icon-filter-filter.selected').each(function() {
+                selectedTags.push($(this).data('tag'));
+            });
+            localStorage.setItem('selected_tags', selectedTags.join(','));
+        }
+
+        // Manejo del filtro por cuenta
+        $('#cuenta_filter').on('change', function() {
+            var filterValue = $(this).val();
+            sessionStorage.setItem('selected_cuenta', filterValue);
+            filterTable();
+        });
+
+        // Manejo de la longitud de página
+        $('#datatable2_length select').on('change', function() {
+            var pageLength = $(this).val();
+            sessionStorage.setItem('page_length', pageLength);
+            table.page.len(parseInt(pageLength)).draw(); // Cambia el número de resultados por página
+        });
+
+        // Aplicar los filtros y etiquetas a las filas
+        function filterTable() {
+            var selectedTags = [];
+            var selectedCuenta = $('#cuenta_filter').val();
+
+            // Recoger los tags seleccionados de los íconos de filtro
+            $('#filter-icons .icon-filter-filter.selected').each(function() {
+                selectedTags.push($(this).data('tag'));
             });
 
-            // Apply the filter and page length on page load
-            applyFilter();
-        });
-/*
-        // Mantener un seguimiento de las transacciones que ya se han visto
-        var seenTransactions = new Set();
-        var transactionCounts = {};
+            // Filtrar la tabla según los tags seleccionados y la cuenta
+            table.rows().every(function() {
+                var row = this.node();
+                var rowTags = [];
+                var rowCuenta = $(row).find('td').eq(4).text(); // Cambia el índice de la columna según tu tabla
 
-        // Contar las transacciones
-        table.rows().every(function() {
-            var data = this.data();
-            var transaccion = data[3]; // Índice de la columna Transaccion
+                $(row).find('.icon-row-filter').each(function() {
+                    if ($(this).hasClass('selected')) {
+                        rowTags.push($(this).data('tag'));
+                    }
+                });
 
-            if (transactionCounts[transaccion]) {
-                transactionCounts[transaccion]++;
-            } else {
-                transactionCounts[transaccion] = 1;
-            }
-        });
+                var tagMatch = selectedTags.length === 0 || selectedTags.some(tag => rowTags.includes(tag));
+                var cuentaMatch = selectedCuenta === "0" || rowCuenta === selectedCuenta;
 
-        // Ocultar filas duplicadas y agregar asterisco en el campo RUT de las filas agrupadas
-        table.rows().every(function() {
-            var data = this.data();
-            var transaccion = data[3]; // Índice de la columna Transaccion
-            var rut = data[0]; // Índice de la columna RUT
-
-            if (seenTransactions.has(transaccion)) {
-                // Ocultar esta fila si la transacción ya ha sido vista
-                $(this.node()).hide();
-            } else {
-                // Marcar esta transacción como vista
-                seenTransactions.add(transaccion);
-                // Solo agregar el asterisco si hay más de una fila para la transacción
-                if (transactionCounts[transaccion] > 1) {
-                    data[0] = rut + ''; // Añadir asterisco en rojo
+                if (tagMatch && cuentaMatch) {
+                    $(row).show(); // Mostrar si coincide con los tags y la cuenta
+                } else {
+                    $(row).hide(); // Ocultar si no coincide
                 }
-                this.data(data); // Actualizar la fila con el nuevo valor
-            }
-        });*/
+            });
+        }
+
+        // Aplicar los filtros y configuraciones en la carga de la página
+        applyFilters();
     });
-
-
 
     <?php if ($op == 1) { ?>
         Swal.fire({

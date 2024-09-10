@@ -1,0 +1,109 @@
+
+.icon-row-filter {
+    font-size: 20px;
+    /* Tamaño del ícono */
+    margin-right: 10px;
+    cursor: pointer;
+    color: #6c757d;
+    /* Gris por defecto */
+}
+
+/* Colores cuando los íconos están seleccionados en la DataTable */
+.icon-row-filter.selected.star {
+    color: #ffda74;
+    /* Amarillo pastel para estrella */
+}
+
+.icon-row-filter.selected.bell {
+    color: #ffb098;
+    /* Rojo pastel para corazón */
+}
+
+.icon-row-filter.selected.flag {
+    color: #72dada;
+    /* Azul para bandera */
+}
+
+/* Versión outlined para íconos deseleccionados */
+.icon-row-filter.outline {
+    color: #6c757d;
+    /* Gris para outlined */
+}
+
+/* Versión solid para íconos seleccionados */
+.icon-row-filter.solid {
+    color: #6c757d;
+    /* Gris para solid cuando no está seleccionado */
+}
+
+.icon-row-filter.solid.selected.star {
+    color: #ffda74;
+    /* Amarillo pastel para estrella */
+}
+
+.icon-row-filter.solid.selected.bell {
+    color: #ffb098;
+    /* Rojo pastel para corazón */
+}
+
+.icon-row-filter.solid.selected.flag {
+    color: #72dada;
+    /* Azul para bandera */
+}
+
+/* Estilos para los íconos de filtro */
+#filter-icons {
+    margin-bottom: 20px;
+}
+
+.icon-filter-filter {
+    font-size: 20px;
+    /* Tamaño del ícono */
+    margin-right: 10px;
+    cursor: pointer;
+    color: #6c757d;
+    /* Gris por defecto */
+}
+
+/* Colores cuando los íconos están seleccionados en el filtro */
+.icon-filter-filter.selected.star {
+    color: #ffda74;
+    /* Amarillo pastel para estrella */
+}
+
+.icon-filter-filter.selected.bell {
+    color: #ffb098;
+    /* Rojo pastel para corazón */
+}
+
+.icon-filter-filter.selected.flag {
+    color: #72dada;
+    /* Azul para bandera */
+}
+
+/* Versión outlined para íconos deseleccionados en el filtro */
+.icon-filter-filter.outline {
+    color: #6c757d;
+    /* Gris para outlined */
+}
+
+/* Versión solid para íconos seleccionados en el filtro */
+.icon-filter-filter.solid {
+    color: #6c757d;
+    /* Gris para solid cuando no está seleccionado */
+}
+
+.icon-filter-filter.solid.selected.star {
+    color: #ffda74;
+    /* Amarillo pastel para estrella */
+}
+
+.icon-filter-filter.solid.selected.bell {
+    color: #ffb098;
+    /* Rojo pastel para corazón */
+}
+
+.icon-filter-filter.solid.selected.flag {
+    color: #72dada;
+    /* Azul para bandera */
+}
