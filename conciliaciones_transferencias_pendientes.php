@@ -297,25 +297,33 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         // Cargar y aplicar los filtros y etiquetas guardadas al cargar la página
         function applyFilters() {
+            // Cargar el filtro de cuenta desde sessionStorage
             var storedCuentaValue = sessionStorage.getItem('selected_cuenta');
             if (storedCuentaValue) {
                 $('#cuenta_filter').val(storedCuentaValue).change();
             }
 
+            // Cargar la longitud de la página desde sessionStorage
             var storedPageLength = sessionStorage.getItem('page_length');
             if (storedPageLength) {
                 table.page.len(parseInt(storedPageLength)).draw();
             }
 
+            // Cargar los tags seleccionados desde localStorage (etiquetas de las filas)
             loadTagStates();
 
-            var storedExcludeState = sessionStorage.getItem('exclude_tags');
-            $('#excluir_tags').prop('checked', storedExcludeState === 'true');
+            // Cargar el estado de los filtros desde sessionStorage (íconos de filtros)
+            loadFilterStates();
 
-            updateExcludeCheckboxState(); // Verificar si el checkbox debe estar habilitado
+            // Cargar el estado del checkbox de exclusión
+            var excludeTagsState = sessionStorage.getItem('exclude_tags');
+            $('#excluir_tags').prop('checked', excludeTagsState === 'true');
+
+            // Aplicar el filtrado inicial
             filterTable();
         }
 
+        // Cargar el estado de las etiquetas desde localStorage
         function loadTagStates() {
             var tagStates = JSON.parse(localStorage.getItem('tag_states')) || {};
             $('#datatable2 tbody tr').each(function() {
@@ -333,6 +341,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             });
         }
 
+        // Guardar el estado de las etiquetas en localStorage
         function saveTagStates() {
             var tagStates = {};
             $('#datatable2 tbody tr').each(function() {
@@ -345,72 +354,105 @@ $fecha_proceso = $row["FECHAPROCESO"];
             localStorage.setItem('tag_states', JSON.stringify(tagStates));
         }
 
+        // Cargar el estado de los filtros desde sessionStorage
+        function loadFilterStates() {
+            var selectedFilters = sessionStorage.getItem('selected_filters');
+            if (selectedFilters) {
+                selectedFilters = selectedFilters.split(',');
+                $('#filter-icons .icon-filter-filter').each(function() {
+                    var tag = $(this).data('tag');
+                    if (selectedFilters.includes(tag)) {
+                        $(this).addClass('selected fas').removeClass('far');
+                    } else {
+                        $(this).removeClass('selected fas').addClass('far');
+                    }
+                });
+            }
+        }
+
+        // Guardar el estado de los filtros en sessionStorage
+        function saveFilterStates() {
+            var selectedFilters = [];
+            $('#filter-icons .icon-filter-filter.selected').each(function() {
+                selectedFilters.push($(this).data('tag'));
+            });
+            sessionStorage.setItem('selected_filters', selectedFilters.join(','));
+        }
+
+        // Manejo de los íconos en las filas de la tabla (etiquetas)
         $('#datatable2').on('click', '.icon-row-filter', function() {
             var $icon = $(this);
             var isSelected = $icon.hasClass('selected');
             var rowId = $icon.closest('tr').data('id');
 
+            // Alternar clase de selección
             $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
+            $icon.toggleClass('fas', !isSelected); // Cambiar a solid
+            $icon.toggleClass('far', isSelected); // Cambiar a outlined
 
+            // Guardar el estado de las etiquetas
             saveTagStates();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
+
+            // Aplicar el filtrado después de cambiar etiquetas
             filterTable();
         });
 
+        // Manejo de los íconos de filtro (filtros)
         $('#filter-icons').on('click', '.icon-filter-filter', function() {
             var $icon = $(this);
             var isSelected = $icon.hasClass('selected');
 
+            // Alternar clase de selección
             $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
+            $icon.toggleClass('fas', !isSelected); // Cambiar a solid
+            $icon.toggleClass('far', isSelected); // Cambiar a outlined
 
-            saveSelectedTags();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
+            // Guardar el estado de los filtros en sessionStorage
+            saveFilterStates();
+
+            // Aplicar el filtrado después de cambiar filtros
             filterTable();
         });
 
-        function saveSelectedTags() {
-            var selectedTags = [];
-            $('#filter-icons .icon-filter-filter.selected').each(function() {
-                selectedTags.push($(this).data('tag'));
-            });
-            localStorage.setItem('selected_tags', selectedTags.join(','));
-        }
+        // Manejo del checkbox de exclusión
+        $('#excluir_tags').on('change', function() {
+            var excludeTags = $(this).is(':checked');
+            sessionStorage.setItem('exclude_tags', excludeTags);
 
+            // Aplicar el filtrado después de cambiar el estado de exclusión
+            filterTable();
+        });
+
+        // Manejo del filtro por cuenta
         $('#cuenta_filter').on('change', function() {
             var filterValue = $(this).val();
             sessionStorage.setItem('selected_cuenta', filterValue);
             filterTable();
         });
 
+        // Manejo de la longitud de página
         $('#datatable2_length select').on('change', function() {
             var pageLength = $(this).val();
             sessionStorage.setItem('page_length', pageLength);
-            table.page.len(parseInt(pageLength)).draw();
+            table.page.len(parseInt(pageLength)).draw(); // Cambia el número de resultados por página
         });
 
-        $('#excluir_tags').on('change', function() {
-            var isChecked = $(this).is(':checked');
-            sessionStorage.setItem('exclude_tags', isChecked);
-            filterTable();
-        });
-
+        // Aplicar los filtros y etiquetas a las filas
         function filterTable() {
             var selectedTags = [];
             var selectedCuenta = $('#cuenta_filter').val();
             var excludeTags = $('#excluir_tags').is(':checked');
 
+            // Recoger los tags seleccionados de los íconos de filtro
             $('#filter-icons .icon-filter-filter.selected').each(function() {
                 selectedTags.push($(this).data('tag'));
             });
 
+            // Filtrar la tabla según los tags seleccionados y la cuenta
             table.rows().every(function() {
                 var row = this.node();
                 var rowTags = [];
-                var rowCuenta = $(row).find('td').eq(4).text();
+                var rowCuenta = $(row).find('td').eq(4).text(); // Cambia el índice de la columna según tu tabla
 
                 $(row).find('.icon-row-filter').each(function() {
                     if ($(this).hasClass('selected')) {
@@ -419,24 +461,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 });
 
                 var tagMatch = selectedTags.length === 0 || selectedTags.some(tag => rowTags.includes(tag));
-                if (excludeTags) {
-                    tagMatch = !tagMatch; // Invertir la lógica si está marcado el checkbox
-                }
                 var cuentaMatch = selectedCuenta === "0" || rowCuenta === selectedCuenta;
 
+                // Condición para incluir o excluir las filas según el checkbox "excluir"
+                if (excludeTags) {
+                    tagMatch = !tagMatch;
+                }
+
                 if (tagMatch && cuentaMatch) {
-                    $(row).show();
+                    $(row).show(); // Mostrar si coincide con los tags y la cuenta
                 } else {
-                    $(row).hide();
+                    $(row).hide(); // Ocultar si no coincide
                 }
             });
         }
 
-        function updateExcludeCheckboxState() {
-            var hasSelectedTags = $('#datatable2 tbody .icon-row-filter.selected').length > 0;
-            $('#excluir_tags').prop('disabled', !hasSelectedTags);
-        }
-
+        // Aplicar los filtros y configuraciones en la carga de la página
         applyFilters();
     });
 
