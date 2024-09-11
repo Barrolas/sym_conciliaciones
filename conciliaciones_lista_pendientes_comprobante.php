@@ -171,17 +171,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 
                 <div class="card border-0">
-                    <div class="card-header border-0">
-                        <!-- Pestañas -->
-                        <ul class="nav nav-pills nav-justified mb-3 mx-3 border-0 bg-light" id="pestañas" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="canalizados-tab" data-toggle="tab" href="#canalizados" role="tab" aria-controls="canalizados" aria-selected="true">CANALIZADOS</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="historial-tab" data-toggle="tab" href="#historial" role="tab" aria-controls="historial" aria-selected="false">HISTORIAL</a>
-                            </li>
-                        </ul>
-                    </div>
                     <!-- Tab panes -->
                     <div class="container-fluid tab-content">
                         <div class="tab-pane fade show active" id="canalizados" role="tabpanel">
@@ -225,7 +214,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_LISTA]";
+                                            $sql = "EXEC [_SP_CONCILIACIONES_PROCESADOS_LISTA]";
                                             $stmt = sqlsrv_query($conn, $sql);
                                             if ($stmt === false) {
                                                 die(print_r(sqlsrv_errors(), true));
@@ -329,55 +318,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div>
                         </div> <!-- end col -->
                     </div> <!--final del tab -->
-                    <div class="tab-pane fade" id="historial" role="tabpanel">
-                        <div class="card">
-                            <div class="card-body">
-                                <table id="datatable3" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>FECHA</th>
-                                            <th>USUARIO</th>
-                                            <th>PROCESADOS</th>
-                                            <th>DETALLE</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $sql = "EXEC [_SP_CONCILIACIONES_PROCESOS_LISTA]";
-                                        $stmt = sqlsrv_query($conn, $sql);
-                                        if ($stmt === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) { ?>
-
-                                            <tr>
-                                                <td class="col-auto"><?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?></td>
-                                                <td class="col-auto">
-                                                    <?php
-                                                    // Asegúrate de que $conciliacion["FUA"] sea un objeto DateTime
-                                                    if ($conciliacion["FUA"] instanceof DateTime) {
-                                                        echo $conciliacion["FUA"]->format('Y-m-d H:i:s');
-                                                    } else {
-                                                        echo 'Fecha no válida';
-                                                    }
-                                                    ?>
-                                                </td>
-                                                <td class="col-auto"><?php echo $conciliacion["UA"]; ?></td>
-                                                <td class="col-auto"><?php echo $conciliacion["TOTAL_PROCESADOS"]; ?></td>
-                                                <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary">
-                                                        <i class="feather-24" data-feather="eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php   }; ?>
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div> <!-- final del tab -->
                 </div> <!--final de los tabs -->
             </div>
 

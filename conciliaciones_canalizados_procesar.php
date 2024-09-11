@@ -94,5 +94,5 @@ if ($stmt_actualiza === false) {
 }
 
 // Redirigir a otra página
-header("Location: conciliaciones_lista_pareados.php?op=1");
+header("Location: conciliaciones_lista_canalizados.php?op=1");
 exit;

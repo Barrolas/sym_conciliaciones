@@ -14,6 +14,8 @@ if (isset($_GET["op"])) {
     $op = $_GET["op"];
 };
 
+$id_proceso = $_GET['id'];
+
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
 
@@ -173,26 +175,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="card border-0">
                     <div class="card-header border-0">
                         <!-- Pestañas -->
-                        <ul class="nav nav-pills nav-justified mb-3 mx-3 border-0 bg-light" id="pestañas" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="canalizados-tab" data-toggle="tab" href="#canalizados" role="tab" aria-controls="canalizados" aria-selected="true">CANALIZADOS</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="historial-tab" data-toggle="tab" href="#historial" role="tab" aria-controls="historial" aria-selected="false">HISTORIAL</a>
-                            </li>
-                        </ul>
                     </div>
                     <!-- Tab panes -->
                     <div class="container-fluid tab-content">
-                        <div class="tab-pane fade show active" id="canalizados" role="tabpanel">
-                            <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div class='col-7'>
-                                        <p class="mb-0">
-                                            <b>CANALIZACIONES A PROCESAR</b>
-                                            <b><span id="row-count" class="ms-2 text-primary">(0)</span></b>
-                                        </p>
-                                    </div> <!--
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class='col-8'>
+                                </div> <!--
                                     <div class='col-2'>
                                         <a href="conciliaciones_exportar_canalizados.php">
                                             <button type="button" class="btn btn-secondary waves-effect waves-light d-flex align-items-center" id="exportar">
@@ -200,187 +189,145 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </button>
                                         </a>
                                     </div> -->
-                                    <div class='col-3'>
-                                        <a href="conciliaciones_canalizados_procesar.php">
-                                            <button type="button" class="btn btn-primary waves-effect waves-light d-flex align-items-center" id="procesar" disabled>
-                                                <i class="feather feather-16 pr-1" data-feather="plus"></i> <span class="ms-2">PROCESAR</span>
-                                            </button>
-                                        </a>
+                                <div class='col-4 ml-5'>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <a href="conciliaciones_exportar_proceso.php?id=<?php echo $id_proceso ?>">
+                                                <button type="button" class="btn btn-primary waves-effect waves-light d-flex align-items-center" id="exportar" disabled>
+                                                    <i class="feather feather-16 pr-1" data-feather="file"></i> <span class="ms-2">EXPORTAR</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                        <div class="col-6">
+                                            <a href="conciliaciones_lista_canalizados.php">
+                                                <button type="button" class="btn btn-danger waves-effect waves-light d-flex align-items-center" id="volver">
+                                                    <i class="feather feather-16 pr-1" data-feather="plus"></i> <span class="ms-2">VOLVER</span>
+                                                </button>
+                                            </a>
+                                        </div>
                                     </div>
-                                </div><!--end card-header-->
-                                <div class="card-body">
-                                    <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                        <thead>
-                                            <tr>
-                                                <th>CANAL</th>
-                                                <th>CUENTA</th>
-                                                <th>RUT CTE</th>
-                                                <th>RUT DEU</th>
-                                                <th>F. VENC</th>
-                                                <th>OPERACIÓN</th>
-                                                <th>TIPO</th>
-                                                <th>MONTO</th>
-                                                <th>ELIMINAR</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_LISTA]";
-                                            $stmt = sqlsrv_query($conn, $sql);
-                                            if ($stmt === false) {
-                                                die(print_r(sqlsrv_errors(), true));
-                                            }
-                                            while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-
-                                                $id_documento       = $conciliacion['ID_DOC'];
-                                                $diferencia_doc     = 0;
-
-                                                // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?, ?)}";
-                                                $params_diferencia = array(
-                                                    array($id_documento,        SQLSRV_PARAM_IN),
-                                                    array(&$diferencia_doc,     SQLSRV_PARAM_OUT)
-                                                );
-
-                                                $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
-
-                                                if ($stmt_diferencia === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-
-                                                // Procesar resultados de la consulta de detalles
-                                                $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
-
-                                                if ($diferencia_doc == 0) {
-
-                                                    // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                    $sql_monto = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DEBE](?)}";
-                                                    $params_monto = array($id_documento);
-                                                    $stmt_monto = sqlsrv_query($conn, $sql_monto, $params_monto);
-
-                                                    if ($stmt_monto === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-
-                                                    // Procesar resultados de la consulta de detalles
-                                                    $monto_consulta = sqlsrv_fetch_array($stmt_monto, SQLSRV_FETCH_ASSOC);
-
-                                                    // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                    $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                                    $params4 = array($id_documento);
-                                                    $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-
-                                                    if ($stmt4 === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-
-                                                    // Procesar resultados de la consulta de detalles
-                                                    $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
-
-                                                    // Consulta para obtener el estado del documento
-                                                    $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                                    $params5 = array($id_documento);
-                                                    $stmt5 = sqlsrv_query($conn, $sql5, $params5);
-
-                                                    if ($stmt5 === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-
-                                                    $estado_pareo_text = 'N/A'; // Valor por defecto
-                                                    while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-                                                        $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
-                                                        switch ($estado_pareo) {
-                                                            case '1':
-                                                                $estado_pareo_text = 'CONC';
-                                                                break;
-                                                            case '2':
-                                                                $estado_pareo_text = 'ABON';
-                                                                break;
-                                                            case '3':
-                                                                $estado_pareo_text = 'PEND';
-                                                                break;
-                                                        }
-                                                    }
-                                            ?>
-                                                    <tr>
-                                                        <td class="col-auto"><?php echo mb_substr($detalles["CANALIZACION"], 0, 6); ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["CUENTA"]; ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["RUT_CLIENTE"]; ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["RUT_DEUDOR"]; ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
-                                                        <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
-                                                        <td class="col-auto">$<?php echo number_format($monto_consulta["MONTO"], 0, ',', '.'); ?></td>
-                                                        <td class="col-1">
-                                                            <?php
-                                                            // Convertir DateTime a cadena en el formato deseado
-                                                            $f_venc = $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : $detalles["F_VENC"];
-                                                            ?>
-                                                            <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
-                                                                <i class="feather-24" data-feather="x"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                            <?php   };
-                                            }; ?>
-                                        </tbody>
-                                    </table>
                                 </div>
-                            </div>
-                        </div> <!-- end col -->
-                    </div> <!--final del tab -->
-                    <div class="tab-pane fade" id="historial" role="tabpanel">
-                        <div class="card">
+                            </div><!--end card-header-->
                             <div class="card-body">
-                                <table id="datatable3" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
-                                            <th>FECHA</th>
-                                            <th>USUARIO</th>
-                                            <th>PROCESADOS</th>
-                                            <th>DETALLE</th>
+                                            <th>CANAL</th>
+                                            <th>CUENTA</th>
+                                            <th>RUT CTE</th>
+                                            <th>RUT DEU</th>
+                                            <th>F. VENC</th>
+                                            <th>OPERACIÓN</th>
+                                            <th>TIPO</th>
+                                            <th>MONTO</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "EXEC [_SP_CONCILIACIONES_PROCESOS_LISTA]";
-                                        $stmt = sqlsrv_query($conn, $sql);
+                                        $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PROCESOS_DETALLES_CONSULTA] @p_id_proceso = ?";
+
+                                        // Parámetros a pasar al procedimiento almacenado
+                                        $params = array($id_proceso);
+
+                                        // Ejecuta la consulta
+                                        $stmt = sqlsrv_query($conn, $sql, $params);
+
+                                        // Verifica si hubo un error en la ejecución
                                         if ($stmt === false) {
                                             die(print_r(sqlsrv_errors(), true));
                                         }
-                                        while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) { ?>
 
-                                            <tr>
-                                                <td class="col-auto"><?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?></td>
-                                                <td class="col-auto">
-                                                    <?php
-                                                    // Asegúrate de que $conciliacion["FUA"] sea un objeto DateTime
-                                                    if ($conciliacion["FUA"] instanceof DateTime) {
-                                                        echo $conciliacion["FUA"]->format('Y-m-d H:i:s');
-                                                    } else {
-                                                        echo 'Fecha no válida';
+                                        // Procesa los resultados
+                                        while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                            $id_documento       = $conciliacion['ID_DOC'];
+                                            $diferencia_doc     = 0;
+
+                                            // Consulta para obtener el monto de abonos (solo si el estado no es '1')
+                                            $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?, ?)}";
+                                            $params_diferencia = array(
+                                                array($id_documento,        SQLSRV_PARAM_IN),
+                                                array(&$diferencia_doc,     SQLSRV_PARAM_OUT)
+                                            );
+
+                                            $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
+
+                                            if ($stmt_diferencia === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+
+                                            // Procesar resultados de la consulta de detalles
+                                            $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
+
+                                            if ($diferencia_doc == 0) {
+
+                                                // Consulta para obtener el monto de abonos (solo si el estado no es '1')
+                                                $sql_monto = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DEBE](?)}";
+                                                $params_monto = array($id_documento);
+                                                $stmt_monto = sqlsrv_query($conn, $sql_monto, $params_monto);
+
+                                                if ($stmt_monto === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                // Procesar resultados de la consulta de detalles
+                                                $monto_consulta = sqlsrv_fetch_array($stmt_monto, SQLSRV_FETCH_ASSOC);
+
+                                                // Consulta para obtener el monto de abonos (solo si el estado no es '1')
+                                                $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                                $params4 = array($id_documento);
+                                                $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+
+                                                if ($stmt4 === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                // Procesar resultados de la consulta de detalles
+                                                $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
+
+                                                // Consulta para obtener el estado del documento
+                                                $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                                $params5 = array($id_documento);
+                                                $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+
+                                                if ($stmt5 === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+
+                                                $estado_pareo_text = 'N/A'; // Valor por defecto
+                                                while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
+                                                    $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
+                                                    switch ($estado_pareo) {
+                                                        case '1':
+                                                            $estado_pareo_text = 'CONC';
+                                                            break;
+                                                        case '2':
+                                                            $estado_pareo_text = 'ABON';
+                                                            break;
+                                                        case '3':
+                                                            $estado_pareo_text = 'PEND';
+                                                            break;
                                                     }
-                                                    ?>
-                                                </td>
-                                                <td class="col-auto"><?php echo $conciliacion["UA"]; ?></td>
-                                                <td class="col-auto"><?php echo $conciliacion["TOTAL_PROCESADOS"]; ?></td>
-                                                <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary">
-                                                        <i class="feather-24" data-feather="eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php   }; ?>
-
+                                                }
+                                        ?>
+                                                <tr>
+                                                    <td class="col-auto"><?php echo mb_substr($detalles["CANALIZACION"], 0, 6); ?></td>
+                                                    <td class="col-auto"><?php echo $detalles["CUENTA"]; ?></td>
+                                                    <td class="col-auto"><?php echo $detalles["RUT_CLIENTE"]; ?></td>
+                                                    <td class="col-auto"><?php echo $detalles["RUT_DEUDOR"]; ?></td>
+                                                    <td class="col-auto"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
+                                                    <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
+                                                    <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
+                                                    <td class="col-auto">$<?php echo number_format($monto_consulta["MONTO"], 0, ',', '.'); ?></td>
+                                                </tr>
+                                        <?php   };
+                                        }; ?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                    </div> <!-- final del tab -->
-                </div> <!--final de los tabs -->
+                    </div> <!-- end col -->
+                </div>
             </div>
-
             <div class="col-12 px-3">
             </div> <!-- end row -->
         </div><!-- container -->
@@ -560,12 +507,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [4, 'asc'],
                 [3, 'asc']
             ],
-            columnDefs: [{
-                targets: 8, // Índice de la columna que deseas desactivar
-                orderable: false // Desactiva el ordenamiento para esta columna
-            }]
         });
-        
+
         var table2 = $('#datatable3').DataTable({
             order: [
                 [0, 'desc'],
@@ -684,7 +627,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Proceso realizado con éxito.',
+            title: 'Conciliación realizada con éxito.',
+            html: '<p>El proceso se completó satisfactoriamente. Puede revisar los detalles en "Conciliados".</p>',
             showConfirmButton: true
         });
     <?php } ?>
