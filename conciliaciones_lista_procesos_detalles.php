@@ -180,7 +180,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="container-fluid tab-content">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class='col-10'>
+                                <div class='col-8'>
                                 </div> <!--
                                     <div class='col-2'>
                                         <a href="conciliaciones_exportar_canalizados.php">
@@ -189,12 +189,23 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </button>
                                         </a>
                                     </div> -->
-                                <div class='col-2 ml-5'>
-                                    <a href="conciliaciones_lista_canalizados.php">
-                                        <button type="button" class="btn btn-danger waves-effect waves-light d-flex align-items-center" id="volver" >
-                                            <i class="feather feather-16 pr-1" data-feather="plus"></i> <span class="ms-2">VOLVER</span>
-                                        </button>
-                                    </a>
+                                <div class='col-4 ml-5'>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <a href="conciliaciones_exportar_proceso.php?id=<?php echo $id_proceso ?>">
+                                                <button type="button" class="btn btn-primary waves-effect waves-light d-flex align-items-center" id="exportar" disabled>
+                                                    <i class="feather feather-16 pr-1" data-feather="file"></i> <span class="ms-2">EXPORTAR</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                        <div class="col-6">
+                                            <a href="conciliaciones_lista_canalizados.php">
+                                                <button type="button" class="btn btn-danger waves-effect waves-light d-flex align-items-center" id="volver">
+                                                    <i class="feather feather-16 pr-1" data-feather="plus"></i> <span class="ms-2">VOLVER</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div><!--end card-header-->
                             <div class="card-body">
