@@ -196,7 +196,6 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     }
 }
 
-
 //print_r($saldo_disponible);
 
 if ($saldo_disponible > 0) {

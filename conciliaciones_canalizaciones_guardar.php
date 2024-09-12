@@ -113,12 +113,18 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     }
     $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
 
-    if($monto_diferencia > 0) {
+    $monto_diferencia = $diferencia['DIFERENCIA'];
+
+    if ($monto_diferencia > 0)      {
         $estado_canal = 4;
     }
-    elseif ($monto_diferencia = 0){
+    elseif($monto_diferencia == 0)  {
         $estado_canal = 1;
     }
+
+    print_r("Monto diferencia: " . $monto_diferencia);
+    print_r("Estado: " . $estado_canal);
+    //exit;
 
     $sql2 = "{call [_SP_CONCILIACIONES_CANALIZACION_DOCUMENTO_INSERTA] (?, ?, ?, ?, ?)}";
     $params2 = array(
