@@ -9,7 +9,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$op = 9;
+$op = 0;
 if (isset($_GET["op"])) {
     $op = $_GET["op"];
 };
@@ -34,7 +34,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <head>
     <meta charset="utf-8" />
-    <title>Canalizados</title>
+    <title>Conciliaciones</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
@@ -57,6 +57,41 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
+    <style>
+        @media (min-width: 1000px) and (max-width: 1299px) {
+            .font_mini {
+                font-size: 12px !important;
+            }
+
+            .font_mini_header {
+                font-size: 11px !important;
+            }
+
+            .card_width {
+                width: 90% !important;
+                overflow-x: scroll;
+            }
+
+            .card_content {
+                width: 100% !important;
+                overflow-x: visible;
+            }
+
+            @media (min-width: 1300px) {
+                .font_mini {
+                    font-size: 15px !important;
+                }
+
+                .font_mini_header {
+                    font-size: 15px !important;
+                }
+
+                .card_width {
+                    width: 100% !important;
+                }
+            }
+        }
+    </style>
 
 </head>
 
@@ -79,250 +114,218 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         <!-- Page Content-->
         <div class="page-content" id="content">
-            <div class="container-fluid">
-                <!-- Page-Title -->
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="page-title-box">
-                            <div class="row">
-                                <div class="col">
-                                    <ol class="breadcrumb">
-                                        <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
-                                        <li class="breadcrumb-item active">Canalizados</li>
-                                    </ol>
+            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_canalizaciones_guardar.php" onsubmit="return valida_envia();return false;">
+                <div class="container-fluid">
+                    <!-- Page-Title -->
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="page-title-box">
+                                <div class="row">
+                                    <div class="col">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
+                                            <li class="breadcrumb-item active">Canalización</li>
+                                        </ol>
+                                    </div><!--end col-->
                                 </div><!--end col-->
-                            </div><!--end col-->
-                        </div><!--end row-->
-                    </div><!--end page-title-box-->
-                </div><!--end col-->
-            </div><!--end row-->
-            <!-- end page title end breadcrumb -->
+                            </div><!--end row-->
+                        </div><!--end page-title-box-->
+                    </div><!--end col-->
+                </div><!--end row-->
+                <!-- end page title end breadcrumb -->
 
-            <div class="container-fluid mx-3">
-                <div class="row">
-                    <div class="col">
-                        <h3>
-                            <b>Canalizados</b>
-                        </h3>
-                    </div>
-                    <div class="row mr-2">
-                        <div class="col-12 mx-2">
-                            <p>
-                                Esta herramienta permite ingresar y gestionar cargas masivas de documentos asociados a deudores de clientes,
-                                utilizando un formato pre-establecido con un archivo base en Excel.
-                                Las <b>cargas</b> pueden ser revisadas para obtener el detalle de la cantidad de documentos que fueron leídos, cargados satisfactoriamente
-                                y rechazados según los criterios de validación correspondientes (<strong><a href="#">ver aquí</a></strong>), con detalle disponible para ambos casos.
-                                También se permite deshabilitar cargas en caso de errores en la asignación a clientes con el botón de <b>ESTADO</b>.
-                            </p>
+                <div class="container-fluid mx-3">
+                    <div class="row">
+                        <div class="col">
+                            <h3>
+                                <b>Pendientes de comprobante</b>
+                            </h3>
+                        </div>
+                        <div class="row mr-2">
+                            <div class="col-12 mx-2">
+                                <p>
+                                    Esta herramienta permite visualizar y gestionar las transferencias ya pareadas en el sistema
+                                    y asignarle a cada cual si se canalizará por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>.
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere dolores sequi animi ipsa quaerat
+                                    delectus veritatis veniam corrupti consequuntur cupiditate quidem totam asperiores optio at, dolore
+                                    vero incidunt maxime nulla.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="container-fluid px-3">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-3">
-                                <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                            </div>
-                            <div class="col-lg-3">
-                                <div class="col-lg-9">
-                                    <label for="canal_filtro" class="col-4">CANAL</label>
-                                    <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
+                <div class="container-fluid px-3">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
+                                <div class="col-lg-2">
+                                    <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
+                                    <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
+                                </div>
+                                <div class="col-lg-2">
+                                    <label for="dias_mora" class="col-12">DIAS MORA</label>
+                                    <select name="dias_mora" id="dias_mora" class="form-control col-12" maxlength="50" autocomplete="off">
                                         <option value="0" selected>Mostrar todos</option>
-                                        <?php
-                                        $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
-                                        $stmt_canal = sqlsrv_query($conn, $sql_canal);
-
-                                        if ($stmt_canal === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo substr($canal['DESCRIPCION'], 0, 6); ?>"><?php echo $canal["DESCRIPCION"] ?></option>
-                                        <?php }; ?>
+                                        <option value="1">170 días o más</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col-lg-3">
-                                <div class="col-lg-9">
-                                    <label for="cuenta" class="col-4">CUENTA</label>
-                                    <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Mostrar todas</option>
-                                        <?php
-                                        $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
-                                        $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
-
-                                        if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo $cuenta["CUENTA"] ?>"><?php echo $cuenta["CUENTA"] ?></option>
-                                        <?php }; ?>
-                                    </select>
-                                </div>
-                            </div>
-                        </div><!--end form-group-->
-                    </div><!--end col-->
-                </div>
-
-
-                <div class="card border-0">
-                    <!-- Tab panes -->
-                    <div class="container-fluid tab-content">
-                        <div class="tab-pane fade show active" id="canalizados" role="tabpanel">
-                            <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div class='col-7'>
-                                        <p class="mb-0">
-                                            <b>CANALIZACIONES A PROCESAR</b>
-                                            <b><span id="row-count" class="ms-2 text-primary">(0)</span></b>
-                                        </p>
-                                    </div> <!--
-                                    <div class='col-2'>
-                                        <a href="conciliaciones_exportar_canalizados.php">
-                                            <button type="button" class="btn btn-secondary waves-effect waves-light d-flex align-items-center" id="exportar">
-                                                <i class="feather feather-16 pr-1" data-feather="download"></i> <span class="ms-2">EXPORTAR</span>
-                                            </button>
-                                        </a>
-                                    </div> -->
-                                    <div class='col-3'>
-                                        <a href="conciliaciones_canalizados_procesar.php">
-                                            <button type="button" class="btn btn-primary waves-effect waves-light d-flex align-items-center" id="procesar" disabled>
-                                                <i class="feather feather-16 pr-1" data-feather="plus"></i> <span class="ms-2">PROCESAR</span>
-                                            </button>
-                                        </a>
-                                    </div>
-                                </div><!--end card-header-->
-                                <div class="card-body">
-                                    <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                        <thead>
-                                            <tr>
-                                                <th>CANAL</th>
-                                                <th>CUENTA</th>
-                                                <th>RUT CTE</th>
-                                                <th>RUT DEU</th>
-                                                <th>F. VENC</th>
-                                                <th>OPERACIÓN</th>
-                                                <th>TIPO</th>
-                                                <th>MONTO</th>
-                                                <th>ELIMINAR</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                <div class="col-lg-2">
+                                    <div class="col-lg-12">
+                                        <label for="cuenta" class="col-4">CUENTA</label>
+                                        <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
+                                            <option value="0" selected>Mostrar todas</option>
                                             <?php
-                                            $sql = "EXEC [_SP_CONCILIACIONES_PROCESADOS_LISTA]";
-                                            $stmt = sqlsrv_query($conn, $sql);
-                                            if ($stmt === false) {
+                                            $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
+                                            $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
+
+                                            if ($stmt_cuenta === false) {
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
-                                            while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-
-                                                $id_documento       = $conciliacion['ID_DOC'];
-                                                $diferencia_doc     = 0;
-
-                                                // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?, ?)}";
-                                                $params_diferencia = array(
-                                                    array($id_documento,        SQLSRV_PARAM_IN),
-                                                    array(&$diferencia_doc,     SQLSRV_PARAM_OUT)
-                                                );
-
-                                                $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
-
-                                                if ($stmt_diferencia === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-
-                                                // Procesar resultados de la consulta de detalles
-                                                $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
-
-                                                if ($diferencia_doc == 0) {
-
-                                                    // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                    $sql_monto = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DEBE](?)}";
-                                                    $params_monto = array($id_documento);
-                                                    $stmt_monto = sqlsrv_query($conn, $sql_monto, $params_monto);
-
-                                                    if ($stmt_monto === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-
-                                                    // Procesar resultados de la consulta de detalles
-                                                    $monto_consulta = sqlsrv_fetch_array($stmt_monto, SQLSRV_FETCH_ASSOC);
-
-                                                    // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                    $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                                    $params4 = array($id_documento);
-                                                    $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-
-                                                    if ($stmt4 === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-
-                                                    // Procesar resultados de la consulta de detalles
-                                                    $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
-
-                                                    // Consulta para obtener el estado del documento
-                                                    $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                                    $params5 = array($id_documento);
-                                                    $stmt5 = sqlsrv_query($conn, $sql5, $params5);
-
-                                                    if ($stmt5 === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-
-                                                    $estado_pareo_text = 'N/A'; // Valor por defecto
-                                                    while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-                                                        $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
-                                                        switch ($estado_pareo) {
-                                                            case '1':
-                                                                $estado_pareo_text = 'CONC';
-                                                                break;
-                                                            case '2':
-                                                                $estado_pareo_text = 'ABON';
-                                                                break;
-                                                            case '3':
-                                                                $estado_pareo_text = 'PEND';
-                                                                break;
-                                                        }
-                                                    }
+                                            while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                             ?>
-                                                    <tr>
-                                                        <td class="col-auto"><?php echo mb_substr($detalles["CANALIZACION"], 0, 6); ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["CUENTA"]; ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["RUT_CLIENTE"]; ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["RUT_DEUDOR"]; ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
-                                                        <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
-                                                        <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
-                                                        <td class="col-auto">$<?php echo number_format($monto_consulta["MONTO"], 0, ',', '.'); ?></td>
-                                                        <td class="col-1">
-                                                            <?php
-                                                            // Convertir DateTime a cadena en el formato deseado
-                                                            $f_venc = $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : $detalles["F_VENC"];
-                                                            ?>
-                                                            <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
-                                                                <i class="feather-24" data-feather="x"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                            <?php   };
-                                            }; ?>
-                                        </tbody>
-                                    </table>
+                                                <option value="<?php echo $cuenta["CUENTA"] ?>"><?php echo $cuenta["CUENTA"] ?></option>
+                                            <?php }; ?>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                        </div> <!-- end col -->
-                    </div> <!--final del tab -->
-                </div> <!--final de los tabs -->
-            </div>
+                                <div class="col-lg-2">
+                                    <label for="estado_conc" class="col-12">ESTADO</label>
+                                    <select name="estado_conc" id="estado_conc" class="form-control col-12" maxlength="50" autocomplete="off">
+                                        <option value="0" selected>Mostrar todos</option>
+                                        <option value="CONC">CONCILIADO</option>
+                                        <option value="ABON">ABONADO</option>
+                                        <option value="PEND">PENDIENTE</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-1">
+                                    <button type="submit" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton" disabled>GUARDAR</button>
+                                </div>
+                            </div><!--end form-group-->
+                        </div><!--end col-->
+                    </div>
 
-            <div class="col-12 px-3">
-            </div> <!-- end row -->
+                    <div class="col-12 px-3">
+                        <div class="card card_content">
+                            <div class="card-body card_width">
+                                <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="font_mini_header">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
+                                                </div>
+                                            </th>
+                                            <th class="font_mini_header">ID CANAL</th>
+                                            <th class="font_mini_header">ID</th>
+                                            <th class="font_mini_header">N° REMESA/DOC</th>
+                                            <th class="font_mini_header">CANAL</th>
+                                            <th class="font_mini_header">MONTO</th>
+                                            <th class="font_mini_header">CUENTA</th>
+                                            <th class="font_mini_header">RUT CTE</th>
+                                            <th class="font_mini_header">RUT DEU</th>
+                                            <th class="font_mini_header">OPERACION</th>
+                                            <th class="font_mini_header">F.VENC</th>
+                                            <th class="font_mini_header">TIPO</th>
+                                            <th class="font_mini_header">V.CUOTA</th>
+                                            <th class="font_mini_header"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $sql = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_PROCESADOS_LISTA]";
+                                        $stmt = sqlsrv_query($conn, $sql);
+                                        if ($stmt === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+                                        while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+
+                                            $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
+                                            $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
+                                            $disabled           =  '';
+
+
+                                            $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID_PS](?)}";
+                                            $params_pd = array(
+                                                array($idpareo_sis,     SQLSRV_PARAM_IN),
+                                            );
+                                            $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
+                                            if ($stmt_pd === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
+
+                                            $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_METODOS_PAGO](?)}";
+                                            $params_pagodocs = array(
+                                                array($idpareo_sis,    SQLSRV_PARAM_IN),
+                                            );
+                                            $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
+                                            if ($stmt_pagodocs === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
+
+                                            //Variables pareo sistema
+                                            $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
+                                            $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
+                                            $ord_rut        = $p_sistema['ORDENANTE_RUT'];
+                                            $ord_dv         = $p_sistema['ORDENANTE_DV'];
+                                            $ord_banco      = $p_sistema['ORDENANTE_BANCO'];
+                                            $ord_cta        = $p_sistema['ORDENANTE_CUENTA'];
+                                            $deud_rut       = $p_sistema['DEUDOR_RUT'];
+                                            $deud_dv        = $p_sistema['DEUDOR_DV'];
+                                            $cte_rut        = $p_sistema['RUT_CLIENTE'];
+                                            $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
+                                            $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
+                                            $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+                                            //Variables pareo docs
+                                            $operacion      = $p_docs['N_DOC'];
+                                            $monto_doc      = $p_docs['MONTO_DOCUMENTO'];
+                                            $producto       = $p_docs['SUBPRODUCTO'];
+                                            $cartera        = $p_docs['CARTERA'];
+                                            $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
+                                            $canal          = $p_docs['CANAL'];
+                                            $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
+                                        ?>
+                                            <tr>
+                                                <td>
+                                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input type="hidden" class="checkbox_type" value="ch">
+                                                    </div>
+                                                </td>
+                                                <td class="col-auto font_mini"><?php echo $tipo_canal ?></td>
+                                                <td class="col-auto font_mini"><?php echo $idpareo_sis ?></td>
+                                                <td class="interes col-auto font_mini" id="interes">
+                                                    <input type="text" class="monto_ingresado font_mini_input form-control" disabled />
+                                                </td>
+                                                <td class="col-auto font_mini"><?php echo mb_substr($canal, 0, 6); ?></td>
+                                                <td class="col-auto font_mini">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
+                                                <td class="col-auto font_mini"><?php echo $benef_cta ?></td>
+                                                <td class="col-auto font_mini"><?php echo $cte_rut ?></td>
+                                                <td class="col-auto font_mini"><?php echo $deud_rut ?></td>
+                                                <td class="col-auto font_mini"><?php echo $operacion ?></td>
+                                                <td class="col-auto font_mini"><?php echo $f_venc ?></td>
+                                                <td class="col-auto font_mini"><?php echo $pago_docs ?></td>
+                                                <td class="col-auto font_mini">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
+
+                                                <td class="font_mini">
+                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles_pd["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles_pd["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles_pd["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                        <i class="feather-24" data-feather="x"></i>
+                                                    </a>
+                                                </td>
+
+                                            </tr> <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div> <!-- end col -->
+                </div> <!-- end row -->
+                <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
+                <input type="hidden" id="selected_ids_pareodoc" name="selected_ids_pareodoc[]">
+                <input type="hidden" id="selected_types" name="selected_types[]">
+            </form>
         </div><!-- container -->
         <?php include('footer.php'); ?>
     </div>
@@ -353,12 +356,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 search: 'applied'
             }).nodes().to$().each(function() {
                 var row = $(this);
-                var checkboxes = row.find('input[type="checkbox"]');
+                var checkboxes = row.find('input[data-column="' + column + '"]');
 
                 checkboxes.each(function() {
-                    if ($(this).data('column') === column) {
+                    if (!$(this).is(':disabled')) { // Solo marca los checkboxes habilitados
                         this.checked = isChecked;
-                    } else {
+                    }
+                });
+
+                // Desmarcar los checkboxes de la columna opuesta
+                var otherColumn = column === 1 ? 2 : 1;
+                row.find('input[data-column="' + otherColumn + '"]').each(function() {
+                    if (!$(this).is(':disabled')) { // Solo desmarca los checkboxes habilitados
                         this.checked = false;
                     }
                 });
@@ -386,17 +395,94 @@ $fecha_proceso = $row["FECHAPROCESO"];
         function updateHeaderCheckboxState() {
             var table = $('#datatable2').DataTable();
 
-            // Comprobar si todos los checkboxes de la columna 1 están marcados
+            // Comprobar si todos los checkboxes habilitados de la columna 1 están marcados
             var allCheckedColumn1 = table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length && table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').filter(':checked').length === table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length;
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length &&
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').filter(':checked').length ===
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length;
+
+            // Comprobar si todos los checkboxes habilitados de la columna 2 están marcados
+            var allCheckedColumn2 = table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length &&
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').filter(':checked').length ===
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length;
 
             // Actualizar el estado de los checkboxes maestros
             $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
+            $('#select_all_checkbox2').prop('checked', allCheckedColumn2);
+        }
+    </script>
+
+    <script>
+        function habilitarBoton() {
+            // Verifica si hay al menos un checkbox con las clases 'ch_checkbox' o 'tr_checkbox' marcado
+            const checkboxesCh = document.querySelectorAll('.ch_checkbox:checked');
+            const checkboxesTr = document.querySelectorAll('.tr_checkbox:checked');
+
+            // Verifica el estado de los master checkboxes
+            const masterCheckbox1 = document.getElementById('select_all_checkbox1').checked;
+            const masterCheckbox2 = document.getElementById('select_all_checkbox2').checked;
+
+            const botonGuardar = document.getElementById('guardarButton');
+
+            if (checkboxesCh.length > 0 || checkboxesTr.length > 0 || masterCheckbox1 || masterCheckbox2) {
+                botonGuardar.disabled = false;
+            } else {
+                botonGuardar.disabled = true;
+            }
+        }
+
+        // Agrega el evento change a todos los checkboxes
+        document.querySelectorAll('.ch_checkbox, .tr_checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', habilitarBoton);
+        });
+
+        // Agrega el evento change a los master checkboxes
+        document.querySelectorAll('#select_all_checkbox1, #select_all_checkbox2').forEach(checkbox => {
+            checkbox.addEventListener('change', habilitarBoton);
+        });
+
+        // Inicializa el estado del botón al cargar la página
+        document.addEventListener('DOMContentLoaded', habilitarBoton);
+    </script>
+
+    <script>
+        function valida_envia() {
+            var selectedIdsDocs = [];
+            var selectedIdsPareoDoc = [];
+            var selectedTypes = [];
+
+            // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
+            document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
+                var ids = checkbox.value.split(',');
+                var idDoc = ids[0];
+                var idPareoDoc = ids[1];
+
+                // Obtener el valor de data-column
+                var checkboxType = checkbox.getAttribute('data-column');
+
+                // Agregar valores a los arreglos
+                selectedIdsDocs.push(idDoc);
+                selectedIdsPareoDoc.push(idPareoDoc);
+                selectedTypes.push(checkboxType);
+            });
+
+            // Asignar los valores a los campos ocultos
+            document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
+            document.getElementById('selected_ids_pareodoc').value = selectedIdsPareoDoc.join(',');
+            document.getElementById('selected_types').value = selectedTypes.join(',');
+
+            return true; // Asegúrate de que el formulario se envíe
         }
     </script>
 
@@ -434,48 +520,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 
-<script>
-    $(document).ready(function() {
-        // Guardar la pestaña activa en localStorage
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-            var tabId = $(e.target).attr('href');
-            localStorage.setItem('activeTab', tabId);
-        });
-
-        // Restaurar la pestaña activa al cargar la página
-        var activeTab = localStorage.getItem('activeTab');
-        if (activeTab) {
-            $('#pestañas a[href="' + activeTab + '"]').tab('show');
-        }
-
-        // Restablecer a los valores por defecto al hacer clic en el botón de reinicio
-        $('#volverbtn').on('click', function() {
-            localStorage.removeItem('activeTab'); // Elimina la clave activeTab de localStorage
-
-            // Mostrar la primera pestaña por defecto
-            $('#pestañas a:first').tab('show');
-        });
-
-        // Verificar el valor de op y restablecer pestañas si es necesario
-        <?php if ($op == 5 || $op == 9) : ?>
-            localStorage.removeItem('activeTab');
-            $('#pestañas a:first').tab('show');
-        <?php endif; ?>
-    });
-
-    $(document).ready(function() {
-        // Al hacer clic en una pestaña
-        $('.nav-link').click(function() {
-            var target = $(this).attr('href'); // Obtiene el ID del contenido
-            $('.tab-pane').hide(); // Oculta todos los paneles
-            $(target).show(); // Muestra el panel correspondiente
-        });
-
-        // Mostrar solo la primera pestaña al cargar la página
-        $('.tab-pane').hide();
-        $('.tab-pane:first').show();
-    });
-</script>
 
 <script>
     // Inicializar Feather Icons
@@ -493,65 +537,67 @@ $fecha_proceso = $row["FECHAPROCESO"];
     // DataTables Initialization
     $(document).ready(function() {
 
+        $('#datatable2').on('change', '#select_all_checkbox1', function() {
+            toggleAllCheckboxes(this, 1);
+        });
+
+        $('#datatable2').on('change', '#select_all_checkbox2', function() {
+            toggleAllCheckboxes(this, 2);
+        });
 
         var table = $('#datatable2').DataTable({
+            "paging": false, // Deshabilita la paginación
+            "searching": true, // Habilita la búsqueda
+            "ordering": true, // Habilita el ordenamiento
+            responsive: true,
             order: [
-                [0, 'asc'],
-                [4, 'asc'],
-                [3, 'asc']
+                [9, 'asc']
             ],
             columnDefs: [{
-                targets: 8, // Índice de la columna que deseas desactivar
-                orderable: false // Desactiva el ordenamiento para esta columna
-            }]
-        });
-        
-        var table2 = $('#datatable3').DataTable({
-            order: [
-                [0, 'desc'],
+                    targets: [0, 3, 11, 13],
+                    orderable: false
+                },
+                {
+                    targets: [1],
+                    visible: false
+                },
+                {
+                    targets: 3,
+                    render: function(data, type, row, meta) {
+                        // Verificar si el valor de la columna 17 es 1
+                        if (row[16] == 1) {
+                            // Aplicar estilo rojo al valor de la columna 3
+                            return '<span class="text-danger"><b>' + data + '</b></span>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 10,
+                    render: function(data, type, row, meta) {
+                        if (data > 169) {
+                            return '<span class="text-danger"><b>' + data + '</b></span>';
+                        }
+                        return data;
+                    }
+                }
             ],
-            columnDefs: [{
-                targets: 4, // Índice de la columna que deseas desactivar
-                orderable: false // Desactiva el ordenamiento para esta columna
-            }]
+            createdRow: function(row, data, dataIndex) {
+                var value = data[10];
+
+                if (value > 169) {
+                    $(row).css('background-color', 'rgba(255, 0, 0, 0.06)');
+                } else if (value < 0) {
+                    $(row).css('background-color', 'rgba(255, 255, 0, 0.15)');
+                }
+            }
         });
 
-        // Función para actualizar el conteo de filas y el estado del botón
-        function updateRowCountAndButton() {
-            var rowCount = table.rows().count();
-            var exportButton = document.getElementById('procesar');
-            var rowCountElement = document.getElementById('row-count');
-
-            // Actualiza el conteo de filas en el texto
-            if (rowCountElement) {
-                rowCountElement.textContent = `(${rowCount})`;
-            }
-
-            // Habilita o deshabilita el botón de exportación según el conteo de filas
-            if (rowCount > 0) {
-                exportButton.disabled = false;
-            } else {
-                exportButton.disabled = true;
-            }
-        }
-
-        // Llama a la función para actualizar el conteo inicial
-        updateRowCountAndButton();
-
-        // Opcional: Actualizar el conteo y el botón cuando se realicen búsquedas o se cambie la página
-        table.on('draw', function() {
-            updateRowCountAndButton();
-        }); // Function to apply filters based on stored values
+        // Function to apply filters based on stored values
         function applyFilters() {
-            var storedCuentaValue = sessionStorage.getItem('selected_cuenta_3');
-            var storedCanalValue = sessionStorage.getItem('selected_canal');
+            var storedCuentaValue = sessionStorage.getItem('selected_cuenta_2');
             var storedFiltroValue = sessionStorage.getItem('selected_diasmora');
-
-            if (storedCanalValue && storedCanalValue !== "0") {
-                $('#canal_filtro').val(storedCanalValue).change();
-            } else {
-                $('#canal_filtro').val("0").change(); // Reset to default
-            }
+            var storedEstadoValue = sessionStorage.getItem('selected_estado_2');
 
             // Apply cuenta filter
             if (storedCuentaValue && storedCuentaValue !== "0") {
@@ -560,48 +606,54 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 $('#cuenta').val("0").change(); // Reset to default
             }
 
-
             // Apply dias_mora filter
             if (storedFiltroValue && storedFiltroValue !== "0") {
                 $('#dias_mora').val(storedFiltroValue).change();
             } else {
                 $('#dias_mora').val("0").change(); // Reset to default
             }
+
+            // Apply estado filter
+            if (storedEstadoValue && storedEstadoValue !== "0") {
+                $('#estado_conc').val(storedEstadoValue).change();
+            } else {
+                $('#estado_conc').val("0").change(); // Reset to default
+            }
         }
 
-        // Custom filter function for values >= 170
+        // Custom filter function for dias_mora and estado
         $.fn.dataTable.ext.search.push(
             function(settings, data, dataIndex) {
-                var filterValue = $('#dias_mora').val();
-                var columnValue = parseFloat(data[7]) || 0; // Convert the value to a number
+                var diasMoraFilter = $('#dias_mora').val();
+                var estadoFilter = $('#estado_conc').val();
+                var diasMoraValue = parseFloat(data[9]) || 0; // Convert the value to a number
+                var estadoValue = data[11]; // Assuming column 9 is the ESTADO column
 
-                if (filterValue === "1") {
-                    return columnValue >= 100; // Rango para dias de mora
+                // Filter by dias_mora
+                if (diasMoraFilter === "1") {
+                    if (diasMoraValue < 169) {
+                        return false; // Exclude rows that don't meet the criteria
+                    }
                 }
-                return true; // Otherwise, show all rows
+
+                // Filter by estado
+                if (estadoFilter !== "0" && estadoValue != estadoFilter) {
+                    return false; // Exclude rows that don't match the estado filter
+                }
+
+                return true; // Show all rows that pass the filters
             }
         );
 
         // Add event listener to the cuenta select element
         $('#cuenta').on('change', function() {
             var filterValue = $(this).val();
-            sessionStorage.setItem('selected_cuenta_3', filterValue);
+            sessionStorage.setItem('selected_cuenta_2', filterValue);
 
             if (filterValue == "0") {
-                table.column(1).search('').draw(); // Clear the cuenta filter
+                table.column(3).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(1).search(filterValue).draw();
-            }
-        });
-
-        $('#canal_filtro').on('change', function() {
-            var filterValue = $(this).val();
-            sessionStorage.setItem('selected_canal', filterValue);
-
-            if (filterValue == "0") {
-                table.column(0).search('').draw(); // Clear the cuenta filter
-            } else {
-                table.column(0).search(filterValue).draw();
+                table.column(3).search(filterValue).draw();
             }
         });
 
@@ -611,6 +663,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
             sessionStorage.setItem('selected_diasmora', filterValue);
 
             // Redraw table to apply the dias_mora filter
+            table.draw();
+        });
+
+        // Add event listener to the estado select element
+        $('#estado_conc').on('change', function() {
+            var filterValue = $(this).val();
+            sessionStorage.setItem('selected_estado_2', filterValue);
+
+            // Redraw table to apply the estado filter
             table.draw();
         });
 
@@ -624,7 +685,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Proceso realizado con éxito.',
+            title: 'Canalizacion realizada con éxito.',
             showConfirmButton: true
         });
     <?php } ?>
@@ -633,7 +694,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Canalizacion eliminada.',
+            title: 'Estado actualizado.',
             showConfirmButton: false,
             timer: 3000,
         });
@@ -656,6 +717,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
             title: 'Error: Los documentos seleccionados, ya están conciliados.',
             showConfirmButton: false,
             timer: 2000,
+        });
+    <?php } ?>
+
+    <?php if ($op == 5) { ?>
+        Swal.fire({
+            width: 600,
+            icon: 'success',
+            title: 'Pareo eliminado.',
+            showConfirmButton: false,
+            timer: 3000,
         });
     <?php } ?>
 </script>

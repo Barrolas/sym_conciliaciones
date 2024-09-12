@@ -144,7 +144,7 @@ $concilia_doc           = 0;
 $idpareo_docdeudores    = 0;
 $tipo_pago              = 0;
 $trae_cobertura         = 0;
-
+$estado_canal           = 1;
 
 //print_r($saldo_disponible);
 //exit;
@@ -156,7 +156,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     $idpareo_docdeudores    = 0;
     $tipo_pago              = 0;
     $haber                  = 0;
-    $deuda                  = 0;
+    $debe                   = 0;
     $aplica_cobertura       = 0;
     print_r('transferido: ' . $saldo_disponible . "; ");
 
@@ -169,7 +169,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         [$transaccion,              SQLSRV_PARAM_IN],
         [$idpareo_sistema,          SQLSRV_PARAM_IN],
         [$fecha_rec,                SQLSRV_PARAM_IN],
-        [$deuda,                    SQLSRV_PARAM_IN],
+        [$debe,                     SQLSRV_PARAM_IN],
         [$prestamos[$index],        SQLSRV_PARAM_IN],
         [$idusuario,                SQLSRV_PARAM_IN],
         [&$saldo_disponible,        SQLSRV_PARAM_INOUT]
@@ -180,7 +180,22 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         echo "Error in executing statement 4.\n";
         die(print_r(sqlsrv_errors(), true));
     }
+
+    $sql_estado = "{call [_SP_CONCILIACIONES_CANALIZACION_CAMBIA_ESTADO] (?, ?)}";
+    $params_estado = array(
+        array($id_docdeudores,  SQLSRV_PARAM_IN),
+        array($estado_canal,    SQLSRV_PARAM_IN)
+    );
+
+    // Ejecutar la consulta
+    $stmt_estado = sqlsrv_query($conn, $sql_estado, $params_estado);
+
+    if ($stmt_estado === false) {
+        echo "Error in executing statement estado.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
 }
+
 
 //print_r($saldo_disponible);
 

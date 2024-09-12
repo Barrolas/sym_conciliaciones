@@ -45,11 +45,9 @@ error_reporting(E_ALL);
             <li>
                 <a href="conciliaciones_lista_canalizados.php">CANALIZADOS</a>
             </li>
-            <!--
             <li>
                 <a href="conciliaciones_lista_pendientes_comprobante.php">PENDIENTES DE COMPROBANTE</a>
             </li>
-            -->
             <li>
                 <a href="conciliaciones_lista_pendientes.php">PAREADOS PENDIENTES</a>
             </li>

@@ -211,7 +211,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     $idpareo_docdeudores    = 0;
     $tipo_pago              = 0;
     $haber                  = 0;
-    $deuda                  = 0;
+    $debe                  = 0;
     $aplica_cobertura       = 0;
     print_r('transferido: ' . $saldo_disponible . "; ");
 
@@ -253,7 +253,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
             [$subproductos[$index],     SQLSRV_PARAM_IN],
             [$aplica_cobertura,         SQLSRV_PARAM_IN],
             [&$tipo_pago,               SQLSRV_PARAM_OUT],
-            [&$deuda,                   SQLSRV_PARAM_OUT],
+            [&$debe,                    SQLSRV_PARAM_OUT],
             [&$saldo_disponible,        SQLSRV_PARAM_INOUT]
         ];
 
@@ -272,7 +272,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
             [$idpareo_docdeudores,      SQLSRV_PARAM_IN],
             [$fecha_rec,                SQLSRV_PARAM_IN],
             [$montos_docs[$index],      SQLSRV_PARAM_IN],
-            [$deuda,                    SQLSRV_PARAM_IN],
+            [$debe,                     SQLSRV_PARAM_IN],
             [$aplica_cobertura,         SQLSRV_PARAM_IN],
             [$diferencia_prestamo,      SQLSRV_PARAM_IN],
             [$es_entrecuentas,          SQLSRV_PARAM_IN],

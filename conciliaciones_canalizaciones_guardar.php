@@ -85,11 +85,47 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     // Depuración: imprimir valores actuales
     echo "Processing: Index = $index, ID DocDeudores = $id_docdeudores, ID Pareo Doc = $id_pareo_doc, Type = $type<br>";
 
-    $sql2 = "{call [_SP_CONCILIACIONES_CANALIZACION_DOCUMENTO_INSERTA] (?, ?, ?, ?)}";
+    $sql_docdeudores = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_CONSULTA] (?)}";
+    $params_docdeudores = array(
+        array((int)$id_pareo_doc,       SQLSRV_PARAM_IN),
+    );
+    $stmt_docdeudores = sqlsrv_query($conn, $sql_docdeudores, $params_docdeudores);
+    if ($stmt_docdeudores === false) {
+        echo "Error en la ejecución de la declaración _docdeudores en el índice $index.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+    $docdeudores = sqlsrv_fetch_array($stmt_docdeudores, SQLSRV_FETCH_ASSOC);
+
+    $id_doc             = $docdeudores['ID_DOCDEUDORES'];
+    $monto_diferencia   = 0;
+    $estado_canal       = 0;
+
+    $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?, ?)}";
+    $params_dif = array(
+        array((int)$id_doc,             SQLSRV_PARAM_IN),
+        array(&$monto_diferencia,       SQLSRV_PARAM_INOUT)
+    );
+
+    $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
+    if ($stmt_dif === false) {
+        echo "Error en la ejecución de la declaración _dif en el índice $index.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+    $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
+
+    if($monto_diferencia > 0) {
+        $estado_canal = 4;
+    }
+    elseif ($monto_diferencia = 0){
+        $estado_canal = 1;
+    }
+
+    $sql2 = "{call [_SP_CONCILIACIONES_CANALIZACION_DOCUMENTO_INSERTA] (?, ?, ?, ?, ?)}";
     $params2 = array(
         array((int)$id_canalizacion,    SQLSRV_PARAM_IN),
         array((int)$type,               SQLSRV_PARAM_IN),
         array((int)$id_pareo_doc,       SQLSRV_PARAM_IN),
+        array((int)$estado_canal,       SQLSRV_PARAM_IN),
         array((int)$id_usuario,         SQLSRV_PARAM_IN)
     );
 

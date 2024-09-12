@@ -194,14 +194,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PENDIENTES_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
-                                        $id_documento       = $conciliacion['ID_DOC'];
+                                        $id_documento       = $conciliacion['ID_DOCDEUDORES'];
                                         $diferencia_doc     = 0;
 
                                         // Consulta para obtener el monto de abonos (solo si el estado no es '1')
