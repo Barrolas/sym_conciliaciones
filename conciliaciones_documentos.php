@@ -815,7 +815,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
             ],
             order: [
                 [9, 'desc'],
-                [1, 'asc']
+                [1, 'asc'],
             ],
             createdRow: function(row, data, dataIndex) {
                 $(row).attr('id', 'row-' + dataIndex);

@@ -211,7 +211,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     $idpareo_docdeudores    = 0;
     $tipo_pago              = 0;
     $haber                  = 0;
-    $debe                  = 0;
+    $debe                   = 0;
     $aplica_cobertura       = 0;
     print_r('transferido: ' . $saldo_disponible . "; ");
 

@@ -234,6 +234,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
                                                 $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
+                                                $id_doc             = $p_sistema['ID_DOCDEUDORES'];
                                                 $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
 
                                                 $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_CANALIZADOS_ID_PS](?)}";
@@ -256,6 +257,17 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 }
                                                 $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
+                                                $sql_contable = "{call [_SP_CONCILIACIONES_CANALIZADOS_CONTABLE](?)}";
+                                                $params_contable = array(
+                                                    array($id_doc,    SQLSRV_PARAM_IN),
+                                                );
+                                                $stmt_contable = sqlsrv_query($conn, $sql_contable, $params_contable);
+                                                if ($stmt_contable === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+                                                $contable = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
+
+
                                                 //Variables pareo sistema
                                                 $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
                                                 $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
@@ -276,11 +288,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $cartera        = $p_docs['CARTERA'];
                                                 $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
                                                 $canal          = $p_docs['CANAL'];
+                                                $monto_cubierto = $contable['MONTO_CUBIERTO'];
                                                 $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
                                             ?>
                                                 <tr>
                                                     <td class="col-auto"><?php echo mb_substr($canal, 0, 6); ?></td>
-                                                    <td class="col-auto">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
+                                                    <td class="col-auto">$<?php echo number_format($monto_cubierto, 0, ',', '.'); ?></td>
                                                     <td class="col-auto"><?php echo $benef_cta; ?></td>
                                                     <td class="col-auto"><?php echo $cte_rut; ?></td>
                                                     <td class="col-auto"><?php echo $deud_rut; ?></td>
@@ -289,7 +302,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="col-auto"><?php echo $pago_docs; ?></td>
                                                     <td class="col-auto">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
                                                     <td class="col-1">
-                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>" class="btn btn-icon btn-rounded btn-danger">
                                                             <i class="feather-24" data-feather="x"></i>
                                                         </a>
                                                     </td>
@@ -344,7 +357,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </td>
                                             </tr>
                                         <?php   }; ?>
-
                                     </tbody>
                                 </table>
                             </div>
@@ -537,7 +549,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [3, 'asc']
             ],
             columnDefs: [{
-                targets: 8, // Índice de la columna que deseas desactivar
+                targets: 9, // Índice de la columna que deseas desactivar
                 orderable: false // Desactiva el ordenamiento para esta columna
             }]
         });

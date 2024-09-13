@@ -243,7 +243,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "EXEC [_SP_CONCILIACIONES_CANALIZACIONES_LISTA]";
+                                        $sql = "_SP_CONCILIACIONES_CANALIZACIONES_LISTA";
                                         $stmt = sqlsrv_query($conn, $sql);
                                         if ($stmt === false) {
                                             die(print_r(sqlsrv_errors(), true));
@@ -265,6 +265,23 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             while ($abonos = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
                                                 $monto_pareo = isset($abonos["MONTO_PAREO"]) ? $abonos["MONTO_PAREO"] : 0;
                                             }
+
+                                            $monto_diferencia = 0;
+
+                                            $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?, ?)}";
+                                            $params_dif = array(
+                                                array((int)$id_documento,       SQLSRV_PARAM_IN),
+                                                array(&$monto_diferencia,       SQLSRV_PARAM_INOUT)
+                                            );
+                                        
+                                            $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
+                                            if ($stmt_dif === false) {
+                                                echo "Error en la ejecución de la declaración _dif en el índice $index.\n";
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
+                                        
+                                            $monto_diferencia = $diferencia['DIFERENCIA'];
 
                                             // Consulta para obtener el estado del documento
                                             $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
@@ -334,7 +351,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_TRANSFERIDO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_CUBIERTO"], 0, ',', '.'); ?></td>
-                                                <td class="font_mini">$<?php echo number_format($canalizacion["DIFERENCIA_TRANSF"], 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($monto_diferencia, 0, ',', '.'); ?></td>
                                                 <td class="font_mini" style="display: none;"><?php echo $entrecuenta ?></td>
                                                 <td class="font_mini">
                                                     <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_pareos_eliminar.php?transaccion=<?php echo $canalizacion["TRANSACCION"]; ?>" class="btn btn-icon btn-rounded btn-danger ml-2">

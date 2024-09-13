@@ -304,6 +304,8 @@ $monto_diferencia   = 0;
                                                 $consulta = sqlsrv_fetch_array($stmt_4, SQLSRV_FETCH_ASSOC);
                                                 $rut_deudor = $consulta['RUT_DEUDOR'];
 
+                                        
+
                                                 // Consulta para obtener documentos asignados
                                                 $sql_5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
                                                 $params_5 = array($rut_deudor);
@@ -315,15 +317,19 @@ $monto_diferencia   = 0;
 
                                                 $docdetalles = sqlsrv_fetch_array($stmt_5, SQLSRV_FETCH_ASSOC);
 
-
-                                                $f_venc         = isset($docdetalles["F_VENC"])         ? $docdetalles["F_VENC"] : 'Error de formato';
-                                                $monto_doc      = isset($docdetalles['MONTO'])          ? $docdetalles['MONTO'] : '';
+                                                $f_venc = isset($consulta["F_VENC"])
+                                                    ? (is_a($consulta["F_VENC"], 'DateTime')
+                                                        ? $consulta["F_VENC"]->format('Y-m-d')
+                                                        : $consulta["F_VENC"])
+                                                    : 'Sin fecha';
+                                                $monto_doc      = isset($consulta['MONTO'])          ? $consulta['MONTO'] : '';
                                                 $subproducto    = isset($docdetalles["SUBPRODUCTO"])    ? $docdetalles["SUBPRODUCTO"] : '';
-                                                $n_doc          = isset($docdetalles["N_DOC"])          ? $docdetalles["N_DOC"] : '';
-                                                $rut_deudor     = isset($consulta["RUT_DEUDOR"])        ? $consulta ["RUT_DEUDOR"] : '';
-                                                $rut_cliente    = isset($docdetalles["RUT_CLIENTE"])    ? $docdetalles["RUT_CLIENTE"] : '';
-                                                $nom_cliente    = isset($docdetalles["NOM_CLIENTE"])    ? $docdetalles["NOM_CLIENTE"] : '';
+                                                $n_doc          = isset($consulta["N_DOC"])          ? $consulta["N_DOC"] : '';
+                                                $rut_deudor     = isset($rut_deudor)                    ? $rut_deudor  : '';
+                                                $rut_cliente    = isset($consulta["RUT_CLIENTE"])    ? $consulta["RUT_CLIENTE"] : '';
+                                                $nom_cliente    = isset($consulta["NOM_CLIENTE"])    ? $consulta["NOM_CLIENTE"] : '';
                                                 $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
+
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
@@ -331,7 +337,15 @@ $monto_diferencia   = 0;
                                                     </td>
                                                     <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $prestamos; ?></td>
-                                                    <td class="monto_doc col-auto font_mini" id="monto_doc">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
+                                                    <td class="monto_doc col-auto font_mini" id="monto_doc">
+                                                        $<?php
+                                                            if (is_numeric($monto_doc)) {
+                                                                echo number_format((float)$monto_doc, 0, ',', '.');
+                                                            } else {
+                                                                echo "Valor no válido";
+                                                            }
+                                                            ?>
+                                                    </td>
                                                     <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($n_doc); ?></td>
                                                     <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $rut_cliente; ?></td>
                                                     <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $nom_cliente; ?></td>
@@ -352,7 +366,8 @@ $monto_diferencia   = 0;
         <?php include('footer.php'); ?>
         <!-- page-wrapper -->
     </div>
-
+    <?php /* print_r($detalles);
+exit; */ ?>
     <script>
         window.onload = function() {
             // Oculta la pantalla de carga y muestra el contenido principal
