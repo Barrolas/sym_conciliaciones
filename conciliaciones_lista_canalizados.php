@@ -15,7 +15,7 @@ if (isset($_GET["op"])) {
 };
 
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+        from dbo.Transferencias_Recibidas_Hist";
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
@@ -213,12 +213,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <thead>
                                             <tr>
                                                 <th>CANAL</th>
+                                                <th>TRANSACCION</th>
                                                 <th>MONTO</th>
                                                 <th>CUENTA</th>
                                                 <th>RUT CTE</th>
                                                 <th>RUT DEU</th>
                                                 <th>F. VENC</th>
                                                 <th>OPERACIÓN</th>
+                                                <th>SUBPROD</th>
                                                 <th>TIPO</th>
                                                 <th>V.CUOTA</th>
                                                 <th>ELIMINAR</th>
@@ -237,9 +239,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $id_doc             = $p_sistema['ID_DOCDEUDORES'];
                                                 $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
 
-                                                $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_CANALIZADOS_ID_PS](?)}";
+                                                $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
                                                 $params_pd = array(
-                                                    array($idpareo_sis,     SQLSRV_PARAM_IN),
+                                                    array($id_doc,     SQLSRV_PARAM_IN),
                                                 );
                                                 $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
                                                 if ($stmt_pd === false) {
@@ -269,6 +271,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 
                                                 //Variables pareo sistema
+                                                $transaccion    = $p_sistema['TRANSACCION'];
                                                 $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
                                                 $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
                                                 $ord_rut        = $p_sistema['ORDENANTE_RUT'];
@@ -283,22 +286,23 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
                                                 //Variables pareo docs
                                                 $operacion      = $p_docs['N_DOC'];
-                                                $monto_doc      = $p_docs['MONTO_DOCUMENTO'];
+                                                $monto_doc      = $p_docs['MONTO'];
                                                 $producto       = $p_docs['SUBPRODUCTO'];
                                                 $cartera        = $p_docs['CARTERA'];
                                                 $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
                                                 $canal          = $p_docs['CANAL'];
                                                 $monto_cubierto = $contable['MONTO_CUBIERTO'];
-                                                $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
-                                            ?>
+                                                $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];                                                ?>
                                                 <tr>
                                                     <td class="col-auto"><?php echo mb_substr($canal, 0, 6); ?></td>
-                                                    <td class="col-auto">$<?php echo number_format($monto_cubierto, 0, ',', '.'); ?></td>
+                                                    <td class="col-auto"><?php echo $transaccion; ?></td>
+                                                    <td class="col-auto">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
                                                     <td class="col-auto"><?php echo $benef_cta; ?></td>
                                                     <td class="col-auto"><?php echo $cte_rut; ?></td>
                                                     <td class="col-auto"><?php echo $deud_rut; ?></td>
                                                     <td class="col-auto"><?php echo $f_venc; ?></td>
                                                     <td class="col-auto"><?php echo $operacion; ?></td>
+                                                    <td class="col-auto"><?php echo mb_substr($producto, 0, 7); ?></td>
                                                     <td class="col-auto"><?php echo $pago_docs; ?></td>
                                                     <td class="col-auto">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
                                                     <td class="col-1">
@@ -549,8 +553,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [3, 'asc']
             ],
             columnDefs: [{
-                targets: 9, // Índice de la columna que deseas desactivar
-                orderable: false // Desactiva el ordenamiento para esta columna
+                targets: 9, 
+                orderable: false 
             }]
         });
 
@@ -559,8 +563,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [0, 'desc'],
             ],
             columnDefs: [{
-                targets: 4, // Índice de la columna que deseas desactivar
-                orderable: false // Desactiva el ordenamiento para esta columna
+                targets: 4, 
+                orderable: false 
             }]
         });
 
@@ -586,10 +590,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Llama a la función para actualizar el conteo inicial
         updateRowCountAndButton();
 
-        // Opcional: Actualizar el conteo y el botón cuando se realicen búsquedas o se cambie la página
         table.on('draw', function() {
             updateRowCountAndButton();
-        }); // Function to apply filters based on stored values
+        }); 
+        
+        // Function to apply filters based on stored values
         function applyFilters() {
             var storedCuentaValue = sessionStorage.getItem('selected_cuenta_3');
             var storedCanalValue = sessionStorage.getItem('selected_canal');

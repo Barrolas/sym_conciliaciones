@@ -6,19 +6,26 @@ include("conexiones.php");
 noCache();
 
 // Obtener y sanitizar los datos de entrada
-$rr_cl = $_GET["r_cl"];
-$rr_dd = $_GET["r_dd"];
+$id_doc = $_GET["id_doc"];
+$rr_cl  = $_GET["r_cl"];
+$rr_dd  = $_GET["r_dd"];
 $f_venc = $_GET["f_venc"];
-$ndoc = $_GET["ndoc"];
+$ndoc   = $_GET["ndoc"];
+
+/*
+print_r($id_doc);
+exit;
+*/
 
 // Asegúrate de que el formato de f_venc sea correcto
 $f_venc = trim($f_venc);  // Elimina cualquier espacio extra
 
 // Preparar la llamada al procedimiento almacenado
-$sql = "{CALL [_SP_CONCILIACIONES_CANALIZACION_ELIMINAR](?, ?, ?, ?)}";
+$sql = "{CALL [_SP_CONCILIACIONES_CANALIZACION_ELIMINAR](?, ?, ?, ?, ?)}";
 
 // Preparar los parámetros
 $params = array(
+    array($id_doc,  SQLSRV_PARAM_IN),
     array($rr_cl,   SQLSRV_PARAM_IN),
     array($rr_dd,   SQLSRV_PARAM_IN),
     array($f_venc,  SQLSRV_PARAM_IN),

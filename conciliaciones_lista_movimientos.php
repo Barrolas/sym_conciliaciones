@@ -15,7 +15,7 @@ if (isset($_GET["op"])) {
 };
 
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+        from dbo.Transferencias_Recibidas_Hist";
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
@@ -233,12 +233,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <th class="font_mini">$ DOC</th>
                                         <th class="font_mini">HABER</th>
                                         <th class="font_mini">DEBE</th>
-                                        <th class="font_mini">ESTADO</th>
+                                        <!-- <th class="font_mini">ESTADO</th> -->
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_MOVIMIENTOS_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_MOVIMIENTOS_LISTA] 1";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
@@ -260,7 +260,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         // Procesar resultados de la consulta de detalles
                                         $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
 
-                                        // Consulta para obtener el estado del documento
+                                        /* // Consulta para obtener el estado del documento
                                         $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
                                         $params5 = array($id_documento);
                                         $stmt5 = sqlsrv_query($conn, $sql5, $params5);
@@ -283,7 +283,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     $estado_pareo_text = 'PEND';
                                                     break;
                                             }
-                                        }
+                                        } */
                                     ?>
                                         <tr>
                                             <!--
@@ -299,14 +299,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <td class="font_mini"><?php echo $conciliacion["TRANSACCION"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["CTA_BENEF"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["F_RECEPCION"]->format('Y/m/d'); ?></td>
-                                            <td class="font_mini"><?php echo isset($detalles["F_VENC"]) ? $detalles["F_VENC"]->format('Y/m/d') : ''; ?> </td>
+                                            <td class="font_mini"><?php echo $conciliacion["F_VENC"]->format('Y/m/d'); ?> </td>
                                             <td class="font_mini">
-                                                <?php echo $detalles["N_DOC"] ?? ''; ?>
+                                                <?php echo $conciliacion["N_DOC"] ?? ''; ?>
                                             </td>
-                                            <td class="font_mini">
+                                            <td class="font_mini">$
                                                 <?php
-                                                if (isset($detalles["MONTO"]) && $detalles["MONTO"] !== null) {
-                                                    echo number_format($detalles["MONTO"], 0, ',', '.');
+                                                if (isset($conciliacion["MONTO_DOC"]) && $conciliacion["MONTO_DOC"] !== null) {
+                                                    echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.');
                                                 } else {
                                                     echo '';
                                                 }
@@ -314,7 +314,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </td>
                                             <td class="font_mini">$<?php echo number_format($conciliacion["HABER"], 0, ',', '.'); ?></td>
                                             <td class="font_mini">$<?php echo number_format($conciliacion["DEBE"], 0, ',', '.'); ?></td>
-                                            <td class="font_mini"><?php echo $estado_pareo_text; ?></td>
+                                            <!-- <td class="font_mini"><?php // echo $estado_pareo_text; ?></td> -->
                                         </tr>
                                     <?php } ?>
                                 </tbody>

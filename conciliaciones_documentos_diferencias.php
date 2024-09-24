@@ -304,7 +304,7 @@ $monto_diferencia   = 0;
                                                 $consulta = sqlsrv_fetch_array($stmt_4, SQLSRV_FETCH_ASSOC);
                                                 $rut_deudor = $consulta['RUT_DEUDOR'];
 
-                                        
+
 
                                                 // Consulta para obtener documentos asignados
                                                 $sql_5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
@@ -330,10 +330,13 @@ $monto_diferencia   = 0;
                                                 $nom_cliente    = isset($consulta["NOM_CLIENTE"])    ? $consulta["NOM_CLIENTE"] : '';
                                                 $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
 
+                                                // Comparación con $monto_transf para habilitar o deshabilitar el radio button
+                                                $isDisabled = ($prestamos > $monto_transf) ? 'disabled' : '';
+
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $id_documento . ',' . $prestamos; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $id_documento . ',' . $prestamos; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" <?php echo $isDisabled; ?> />
                                                     </td>
                                                     <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                     <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $prestamos; ?></td>

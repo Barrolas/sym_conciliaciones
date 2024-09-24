@@ -15,7 +15,7 @@ if (isset($_GET["op"])) {
 };
 
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+        from dbo.Transferencias_Recibidas_Hist";
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
@@ -354,7 +354,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="font_mini">$<?php echo number_format($monto_diferencia, 0, ',', '.'); ?></td>
                                                 <td class="font_mini" style="display: none;"><?php echo $entrecuenta ?></td>
                                                 <td class="font_mini">
-                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_pareos_eliminar.php?transaccion=<?php echo $canalizacion["TRANSACCION"]; ?>" class="btn btn-icon btn-rounded btn-danger ml-2">
+                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_pareos_eliminar.php?transaccion=<?php echo $canalizacion["TRANSACCION"]; ?>&id_doc=<?php echo $canalizacion["ID_DOC"]; ?>" class="btn btn-icon btn-rounded btn-danger ml-2">
                                                         <i class="feather-24" data-feather="x"></i>
                                                     </a>
                                                 </td>

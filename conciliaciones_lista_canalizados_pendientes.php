@@ -272,21 +272,27 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             }
                                     ?>
                                             <tr>
-                                                <td class="col-auto"><?php echo mb_substr($detalles["CANALIZACION"], 0, 6); ?></td>
-                                                <td class="col-auto"><?php echo $detalles["CUENTA"]; ?></td>
-                                                <td class="col-auto"><?php echo $detalles["RUT_CLIENTE"]; ?></td>
-                                                <td class="col-auto"><?php echo $detalles["RUT_DEUDOR"]; ?></td>
-                                                <td class="col-auto"><?php echo $detalles["F_VENC"]->format('Y/m/d'); ?></td>
-                                                <td class="col-auto"><?php echo $detalles["N_DOC"]; ?></td>
-                                                <td class="col-auto"><?php echo $estado_pareo_text; ?></td>
-                                                <td class="col-auto">$<?php echo number_format($monto_consulta["MONTO"], 0, ',', '.'); ?></td>
-                                                <td class="col-auto">$<?php echo number_format($diferencia_doc, 0, ',', '.'); ?></td>
+                                                <td class="col-auto"><?php echo mb_substr(isset($detalles["CANALIZACION"]) ? $detalles["CANALIZACION"] : 'N/A', 0, 6); ?></td>
+                                                <td class="col-auto"><?php echo isset($detalles["CUENTA"]) ? $detalles["CUENTA"] : 'Sin cuenta'; ?></td>
+                                                <td class="col-auto"><?php echo isset($detalles["RUT_CLIENTE"]) ? $detalles["RUT_CLIENTE"] : 'Sin RUT'; ?></td>
+                                                <td class="col-auto"><?php echo isset($detalles["RUT_DEUDOR"]) ? $detalles["RUT_DEUDOR"] : 'Sin RUT'; ?></td>
+                                                <td class="col-auto">
+                                                    <?php echo isset($detalles["F_VENC"]) && $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y/m/d') : 'Fecha no disponible'; ?>
+                                                </td>
+                                                <td class="col-auto"><?php echo isset($detalles["N_DOC"]) ? $detalles["N_DOC"] : 'Sin documento'; ?></td>
+                                                <td class="col-auto"><?php echo isset($estado_pareo_text) ? $estado_pareo_text : 'Estado no definido'; ?></td>
+                                                <td class="col-auto">
+                                                    $<?php echo isset($monto_consulta["MONTO"]) ? number_format($monto_consulta["MONTO"], 0, ',', '.') : '0'; ?>
+                                                </td>
+                                                <td class="col-auto">
+                                                    $<?php echo isset($diferencia_doc) ? number_format($diferencia_doc, 0, ',', '.') : '0'; ?>
+                                                </td>
                                                 <td class="col-1">
                                                     <?php
                                                     // Convertir DateTime a cadena en el formato deseado
-                                                    $f_venc = $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : $detalles["F_VENC"];
+                                                    $f_venc = isset($detalles["F_VENC"]) && $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : 'Fecha no disponible';
                                                     ?>
-                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?id_doc=<?php echo $id_documento ?>&r_cl=<?php echo urlencode(isset($detalles["RUT_CLIENTE"]) ? $detalles["RUT_CLIENTE"] : 'Sin RUT'); ?>&r_dd=<?php echo urlencode(isset($detalles["RUT_DEUDOR"]) ? $detalles["RUT_DEUDOR"] : 'Sin RUT'); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode(isset($detalles["N_DOC"]) ? $detalles["N_DOC"] : 'Sin documento'); ?>" class="btn btn-icon btn-rounded btn-danger">
                                                         <i class="feather-24" data-feather="x"></i>
                                                     </a>
                                                 </td>

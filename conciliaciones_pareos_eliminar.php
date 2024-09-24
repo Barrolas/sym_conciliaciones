@@ -9,11 +9,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+$id_doc             = $_GET['id_doc']; 
 $transaccion        = $_GET['transaccion']; 
 
-$sql_eliminar = "{call [_SP_CONCILIACIONES_REGISTROS_ELIMINAR] (?)}";
+$sql_eliminar = "{call [_SP_CONCILIACIONES_PAREOS_ELIMINAR] (?, ?)}";
 $params_eliminar = array(
-    array($transaccion,              SQLSRV_PARAM_IN)
+    array($id_doc,          SQLSRV_PARAM_IN),
+    array($transaccion,     SQLSRV_PARAM_IN)
 );
 $stmt_eliminar = sqlsrv_query($conn, $sql_eliminar, $params_eliminar);
 
