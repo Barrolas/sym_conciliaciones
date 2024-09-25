@@ -140,6 +140,9 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
         echo "Error en la ejecución de la declaración 2 en el índice $index.\n";
         die(print_r(sqlsrv_errors(), true));
     }
+
+    
+
     $cantidad_docs++;
 
     // Depuración: verificar éxito de la inserción

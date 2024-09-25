@@ -231,6 +231,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             <th class="font_mini_header">RUT DEUD</th>
                                             <th class="font_mini_header">OPERACIÓN</th>
                                             <th class="font_mini_header">MORA</th>
+                                            <th class="font_mini_header">SUBPR</th>
                                             <th class="font_mini_header">CARTERA</th>
                                             <th class="font_mini_header">E°</th>
                                             <th class="font_mini_header">$ TRANSF</th>
@@ -243,14 +244,38 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "_SP_CONCILIACIONES_CANALIZACIONES_LISTA";
+                                        $sql = "[_SP_CONCILIACIONES_CANALIZACIONES_LISTA]";
                                         $stmt = sqlsrv_query($conn, $sql);
                                         if ($stmt === false) {
                                             die(print_r(sqlsrv_errors(), true));
                                         }
                                         while ($canalizacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
-                                            $id_documento = $canalizacion["ID_DOC"];
+                                            $id_documento = $canalizacion["ID_DOCDEUDORES"];
+
+                                            $sql_docdetalles = "{call [_SP_CONCILIACIONES_CONSULTA_PAREADOS_DETALLES_DOCUMENTOS_ID] (?)}";
+                                            $params_docdetalles = array(
+                                                array($id_documento,       SQLSRV_PARAM_IN)
+                                            );
+                                        
+                                            $stmt_docdetalles = sqlsrv_query($conn, $sql_docdetalles, $params_docdetalles);
+                                            if ($stmt_docdetalles === false) {
+                                                echo "Error en la ejecución de la declaración _docdetalles en el índice $index.\n";
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $docdetalles = sqlsrv_fetch_array($stmt_docdetalles, SQLSRV_FETCH_ASSOC);
+
+                                            $sql_trdetalles = "{call [_SP_CONCILIACIONES_CONSULTA_PAREADOS_DETALLES_TRANSFERENCIA_ID] (?)}";
+                                            $params_trdetalles = array(
+                                                array($id_documento,       SQLSRV_PARAM_IN)
+                                            );
+                                        
+                                            $stmt_trdetalles = sqlsrv_query($conn, $sql_trdetalles, $params_trdetalles);
+                                            if ($stmt_trdetalles === false) {
+                                                echo "Error en la ejecución de la declaración _trdetalles en el índice $index.\n";
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $trdetalles = sqlsrv_fetch_array($stmt_trdetalles, SQLSRV_FETCH_ASSOC);                                        
 
                                             // Consulta para obtener el monto de abonos (solo si el estado no es '1')
                                             $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
@@ -314,47 +339,60 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $entrecuenta = isset($estados['ENTRECUENTAS']) ? $estados['ENTRECUENTAS'] : NULL;
                                             }
 
-
+                                            $id_pareodoc        = $docdetalles['PAR_DOC'];
+                                            $cuenta_benef       = $trdetalles['CUENTA'];
+                                            $f_venc             = $docdetalles['F_VENC']->format('Y/m/d');
+                                            $f_rec              = $trdetalles['F_REC'];
+                                            $transaccion        = $trdetalles['TRANSACCION'];
+                                            $rut_dd             = $trdetalles['RUT_DEUDOR'];
+                                            $n_doc              = $docdetalles['N_DOC'];
+                                            $dias_mora          = $docdetalles['DIAS_MORA'];
+                                            $cartera            = $docdetalles['CARTERA'];
+                                            $monto_transferido  = $trdetalles['MONTO_TR_FINAL'];
+                                            $monto_doc          = $docdetalles['MONTO_DOC_FINAL'];
+                                            $monto_cubierto     = $docdetalles['MONTO_CUBIERTO'];
+                                            $subproducto        = $docdetalles['SUBPRODUCTO'];
 
                                         ?>
                                             <tr>
                                                 <td>
                                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"] . ',' . $canalizacion["PAR_DOC"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $id_documento . ',' . $id_pareodoc; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                         <input type="hidden" class="checkbox_type" value="ch">
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"] . ',' . $canalizacion["PAR_DOC"]; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input class="form-check-input tr_checkbox" name="tr_checkbox[]" type="checkbox" value="<?php echo $id_documento . ',' . $id_pareodoc; ?>" data-column="2" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                         <input type="hidden" class="checkbox_type" value="tr">
                                                     </div>
                                                 </td>
-                                                <td class="font_mini"><input type="hidden" id="id_doc" value="<?php echo $canalizacion["ID_DOC"]; ?>"></td>
-                                                <td class="font_mini"><?php echo $canalizacion["CUENTA"]; ?></td>
-                                                <td class="font_mini"><?php echo $canalizacion["F_VENC"]->format('Y/m/d'); ?></td>
+                                                <td class="font_mini"><input type="hidden" id="id_doc" value="<?php echo $id_documento; ?>"></td>
+                                                <td class="font_mini"><?php echo $cuenta_benef; ?></td>
+                                                <td class="font_mini"><?php echo $f_venc; ?></td>
                                                 <td class="font_mini">
                                                     <?php
-                                                    if (isset($canalizacion["F_REC"]) && $canalizacion["F_REC"] instanceof DateTime) {
-                                                        echo $canalizacion["F_REC"]->format('Y/m/d');
+                                                    if (isset($f_rec) && $f_rec instanceof DateTime) {
+                                                        echo $f_rec->format('Y/m/d');
                                                     } else {
                                                         echo 'Fecha no disponible'; // O cualquier otro mensaje apropiado
                                                     }
                                                     ?>
                                                 </td>
-                                                <td class="font_mini"><?php echo $canalizacion["TRANSACCION"]; ?></td>
-                                                <td class="font_mini"><?php echo trim($canalizacion["RUT_DEUDOR"]) ?></td>
-                                                <td class="font_mini"><?php echo $canalizacion["N_DOC"]; ?></td>
-                                                <td class="font_mini"><?php echo $canalizacion['DIAS_MORA'] ?></td>
-                                                <td class="font_mini"><?php echo $canalizacion["CARTERA"]; ?></td>
+                                                <td class="font_mini"><?php echo $transaccion; ?></td>
+                                                <td class="font_mini"><?php echo trim($rut_dd) ?></td>
+                                                <td class="font_mini"><?php echo $n_doc; ?></td>
+                                                <td class="font_mini"><?php echo $dias_mora ?></td>
+                                                <td class="font_mini"><?php echo substr($subproducto, 0, 5); ?></td>
+                                                <td class="font_mini"><?php echo $cartera; ?></td>
                                                 <td class="font_mini"><?php echo $estado_pareo_text ?></td>
-                                                <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_TRANSFERIDO"], 0, ',', '.'); ?></td>
-                                                <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_DOCUMENTO"], 0, ',', '.'); ?></td>
-                                                <td class="font_mini">$<?php echo number_format($canalizacion["MONTO_CUBIERTO"], 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($monto_transferido, 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
+                                                <td class="font_mini">$<?php echo number_format($monto_cubierto, 0, ',', '.'); ?></td>
                                                 <td class="font_mini">$<?php echo number_format($monto_diferencia, 0, ',', '.'); ?></td>
                                                 <td class="font_mini" style="display: none;"><?php echo $entrecuenta ?></td>
                                                 <td class="font_mini">
-                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_pareos_eliminar.php?transaccion=<?php echo $canalizacion["TRANSACCION"]; ?>&id_doc=<?php echo $canalizacion["ID_DOC"]; ?>" class="btn btn-icon btn-rounded btn-danger ml-2">
+                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_pareos_eliminar.php?transaccion=<?php echo $transaccion; ?>&id_doc=<?php echo $id_documento; ?>" class="btn btn-icon btn-rounded btn-danger ml-2">
                                                         <i class="feather-24" data-feather="x"></i>
                                                     </a>
                                                 </td>
@@ -502,6 +540,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
     <script>
         function valida_envia() {
+
             var selectedIdsDocs = [];
             var selectedIdsPareoDoc = [];
             var selectedTypes = [];
@@ -527,6 +566,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             document.getElementById('selected_types').value = selectedTypes.join(',');
 
             return true; // Asegúrate de que el formulario se envíe
+
         }
     </script>
 
@@ -605,11 +645,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     orderable: false
                 },
                 {
-                    targets: [1, 17],
+                    targets: [1, 18],
                     orderable: false
                 },
                 {
-                    targets: [2, 16],
+                    targets: [2, 17],
                     visible: false
                 },
                 {
@@ -677,8 +717,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
             function(settings, data, dataIndex) {
                 var diasMoraFilter = $('#dias_mora').val();
                 var estadoFilter = $('#estado_conc').val();
-                var diasMoraValue = parseFloat(data[9]) || 0; // Convert the value to a number
-                var estadoValue = data[11]; // Assuming column 9 is the ESTADO column
+                var diasMoraValue = parseFloat(data[9]) || 0;
+                var estadoValue = data[12]; 
 
                 // Filter by dias_mora
                 if (diasMoraFilter === "1") {
