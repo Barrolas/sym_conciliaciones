@@ -330,8 +330,12 @@ $monto_diferencia   = 0;
                                                 $nom_cliente    = isset($consulta["NOM_CLIENTE"])    ? $consulta["NOM_CLIENTE"] : '';
                                                 $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
 
+                                                // Sanitización para comparación
+                                                $prestamos_sanitizado       = (int) str_replace(['$', '.'], '', $prestamos);
+                                                $monto_transf_sanitizado    = (int) str_replace(['$', '.'], '', $monto_transf);
+
                                                 // Comparación con $monto_transf para habilitar o deshabilitar el radio button
-                                                $isDisabled = ($prestamos > $monto_transf) ? 'disabled' : '';
+                                                $isDisabled = ($prestamos_sanitizado > $monto_transf_sanitizado) ? 'disabled' : '';
 
                                             ?>
                                                 <tr>

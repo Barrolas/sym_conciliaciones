@@ -306,7 +306,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="col-auto"><?php echo $pago_docs; ?></td>
                                                     <td class="col-auto">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
                                                     <td class="col-1">
-                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>&transaccion=<?php echo $transaccion; ?>&id_doc=<?php echo $id_doc; ?>" class="btn btn-icon btn-rounded btn-danger">
                                                             <i class="feather-24" data-feather="x"></i>
                                                         </a>
                                                     </td>

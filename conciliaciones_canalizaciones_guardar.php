@@ -115,10 +115,9 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
 
     $monto_diferencia = $diferencia['DIFERENCIA'];
 
-    if ($monto_diferencia > 0)      {
+    if ($monto_diferencia > 0) {
         $estado_canal = 4;
-    }
-    elseif($monto_diferencia == 0)  {
+    } elseif ($monto_diferencia == 0) {
         $estado_canal = 1;
     }
 
@@ -141,7 +140,19 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
         die(print_r(sqlsrv_errors(), true));
     }
 
-    
+    // Actualizar canalización
+    $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_CANALIZACION_INSERTA] (?, ?)}";
+    $params_operacion = array(
+        array($id_docdeudores,     SQLSRV_PARAM_IN),
+        array($id_usuario,         SQLSRV_PARAM_IN)
+    );
+
+    $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
+    if ($stmt_operacion === false) {
+        echo "Error en la ejecución de la declaración _operacion.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+
 
     $cantidad_docs++;
 
@@ -174,5 +185,3 @@ echo "</pre>";
 // Redirigir a otra página
 header("Location: conciliaciones_lista_pareados.php?op=1");
 exit;
-
-?>

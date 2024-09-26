@@ -9,10 +9,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$idusuario = 1;
-$idproceso = 0;
-$estado_canalizacion = 2;
-$total_procesados = 0;
+$idusuario              = 1;
+$idproceso              = 0;
+$estado_canalizacion    = 2;
+$total_procesados       = 0;
 
 $sql_proceso = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_INSERTA](?, ?)}";
 $params_proceso = array(
@@ -33,7 +33,7 @@ if ($stmt === false) {
 }
 while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
-    $id_documento       = $conciliacion['ID_DOC'];
+    $id_documento       = $conciliacion['ID_DOCDEUDORES'];
     $diferencia_doc     = 0;
 
     $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?, ?)}";
@@ -76,7 +76,21 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         if ($stmt_estado === false) {
             die(print_r(sqlsrv_errors(), true));
         }
+
+        $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_PROCESO_INSERTA](?, ?)}";
+        $params_operacion = array(
+            array($id_documento,    SQLSRV_PARAM_IN),
+            array($idusuario,       SQLSRV_PARAM_IN)
+        );
+
+        $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
+
+        if ($stmt_operacion === false) {
+            die(print_r(sqlsrv_errors(), true));
+        }
+
         $total_procesados++;
+        
     };
 };
 
