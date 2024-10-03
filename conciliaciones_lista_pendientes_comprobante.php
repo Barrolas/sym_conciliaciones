@@ -218,14 +218,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </th>
                                             <th class="font_mini_header">ID CANAL</th>
                                             <th class="font_mini_header">ID</th>
-                                            <th class="font_mini_header">N° REMESA/DOC</th>
+                                            <th class="font_mini_header">N° REMESA/CHEQUE</th>
                                             <th class="font_mini_header">CANAL</th>
                                             <th class="font_mini_header">MONTO</th>
                                             <th class="font_mini_header">CUENTA</th>
-                                            <th class="font_mini_header">RUT CTE</th>
+                                            <th class="font_mini_header">CARTERA</th>
                                             <th class="font_mini_header">RUT DEU</th>
                                             <th class="font_mini_header">OPERACION</th>
                                             <th class="font_mini_header">F.VENC</th>
+                                            <th class="font_mini_header">SUBPROD</th>
                                             <th class="font_mini_header">TIPO</th>
                                             <th class="font_mini_header">V.CUOTA</th>
                                             <th class="font_mini_header"></th>
@@ -233,17 +234,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_PROCESADOS_LISTA]";
+                                        $sql = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA]";
                                         $stmt = sqlsrv_query($conn, $sql);
                                         if ($stmt === false) {
                                             die(print_r(sqlsrv_errors(), true));
                                         }
-                                        while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                        while ($asignados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
-                                            $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
-                                            $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
-                                            $disabled           =  '';
-
+                                            $idpareo_sis    = $asignados['ID_PAREO_SISTEMA'];
+                                            $iddoc          = $asignados['ID_DOCDEUDORES'];
+                                            $id_asignacion  = $asignados['ID_ASIGNACION'];
+                                            $disabled       = '';
+                                            $n_cheque       = '';
+                                            $n_remesa       = '';
 
                                             $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID_PS](?)}";
                                             $params_pd = array(
@@ -254,6 +257,28 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
                                             $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
+
+                                            $sql_row = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                            $params_row = array(
+                                                array($iddoc,     SQLSRV_PARAM_IN),
+                                            );
+                                            $stmt_row = sqlsrv_query($conn, $sql_row, $params_row);
+                                            if ($stmt_row === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $row = sqlsrv_fetch_array($stmt_row, SQLSRV_FETCH_ASSOC);
+
+                                            $cuenta = $p_docs['CUENTA_BENEFICIARIO'];
+
+                                            $sql_qtydocs = "{call [_SP_CONCILIACIONES_CANALIZADOS_PROCESADOS_CANTIDAD_PAREO_SISTEMA](?)}";
+                                            $params_qtydocs = array(
+                                                array($idpareo_sis,    SQLSRV_PARAM_IN),
+                                            );
+                                            $stmt_qtydocs = sqlsrv_query($conn, $sql_qtydocs, $params_qtydocs);
+                                            if ($stmt_qtydocs === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            $qtydocs = sqlsrv_fetch_array($stmt_qtydocs, SQLSRV_FETCH_ASSOC);
 
                                             $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_METODOS_PAGO](?)}";
                                             $params_pagodocs = array(
@@ -266,47 +291,84 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
                                             //Variables pareo sistema
-                                            $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
-                                            $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
-                                            $ord_rut        = $p_sistema['ORDENANTE_RUT'];
-                                            $ord_dv         = $p_sistema['ORDENANTE_DV'];
-                                            $ord_banco      = $p_sistema['ORDENANTE_BANCO'];
-                                            $ord_cta        = $p_sistema['ORDENANTE_CUENTA'];
-                                            $deud_rut       = $p_sistema['DEUDOR_RUT'];
-                                            $deud_dv        = $p_sistema['DEUDOR_DV'];
-                                            $cte_rut        = $p_sistema['RUT_CLIENTE'];
-                                            $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
-                                            $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
-                                            $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+                                            $deud_rut       = $asignados['DEUDOR_RUT'];
+                                            $deud_dv        = $asignados['DEUDOR_DV'];
+                                            $deud_nom       = $asignados['DEUDOR_NOMBRE'];
+                                            $cant_docs      = $asignados['PAGO_DOCS'];
+                                            $operacion      = $asignados['N_DOC'];
+                                            $tipo_canal     = $asignados['ID_TIPO_CANALIZACION'];
+                                            $monto_doc      = $asignados['MONTO_DOC'];
+                                            $transaccion    = $asignados['TRANSACCION'];
                                             //Variables pareo docs
-                                            $operacion      = $p_docs['N_DOC'];
-                                            $monto_doc      = $p_docs['MONTO_DOCUMENTO'];
-                                            $producto       = $p_docs['SUBPRODUCTO'];
-                                            $cartera        = $p_docs['CARTERA'];
-                                            $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
+                                            $benef_cta      = $p_docs['CUENTA_BENEFICIARIO'];
+                                            $cte_rut        = $p_docs['RUT_CLIENTE'];
+                                            $f_recepcion    = $p_docs['FECHA_RECEPCION'];
+                                            $f_venc         = isset($asignados['F_VENC']) ? $asignados['F_VENC']->format('Y-m-d') : '';
+                                            $monto_tr       = $p_docs['MONTO_TRANSACCION'];
+                                            $ord_rut        = $p_docs['ORDENANTE_RUT'];
+                                            $ord_dv         = $p_docs['ORDENANTE_DV'];
+                                            $ord_banco      = $p_docs['ORDENANTE_BANCO'];
+                                            $ord_cta        = $p_docs['ORDENANTE_CUENTA'];
+
+                                            $producto       = $row['SUBPRODUCTO'];
+                                            $cartera        = $row['CARTERA'];
                                             $canal          = $p_docs['CANAL'];
-                                            $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
+
+                                            $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+
+                                            if ($tipo_canal == 1) {
+
+                                                $sql_cheque = "{call [_SP_CONCILIACIONES_ASIGNACIONES_CHEQUES_CONSULTA](?)}";
+                                                $params_cheque = array(
+                                                    array($id_asignacion,     SQLSRV_PARAM_IN),
+                                                );
+                                                $stmt_cheque = sqlsrv_query($conn, $sql_cheque, $params_cheque);
+                                                if ($stmt_cheque === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+                                                $rowcheque = sqlsrv_fetch_array($stmt_cheque, SQLSRV_FETCH_ASSOC);
+
+                                                $n_cheque = isset($rowcheque['N_CHEQUE']) ? $rowcheque['N_CHEQUE'] : '';
+
+                                            } elseif ($tipo_canal == 2) {
+
+                                                $sql_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_REMESAS_CONSULTA](?)}";
+                                                $params_remesa = array(
+                                                    array($transaccion,     SQLSRV_PARAM_IN),
+                                                );
+                                                $stmt_remesa = sqlsrv_query($conn, $sql_remesa, $params_remesa);
+                                                if ($stmt_remesa === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+                                                $rowremesa = sqlsrv_fetch_array($stmt_remesa, SQLSRV_FETCH_ASSOC);
+
+                                                $n_remesa = isset($rowremesa['N_REMESA']) ? $rowremesa['N_REMESA'] : '';
+
+                                            }
                                         ?>
                                             <tr>
                                                 <td>
                                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $canalizacion["ID_DOC"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $asignados["ID_DOCDEUDORES"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                         <input type="hidden" class="checkbox_type" value="ch">
                                                     </div>
                                                 </td>
                                                 <td class="col-auto font_mini"><?php echo $tipo_canal ?></td>
-                                                <td class="col-auto font_mini"><?php echo $idpareo_sis ?></td>
+                                                <td class="col-auto font_mini"><?php echo $id_asignacion ?></td>
                                                 <td class="interes col-auto font_mini" id="interes">
-                                                    <input type="text" class="monto_ingresado font_mini_input form-control" disabled />
+                                                    <input type="text" class="monto_ingresado font_mini_input form-control"
+                                                        value="<?php echo ($tipo_canal == 1) ? $n_cheque : (($tipo_canal == 2) ? $n_remesa : ''); ?>"
+                                                        disabled />
                                                 </td>
                                                 <td class="col-auto font_mini"><?php echo mb_substr($canal, 0, 6); ?></td>
                                                 <td class="col-auto font_mini">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
                                                 <td class="col-auto font_mini"><?php echo $benef_cta ?></td>
-                                                <td class="col-auto font_mini"><?php echo $cte_rut ?></td>
+                                                <td class="col-auto font_mini"><?php echo $cartera; ?></td>
                                                 <td class="col-auto font_mini"><?php echo $deud_rut ?></td>
                                                 <td class="col-auto font_mini"><?php echo $operacion ?></td>
                                                 <td class="col-auto font_mini"><?php echo $f_venc ?></td>
-                                                <td class="col-auto font_mini"><?php echo $pago_docs ?></td>
+                                                <td class="col-auto font_mini"><?php echo substr($producto, 0, 7) ?></td>
+                                                <td class="col-auto font_mini"><?php echo $cant_docs ?></td>
                                                 <td class="col-auto font_mini">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
 
                                                 <td class="font_mini">
@@ -554,7 +616,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [9, 'asc']
             ],
             columnDefs: [{
-                    targets: [0, 3, 11, 13],
+                    targets: [0, 3, 14],
                     orderable: false
                 },
                 {

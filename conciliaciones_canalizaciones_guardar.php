@@ -75,6 +75,8 @@ echo "<pre>";
 print_r($id_canalizacion);
 echo "</pre>";
 
+
+
 // Insertar documentos
 echo "<h3>Procesando documentos:</h3>";
 foreach ($selected_ids_docs as $index => $id_docdeudores) {
@@ -100,10 +102,9 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     $monto_diferencia   = 0;
     $estado_canal       = 0;
 
-    $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?, ?)}";
+    $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?)}";
     $params_dif = array(
         array((int)$id_doc,             SQLSRV_PARAM_IN),
-        array(&$monto_diferencia,       SQLSRV_PARAM_INOUT)
     );
 
     $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
@@ -113,7 +114,7 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     }
     $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
 
-    $monto_diferencia = $diferencia['DIFERENCIA'];
+    $monto_diferencia = $diferencia['MONTO_DIFERENCIA'] ?? 0;
 
     if ($monto_diferencia > 0) {
         $estado_canal = 4;
@@ -180,8 +181,5 @@ echo "<pre>";
 print_r($cantidad_docs);
 echo "</pre>";
 
-//exit;
-
-// Redirigir a otra página
 header("Location: conciliaciones_lista_pareados.php?op=1");
 exit;

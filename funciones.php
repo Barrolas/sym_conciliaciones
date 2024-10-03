@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set("America/Santiago");
 $hoy         = date("Y-m-d H:i:s");
+$hoy_formateado  = date("YmdHis");
 $hoy_corto  = date("Y-m-d");
 $iva      = 1.19;
 $PORC_MINIMO = 0.8;

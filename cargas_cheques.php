@@ -61,14 +61,14 @@ error_reporting(0);
 		<!-- Page Content-->
 		<div class="page-content" id="content">
 			<div class="container-fluid">
-				<center><h4 class="mt-4">CARGA TRANSFERENCIAS</h4></center>
+				<center><h4 class="mt-4">CARGA CHEQUES</h4></center>
 				<br><br>
 				<div class="row">
 					<div class="col-lg-9 offset-md-2">
 						<div class="card">
 
 							<div class="card-body">
-								<form method="post" action="cargas_conciliaciones_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
+								<form method="post" action="cargas_cheques_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
 									<div class="row">
 
 										<div class="col-md-6">

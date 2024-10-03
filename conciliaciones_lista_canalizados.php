@@ -120,79 +120,81 @@ $fecha_proceso = $row["FECHAPROCESO"];
             </div>
 
             <div class="container-fluid px-3">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-3">
-                                <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                            </div>
-                            <div class="col-lg-3">
-                                <div class="col-lg-9">
-                                    <label for="canal_filtro" class="col-4">CANAL</label>
-                                    <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Mostrar todos</option>
-                                        <?php
-                                        $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
-                                        $stmt_canal = sqlsrv_query($conn, $sql_canal);
+                <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_canalizados_procesar.php" onsubmit="return valida_envia();return false;">
 
-                                        if ($stmt_canal === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo substr($canal['DESCRIPCION'], 0, 6); ?>"><?php echo $canal["DESCRIPCION"] ?></option>
-                                        <?php }; ?>
-                                    </select>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
+                                <div class="col-lg-3">
+                                    <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
+                                    <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                 </div>
-                            </div>
-                            <div class="col-lg-3">
-                                <div class="col-lg-9">
-                                    <label for="cuenta" class="col-4">CUENTA</label>
-                                    <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Mostrar todas</option>
-                                        <?php
-                                        $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
-                                        $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
+                                <div class="col-lg-3">
+                                    <div class="col-lg-9">
+                                        <label for="canal_filtro" class="col-4">CANAL</label>
+                                        <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
+                                            <option value="0" selected>Mostrar todos</option>
+                                            <?php
+                                            $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
+                                            $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
-                                        if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo $cuenta["CUENTA"] ?>"><?php echo $cuenta["CUENTA"] ?></option>
-                                        <?php }; ?>
-                                    </select>
+                                            if ($stmt_canal === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
+                                            ?>
+                                                <option value="<?php echo substr($canal['DESCRIPCION'], 0, 6); ?>"><?php echo $canal["DESCRIPCION"] ?></option>
+                                            <?php }; ?>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                        </div><!--end form-group-->
-                    </div><!--end col-->
-                </div>
+                                <div class="col-lg-3">
+                                    <div class="col-lg-9">
+                                        <label for="cuenta" class="col-4">CUENTA</label>
+                                        <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
+                                            <option value="0" selected>Mostrar todas</option>
+                                            <?php
+                                            $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
+                                            $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
-
-                <div class="card border-0">
-                    <div class="card-header border-0">
-                        <!-- Pestañas -->
-                        <ul class="nav nav-pills nav-justified mb-3 mx-3 border-0 bg-light" id="pestañas" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="canalizados-tab" data-toggle="tab" href="#canalizados" role="tab" aria-controls="canalizados" aria-selected="true">CANALIZADOS</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="historial-tab" data-toggle="tab" href="#historial" role="tab" aria-controls="historial" aria-selected="false">HISTORIAL</a>
-                            </li>
-                        </ul>
+                                            if ($stmt_cuenta === false) {
+                                                die(print_r(sqlsrv_errors(), true));
+                                            }
+                                            while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
+                                            ?>
+                                                <option value="<?php echo $cuenta["CUENTA"] ?>"><?php echo $cuenta["CUENTA"] ?></option>
+                                            <?php }; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div><!--end form-group-->
+                        </div><!--end col-->
                     </div>
-                    <!-- Tab panes -->
-                    <div class="container-fluid tab-content">
-                        <div class="tab-pane fade show active" id="canalizados" role="tabpanel">
-                            <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div class='col-7'>
-                                        <p class="mb-0">
-                                            <b>CANALIZACIONES A PROCESAR</b>
-                                            <b><span id="row-count" class="ms-2 text-primary">(0)</span></b>
-                                        </p>
-                                    </div> <!--
+
+
+                    <div class="card border-0">
+                        <div class="card-header border-0">
+                            <!-- Pestañas -->
+                            <ul class="nav nav-pills nav-justified mb-3 mx-3 border-0 bg-light" id="pestañas" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="canalizados-tab" data-toggle="tab" href="#canalizados" role="tab" aria-controls="canalizados" aria-selected="true">CANALIZADOS</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="historial-tab" data-toggle="tab" href="#historial" role="tab" aria-controls="historial" aria-selected="false">HISTORIAL</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- Tab panes -->
+                        <div class="container-fluid tab-content">
+                            <div class="tab-pane fade show active" id="canalizados" role="tabpanel">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div class='col-7'>
+                                            <p class="mb-0">
+                                                <b>CANALIZACIONES A PROCESAR</b>
+                                                <b><span id="row-count" class="ms-2 text-primary">(0)</span></b>
+                                            </p>
+                                        </div> <!--
                                     <div class='col-2'>
                                         <a href="conciliaciones_exportar_canalizados.php">
                                             <button type="button" class="btn btn-secondary waves-effect waves-light d-flex align-items-center" id="exportar">
@@ -200,114 +202,181 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </button>
                                         </a>
                                     </div> -->
-                                    <div class='col-3'>
-                                        <a href="conciliaciones_canalizados_procesar.php">
-                                            <button type="button" class="btn btn-primary waves-effect waves-light d-flex align-items-center" id="procesar" disabled>
+                                        <div class='col-3'>
+                                            <button type="submit" class="btn btn-primary waves-effect waves-light mt-4" id="procesarBtn" disabled>
                                                 <i class="feather feather-16 pr-1" data-feather="plus"></i> <span class="ms-2">PROCESAR</span>
                                             </button>
-                                        </a>
+                                        </div>
+                                    </div><!--end card-header-->
+                                    <div class="card-body">
+                                        <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                            <thead>
+                                                <tr>
+                                                    <th class="font_mini_header">
+                                                        <div class="d-flex flex-column align-items-center">
+                                                            <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
+                                                        </div>
+                                                    </th>
+                                                    <th>CANAL</th>
+                                                    <th>TRANSACCION</th>
+                                                    <th>MONTO</th>
+                                                    <th>CUENTA</th>
+                                                    <th>RUT CTE</th>
+                                                    <th>RUT DEU</th>
+                                                    <th>F. VENC</th>
+                                                    <th>OPERACIÓN</th>
+                                                    <th>SUBPROD</th>
+                                                    <th>TIPO</th>
+                                                    <th>V.CUOTA</th>
+                                                    <th>ELIMINAR</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                $sql = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_LISTA]";
+                                                $stmt = sqlsrv_query($conn, $sql);
+                                                if ($stmt === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
+                                                while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+
+                                                    $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
+                                                    $id_doc             = $p_sistema['ID_DOCDEUDORES'];
+                                                    $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
+
+                                                    $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
+                                                    $params_pd = array(
+                                                        array($id_doc,     SQLSRV_PARAM_IN),
+                                                    );
+                                                    $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
+                                                    if ($stmt_pd === false) {
+                                                        die(print_r(sqlsrv_errors(), true));
+                                                    }
+                                                    $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
+
+                                                    $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO](?)}";
+                                                    $params_pagodocs = array(
+                                                        array($idpareo_sis,    SQLSRV_PARAM_IN),
+                                                    );
+                                                    $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
+                                                    if ($stmt_pagodocs === false) {
+                                                        die(print_r(sqlsrv_errors(), true));
+                                                    }
+                                                    $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
+
+                                                    $sql_contable = "{call [_SP_CONCILIACIONES_CANALIZADOS_CONTABLE](?)}";
+                                                    $params_contable = array(
+                                                        array($id_doc,    SQLSRV_PARAM_IN),
+                                                    );
+                                                    $stmt_contable = sqlsrv_query($conn, $sql_contable, $params_contable);
+                                                    if ($stmt_contable === false) {
+                                                        die(print_r(sqlsrv_errors(), true));
+                                                    }
+                                                    $contable = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
+
+                                                    $disabled           =  '';
+
+                                                    //Variables pareo sistema
+                                                    $transaccion    = $p_sistema['TRANSACCION'];
+                                                    $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
+                                                    $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
+                                                    $ord_rut        = $p_sistema['ORDENANTE_RUT'];
+                                                    $ord_dv         = $p_sistema['ORDENANTE_DV'];
+                                                    $ord_banco      = $p_sistema['ORDENANTE_BANCO'];
+                                                    $ord_cta        = $p_sistema['ORDENANTE_CUENTA'];
+                                                    $deud_rut       = $p_sistema['DEUDOR_RUT'];
+                                                    $deud_dv        = $p_sistema['DEUDOR_DV'];
+                                                    $cte_rut        = $p_sistema['RUT_CLIENTE'];
+                                                    $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
+                                                    $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
+                                                    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+                                                    //Variables pareo docs
+                                                    $operacion      = $p_docs['N_DOC'];
+                                                    $monto_doc      = $p_docs['MONTO'];
+                                                    $producto       = $p_docs['SUBPRODUCTO'];
+                                                    $cartera        = $p_docs['CARTERA'];
+                                                    $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
+                                                    $canal          = $p_docs['CANAL'];
+                                                    $monto_cubierto = $contable['MONTO_CUBIERTO'];
+                                                    $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
+                                                ?>
+
+                                                    <tr>
+                                                        <td>
+                                                            <div class="form-check d-flex justify-content-center align-items-center">
+                                                                <input class="form-check-input ch_checkbox"
+                                                                    name="ch_checkbox[]"
+                                                                    type="checkbox"
+                                                                    value="<?php echo $idpareo_sis . ',' . $id_doc . ',' . $operacion . ',' . $transaccion . ',' . $deud_nom . ',' . $deud_rut . ',' . $deud_dv . ',' . $pago_docs . ',' . $tipo_canal; ?>"
+                                                                    data-column="1"
+                                                                    onclick="toggleRowCheckbox(this)"
+                                                                    <?php echo $disabled; ?>>
+                                                                <input type="hidden" class="checkbox_type" value="ch">
+                                                            </div>
+                                                        </td>
+                                                        <td class="col-auto"><?php echo mb_substr($canal, 0, 6); ?></td>
+                                                        <td class="col-auto"><?php echo $transaccion; ?></td>
+                                                        <td class="col-auto">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
+                                                        <td class="col-auto"><?php echo $benef_cta; ?></td>
+                                                        <td class="col-auto"><?php echo $cte_rut; ?></td>
+                                                        <td class="col-auto"><?php echo $deud_rut; ?></td>
+                                                        <td class="col-auto"><?php echo $f_venc; ?></td>
+                                                        <td class="col-auto"><?php echo $operacion; ?></td>
+                                                        <td class="col-auto"><?php echo mb_substr($producto, 0, 7); ?></td>
+                                                        <td class="col-auto"><?php echo $pago_docs; ?></td>
+                                                        <td class="col-auto">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
+                                                        <td class="col-1">
+                                                            <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>&transaccion=<?php echo $transaccion; ?>&id_doc=<?php echo $id_doc; ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                                <i class="feather-24" data-feather="x"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                <?php   }; ?>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div><!--end card-header-->
+                                </div>
+                            </div> <!-- end col -->
+                        </div> <!--final del tab -->
+                        <div class="tab-pane fade" id="historial" role="tabpanel">
+                            <div class="card">
                                 <div class="card-body">
-                                    <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                    <table id="datatable3" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                         <thead>
                                             <tr>
-                                                <th>CANAL</th>
-                                                <th>TRANSACCION</th>
-                                                <th>MONTO</th>
-                                                <th>CUENTA</th>
-                                                <th>RUT CTE</th>
-                                                <th>RUT DEU</th>
-                                                <th>F. VENC</th>
-                                                <th>OPERACIÓN</th>
-                                                <th>SUBPROD</th>
-                                                <th>TIPO</th>
-                                                <th>V.CUOTA</th>
-                                                <th>ELIMINAR</th>
+                                                <th>ID</th>
+                                                <th>FECHA</th>
+                                                <th>USUARIO</th>
+                                                <th>PROCESADOS</th>
+                                                <th>DETALLE</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $sql = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_LISTA]";
+                                            $sql = "EXEC [_SP_CONCILIACIONES_PROCESOS_LISTA]";
                                             $stmt = sqlsrv_query($conn, $sql);
                                             if ($stmt === false) {
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
-                                            while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                            while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) { ?>
 
-                                                $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
-                                                $id_doc             = $p_sistema['ID_DOCDEUDORES'];
-                                                $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
-
-                                                $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
-                                                $params_pd = array(
-                                                    array($id_doc,     SQLSRV_PARAM_IN),
-                                                );
-                                                $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
-                                                if ($stmt_pd === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-                                                $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
-
-                                                $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO](?)}";
-                                                $params_pagodocs = array(
-                                                    array($idpareo_sis,    SQLSRV_PARAM_IN),
-                                                );
-                                                $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
-                                                if ($stmt_pagodocs === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-                                                $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
-
-                                                $sql_contable = "{call [_SP_CONCILIACIONES_CANALIZADOS_CONTABLE](?)}";
-                                                $params_contable = array(
-                                                    array($id_doc,    SQLSRV_PARAM_IN),
-                                                );
-                                                $stmt_contable = sqlsrv_query($conn, $sql_contable, $params_contable);
-                                                if ($stmt_contable === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-                                                $contable = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
-
-
-                                                //Variables pareo sistema
-                                                $transaccion    = $p_sistema['TRANSACCION'];
-                                                $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
-                                                $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
-                                                $ord_rut        = $p_sistema['ORDENANTE_RUT'];
-                                                $ord_dv         = $p_sistema['ORDENANTE_DV'];
-                                                $ord_banco      = $p_sistema['ORDENANTE_BANCO'];
-                                                $ord_cta        = $p_sistema['ORDENANTE_CUENTA'];
-                                                $deud_rut       = $p_sistema['DEUDOR_RUT'];
-                                                $deud_dv        = $p_sistema['DEUDOR_DV'];
-                                                $cte_rut        = $p_sistema['RUT_CLIENTE'];
-                                                $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
-                                                $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
-                                                $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
-                                                //Variables pareo docs
-                                                $operacion      = $p_docs['N_DOC'];
-                                                $monto_doc      = $p_docs['MONTO'];
-                                                $producto       = $p_docs['SUBPRODUCTO'];
-                                                $cartera        = $p_docs['CARTERA'];
-                                                $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
-                                                $canal          = $p_docs['CANAL'];
-                                                $monto_cubierto = $contable['MONTO_CUBIERTO'];
-                                                $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];                                                ?>
                                                 <tr>
-                                                    <td class="col-auto"><?php echo mb_substr($canal, 0, 6); ?></td>
-                                                    <td class="col-auto"><?php echo $transaccion; ?></td>
-                                                    <td class="col-auto">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
-                                                    <td class="col-auto"><?php echo $benef_cta; ?></td>
-                                                    <td class="col-auto"><?php echo $cte_rut; ?></td>
-                                                    <td class="col-auto"><?php echo $deud_rut; ?></td>
-                                                    <td class="col-auto"><?php echo $f_venc; ?></td>
-                                                    <td class="col-auto"><?php echo $operacion; ?></td>
-                                                    <td class="col-auto"><?php echo mb_substr($producto, 0, 7); ?></td>
-                                                    <td class="col-auto"><?php echo $pago_docs; ?></td>
-                                                    <td class="col-auto">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
+                                                    <td class="col-auto"><?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?></td>
+                                                    <td class="col-auto">
+                                                        <?php
+                                                        // Asegúrate de que $conciliacion["FUA"] sea un objeto DateTime
+                                                        if ($conciliacion["FUA"] instanceof DateTime) {
+                                                            echo $conciliacion["FUA"]->format('Y-m-d H:i:s');
+                                                        } else {
+                                                            echo 'Fecha no válida';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td class="col-auto"><?php echo $conciliacion["UA"]; ?></td>
+                                                    <td class="col-auto"><?php echo $conciliacion["TOTAL_PROCESADOS"]; ?></td>
                                                     <td class="col-1">
-                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>&transaccion=<?php echo $transaccion; ?>&id_doc=<?php echo $id_doc; ?>" class="btn btn-icon btn-rounded btn-danger">
-                                                            <i class="feather-24" data-feather="x"></i>
+                                                        <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary">
+                                                            <i class="feather-24" data-feather="eye"></i>
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -316,57 +385,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </table>
                                 </div>
                             </div>
-                        </div> <!-- end col -->
-                    </div> <!--final del tab -->
-                    <div class="tab-pane fade" id="historial" role="tabpanel">
-                        <div class="card">
-                            <div class="card-body">
-                                <table id="datatable3" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>FECHA</th>
-                                            <th>USUARIO</th>
-                                            <th>PROCESADOS</th>
-                                            <th>DETALLE</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $sql = "EXEC [_SP_CONCILIACIONES_PROCESOS_LISTA]";
-                                        $stmt = sqlsrv_query($conn, $sql);
-                                        if ($stmt === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) { ?>
-
-                                            <tr>
-                                                <td class="col-auto"><?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?></td>
-                                                <td class="col-auto">
-                                                    <?php
-                                                    // Asegúrate de que $conciliacion["FUA"] sea un objeto DateTime
-                                                    if ($conciliacion["FUA"] instanceof DateTime) {
-                                                        echo $conciliacion["FUA"]->format('Y-m-d H:i:s');
-                                                    } else {
-                                                        echo 'Fecha no válida';
-                                                    }
-                                                    ?>
-                                                </td>
-                                                <td class="col-auto"><?php echo $conciliacion["UA"]; ?></td>
-                                                <td class="col-auto"><?php echo $conciliacion["TOTAL_PROCESADOS"]; ?></td>
-                                                <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary">
-                                                        <i class="feather-24" data-feather="eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php   }; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div> <!-- final del tab -->
-                </div> <!--final de los tabs -->
+                        </div> <!-- final del tab -->
+                    </div> <!--final de los tabs -->
+                    <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
+                    <input type="hidden" id="selected_ids_pareosis" name="selected_ids_pareosis[]">
+                    <input type="hidden" id="selected_canalizaciones" name="selected_canalizaciones[]">
+                </form>
             </div>
 
             <div class="col-12 px-3">
@@ -401,12 +425,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 search: 'applied'
             }).nodes().to$().each(function() {
                 var row = $(this);
-                var checkboxes = row.find('input[type="checkbox"]');
+                var checkboxes = row.find('input[data-column="' + column + '"]');
 
                 checkboxes.each(function() {
-                    if ($(this).data('column') === column) {
+                    if (!$(this).is(':disabled')) { // Solo marca los checkboxes habilitados
                         this.checked = isChecked;
-                    } else {
+                    }
+                });
+
+                // Desmarcar los checkboxes de la columna opuesta
+                var otherColumn = column === 1 ? 2 : 1;
+                row.find('input[data-column="' + otherColumn + '"]').each(function() {
+                    if (!$(this).is(':disabled')) { // Solo desmarca los checkboxes habilitados
                         this.checked = false;
                     }
                 });
@@ -434,17 +464,31 @@ $fecha_proceso = $row["FECHAPROCESO"];
         function updateHeaderCheckboxState() {
             var table = $('#datatable2').DataTable();
 
-            // Comprobar si todos los checkboxes de la columna 1 están marcados
+            // Comprobar si todos los checkboxes habilitados de la columna 1 están marcados
             var allCheckedColumn1 = table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length && table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').filter(':checked').length === table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length;
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length &&
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').filter(':checked').length ===
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length;
+
+            // Comprobar si todos los checkboxes habilitados de la columna 2 están marcados
+            var allCheckedColumn2 = table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length &&
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').filter(':checked').length ===
+                table.rows({
+                    search: 'applied'
+                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length;
 
             // Actualizar el estado de los checkboxes maestros
             $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
+            $('#select_all_checkbox2').prop('checked', allCheckedColumn2);
         }
     </script>
 
@@ -481,6 +525,66 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
+
+<script>
+    function habilitarBoton() {
+        // Verifica si hay al menos un checkbox con las clases 'ch_checkbox' o 'tr_checkbox' marcado
+        const checkboxesCh = document.querySelectorAll('.ch_checkbox:checked');
+        const checkboxesTr = document.querySelectorAll('.tr_checkbox:checked');
+
+        // Verifica el estado de los master checkboxes
+        const masterCheckbox1 = document.getElementById('select_all_checkbox1').checked;
+        const masterCheckbox2 = document.getElementById('select_all_checkbox2').checked;
+        const botonGuardar = document.getElementById('procesarBtn');
+
+        if (checkboxesCh.length > 0 || checkboxesTr.length > 0 || masterCheckbox1 || masterCheckbox2) {
+            botonGuardar.disabled = false;
+        } else {
+            botonGuardar.disabled = true;
+        }
+    }
+
+    // Agrega el evento change a todos los checkboxes
+    document.querySelectorAll('.ch_checkbox, .tr_checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', habilitarBoton);
+    });
+
+    // Agrega el evento change a los master checkboxes
+    document.querySelectorAll('#select_all_checkbox1, #select_all_checkbox2').forEach(checkbox => {
+        checkbox.addEventListener('change', habilitarBoton);
+    });
+
+    // Inicializa el estado del botón al cargar la página
+    document.addEventListener('DOMContentLoaded', habilitarBoton);
+</script>
+
+<script>
+    function valida_envia() {
+        var selectedIdsDocs = [];
+        var selectedIdsPareoSis = [];
+        var selectedCanalizacion = [];
+
+        // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
+        document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
+            var ids = checkbox.value.split(',');
+            var idDoc = ids[0];
+            var idPareoSis = ids[1];
+            var canalizacionTipo = ids[2];
+
+            // Agregar valores a los arreglos
+            selectedIdsDocs.push(idDoc);
+            selectedIdsPareoSis.push(idPareoSis);
+            selectedCanalizacion.push(canalizacionTipo);
+        });
+
+        // Asignar los valores a los campos ocultos
+        document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
+        document.getElementById('selected_ids_pareosis').value = selectedIdsPareoSis.join(',');
+        document.getElementById('selected_canalizaciones').value = selectedCanalizacion.join(',');
+
+        return true;
+    }
+</script>
 
 <script>
     $(document).ready(function() {
@@ -548,13 +652,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
             "ordering": true, // Habilita el ordenamiento
 
             order: [
-                [0, 'asc'],
+                [1, 'asc'],
                 [4, 'asc'],
                 [3, 'asc']
             ],
             columnDefs: [{
-                targets: 9, 
-                orderable: false 
+                targets: [0, 12],
+                orderable: false
             }]
         });
 
@@ -563,15 +667,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [0, 'desc'],
             ],
             columnDefs: [{
-                targets: 4, 
-                orderable: false 
+                targets: 4,
+                orderable: false
             }]
         });
 
         // Función para actualizar el conteo de filas y el estado del botón
         function updateRowCountAndButton() {
             var rowCount = table.rows().count();
-            var exportButton = document.getElementById('procesar');
+            var exportButton = document.getElementById('procesarBtn');
             var rowCountElement = document.getElementById('row-count');
 
             // Actualiza el conteo de filas en el texto
@@ -592,8 +696,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         table.on('draw', function() {
             updateRowCountAndButton();
-        }); 
-        
+        });
+
         // Function to apply filters based on stored values
         function applyFilters() {
             var storedCuentaValue = sessionStorage.getItem('selected_cuenta_3');

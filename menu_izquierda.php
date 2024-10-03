@@ -46,7 +46,16 @@ error_reporting(E_ALL);
                 <a href="conciliaciones_lista_canalizados.php">CANALIZADOS</a>
             </li>
             <li>
-                <a href="conciliaciones_lista_pendientes_comprobante.php">CARGA CARTOLA</a>
+                <a href="cargas_cheques.php">CARGA CHEQUES</a>
+            </li>
+            <li>
+                <a href="cargas_sisrec.php">CARGA SISREC</a>
+            </li>
+            <li>
+                <a href="conciliaciones_lista_pendientes_comprobante.php">PENDIENTES DE COMPROBANTE</a>
+            </li>
+            <li>
+                <a href="conciliaciones_lista_conciliados.php">CONCILIADOS</a>
             </li>
             <li>
                 <a href="conciliaciones_lista_pendientes.php">PAREADOS PENDIENTES</a>
@@ -64,7 +73,7 @@ error_reporting(E_ALL);
                 <a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a>
             </li>
             <li>
-                <a href="conciliaciones_exportar_canalizados.php">EXPORTAR CANALIZADOS</a>
+                <a href="conciliaciones_exportar_procesados.php">EXPORTAR PROCESADOS</a>
             </li>
         </ul>
     </div>

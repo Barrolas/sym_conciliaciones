@@ -293,10 +293,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                             $monto_diferencia = 0;
 
-                                            $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?, ?)}";
+                                            $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?)}";
                                             $params_dif = array(
                                                 array((int)$id_documento,       SQLSRV_PARAM_IN),
-                                                array(&$monto_diferencia,       SQLSRV_PARAM_INOUT)
                                             );
                                         
                                             $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
@@ -306,7 +305,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             }
                                             $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
                                         
-                                            $monto_diferencia = $diferencia['DIFERENCIA'];
+                                            $monto_diferencia = $diferencia['MONTO_DIFERENCIA'] ?? 0;
 
                                             // Consulta para obtener el estado del documento
                                             $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
@@ -404,9 +403,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         </div>
                     </div> <!-- end col -->
                 </div> <!-- end row -->
-                <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
+                <input type="hidden" id="selected_ids_docs"     name="selected_ids_docs[]">
                 <input type="hidden" id="selected_ids_pareodoc" name="selected_ids_pareodoc[]">
-                <input type="hidden" id="selected_types" name="selected_types[]">
+                <input type="hidden" id="selected_types"        name="selected_types[]">
             </form>
         </div><!-- container -->
         <?php include('footer.php'); ?>
@@ -541,15 +540,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <script>
         function valida_envia() {
 
-            var selectedIdsDocs = [];
+            var selectedIdsDocs     = [];
             var selectedIdsPareoDoc = [];
-            var selectedTypes = [];
+            var selectedTypes       = [];
 
             // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
             document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
-                var ids = checkbox.value.split(',');
-                var idDoc = ids[0];
-                var idPareoDoc = ids[1];
+                var ids         = checkbox.value.split(',');
+                var idDoc       = ids[0];
+                var idPareoDoc  = ids[1];
 
                 // Obtener el valor de data-column
                 var checkboxType = checkbox.getAttribute('data-column');
@@ -561,9 +560,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             });
 
             // Asignar los valores a los campos ocultos
-            document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
-            document.getElementById('selected_ids_pareodoc').value = selectedIdsPareoDoc.join(',');
-            document.getElementById('selected_types').value = selectedTypes.join(',');
+            document.getElementById('selected_ids_docs').value      = selectedIdsDocs.join(',');
+            document.getElementById('selected_ids_pareodoc').value  = selectedIdsPareoDoc.join(',');
+            document.getElementById('selected_types').value         = selectedTypes.join(',');
 
             return true; // Asegúrate de que el formulario se envíe
 
@@ -637,8 +636,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             responsive: true,
             order: [
                 [4, 'asc'],
-                [7, 'asc'],
-                [8, 'asc']
+                [8, 'asc'],
             ],
             columnDefs: [{
                     targets: 0,

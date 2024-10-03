@@ -6,8 +6,8 @@ include("conexiones.php");
 noCache();
 
 // Obtener y sanitizar los datos de entrada
-$id_doc         = isset($_GET["id_doc"])        ? $_GET["id_doc"] : null;
-$transaccion    = isset($_GET["transaccion"])   ? (string)$_GET["transaccion"] : null;
+$id_doc         = $_GET["id_doc"];      
+$transaccion    = $_GET["transaccion"];   
 $id_usuario     = 1;
 
 print_r($id_doc . '; ');
@@ -27,6 +27,7 @@ if ($stmt_seleccion === false) {
 
 // Imprimir resultados y continuar con la lógica
 while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
+    
     $id_documento   = $seleccion["ID_DOCDEUDORES"];
     $id_pareodoc    = $seleccion["ID_PAREO_DOCDEUDORES"];
 

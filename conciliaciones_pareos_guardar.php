@@ -14,6 +14,8 @@ $op = isset($_GET["op"]) ? $_GET["op"] : 0;
 //print_r($_POST['iddocumento_checkbox']);
 //exit;
 
+print_r($_POST);
+
 if (isset($_POST['iddocumento_checkbox'])) {
 
     // Creamos arreglos vacíos para almacenar los valores separados

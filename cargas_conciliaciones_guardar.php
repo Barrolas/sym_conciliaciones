@@ -41,8 +41,8 @@
 		// CONEXION a ZEUS
 		// SET UP CONEXION SQL SERVER
 
-		$repositorio    	= "\\\\192.168.1.193";
-		$folder         	= "$repositorio\\excel_PAGOS";
+		$repositorio    	= "\\\\192.168.1.193"; //repo local
+		$folder         	= "$repositorio\\excel_PAGOS"; // se mantiene
 
 		//$repositorio    	= "\\\\192.168.101.15";
 		//$folder         	= "$repositorio\\excel_pagos\RUTERO";
@@ -65,7 +65,7 @@
 		//		die("Error en la conexión a la base de datos conciliacion: " . print_r(sqlsrv_errors(), true));}
 
 
-		/*
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);

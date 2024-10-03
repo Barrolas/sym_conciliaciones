@@ -471,13 +471,13 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                             $estado_doc = $transferencia["ESTADO_DOC"];
                                                                             switch ($estado_doc) {
                                                                                 case '001':
-                                                                                    $estado_doc_text = 'VIGENTE';
+                                                                                    $estado_doc_text = '001-VIGENTE';
                                                                                     break;
                                                                                 case '014':
-                                                                                    $estado_doc_text = 'PAGADO';
+                                                                                    $estado_doc_text = '014-PAGADO';
                                                                                     break;
                                                                                 case '333':
-                                                                                    $estado_doc_text = 'NO VIGENTE';
+                                                                                    $estado_doc_text = '333-NO VGTE';
                                                                                     break;
                                                                                 default:
                                                                                     $estado_doc_text = $estado_doc;
