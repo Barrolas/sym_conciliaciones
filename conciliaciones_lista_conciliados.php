@@ -144,11 +144,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         <div class="row mr-2">
                             <div class="col-12 mx-2">
                                 <p>
-                                    Esta herramienta permite visualizar y gestionar las transferencias ya pareadas en el sistema
-                                    y asignarle a cada cual si se canalizará por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>.
-                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere dolores sequi animi ipsa quaerat
-                                    delectus veritatis veniam corrupti consequuntur cupiditate quidem totam asperiores optio at, dolore
-                                    vero incidunt maxime nulla.
+                                    En este módulo se visualizan todos los casos a los que se les ha asignado un
+                                    <b>N° CHEQUE</b> o <b>N° REMESA</b>, dependiendo de si fueron canalizados por cheque
+                                    o por transferencia. Estos documentos ya han completado su proceso de conciliación
+                                    y están listos para ser corroborados con la cartola bancaria en el siguiente paso.
+                                    La asignación de estos números no solo facilita el seguimiento de las
+                                    transacciones, sino que también asegura que cada documento esté adecuadamente
+                                    clasificado y registrado, permitiendo una gestión más organizada y eficiente
+                                    de los casos conciliados.
                                 </p>
                             </div>
                         </div>

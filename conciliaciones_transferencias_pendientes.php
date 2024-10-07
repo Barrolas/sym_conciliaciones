@@ -41,8 +41,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <head>
     <meta charset="utf-8" />
-    <title>Conciliaciones</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Pareo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -112,16 +112,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Transferencias pendientes</b>
+                            <b>Transferencias recibidas</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
                         <div class="col-12 mx-2">
                             <p>
-                                Esta herramienta permite visualizar las transferencias aun no pareadas en el sistema. Las trasnferencias con
-                                con botón celeste tienen match de que el rut ordenante es el mismo del rut deudor, en el caso de aquellas
-                                con botón verde, son transferencias con rut deudor indeterminado <b>(No en uso aun)</b>.
+                                Esta herramienta permite visualizar las transferencias que aún no han sido pareadas en el sistema. Las transferencias se identifican según el estado de su coincidencia a través de botones con distintos colores:
                             </p>
+                            <ul>
+                                <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b>  Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
+                                <li><span class="text-success"><i class="feather-24 mr-2" data-feather="plus"></i></span><b>Sin coincidencia:</b> Corresponde a transferencias donde el RUT del deudor no está determinado. Estas transferencias están disponibles para ser asignadas manualmente.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -132,8 +134,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="col-md-12">
                         <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
                             <div class="col-lg-3">
-                                <label class="col-4" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                <input type="text" class="form-control col-6" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
+                                <label class="col-9 mt-3" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
+                                <input type="text" class="form-control col-9" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                             </div>
                             <div class="col-lg-3 mt-3">
                                 <div class="col-lg-9">
@@ -183,7 +185,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>FECHA REC.</th>
+                                        <th>F. RECEP</th>
                                         <th>RUT ORD</th>
                                         <th>NOMBRE</th>
                                         <th>TRANSACCION</th>
@@ -216,13 +218,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </td>
                                             <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
                                                 <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2">
+                                                    <a data-toggle="tooltip" title="Ver documentos" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2">
                                                         <i class="feather-24" data-feather="plus"></i>
                                                     </a>
                                                 </td>
                                             <?php } else { ?>
                                                 <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver gestiones" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=1" class="btn btn-icon btn-rounded btn-info ml-2">
+                                                    <a data-toggle="tooltip" title="Ver documentos" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=1" class="btn btn-icon btn-rounded btn-info ml-2">
                                                         <i class="feather-24" data-feather="folder"></i>
                                                     </a>
                                                 </td>

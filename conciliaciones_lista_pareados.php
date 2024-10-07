@@ -35,7 +35,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <head>
     <meta charset="utf-8" />
     <title>Conciliaciones</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -138,18 +138,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="row">
                         <div class="col">
                             <h3>
-                                <b>Canalización</b>
+                                <b>Asignar canal</b>
                             </h3>
                         </div>
                         <div class="row mr-2">
                             <div class="col-12 mx-2">
                                 <p>
-                                    Esta herramienta permite visualizar y gestionar las transferencias ya pareadas en el sistema
-                                    y asignarle a cada cual si se canalizará por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>.
-                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere dolores sequi animi ipsa quaerat
-                                    delectus veritatis veniam corrupti consequuntur cupiditate quidem totam asperiores optio at, dolore
-                                    vero incidunt maxime nulla.
-                                </p>
+                                    En este módulo se pueden visualizar todos los documentos que han sido pareados
+                                    en el módulo anterior. Además, permite asignarles una canalización,
+                                    eligiendo entre las opciones disponibles, como por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>.
+                                    Esta asignación es esencial para continuar con el proceso de conciliación,
+                                    facilitando el seguimiento de los documentos y garantizando que sean procesados
+                                    de acuerdo con el método de canalización correspondiente. </p>
                             </div>
                         </div>
                     </div>
@@ -199,7 +199,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                                 <div class="col-lg-1">
-                                    <button type="submit" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton" disabled>GUARDAR</button>
+                                    <button type="submit" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton" disabled>ASIGNAR</button>
                                 </div>
                             </div><!--end form-group-->
                         </div><!--end col-->
@@ -257,7 +257,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $params_docdetalles = array(
                                                 array($id_documento,       SQLSRV_PARAM_IN)
                                             );
-                                        
+
                                             $stmt_docdetalles = sqlsrv_query($conn, $sql_docdetalles, $params_docdetalles);
                                             if ($stmt_docdetalles === false) {
                                                 echo "Error en la ejecución de la declaración _docdetalles en el índice $index.\n";
@@ -269,13 +269,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $params_trdetalles = array(
                                                 array($id_documento,       SQLSRV_PARAM_IN)
                                             );
-                                        
+
                                             $stmt_trdetalles = sqlsrv_query($conn, $sql_trdetalles, $params_trdetalles);
                                             if ($stmt_trdetalles === false) {
                                                 echo "Error en la ejecución de la declaración _trdetalles en el índice $index.\n";
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
-                                            $trdetalles = sqlsrv_fetch_array($stmt_trdetalles, SQLSRV_FETCH_ASSOC);                                        
+                                            $trdetalles = sqlsrv_fetch_array($stmt_trdetalles, SQLSRV_FETCH_ASSOC);
 
                                             // Consulta para obtener el monto de abonos (solo si el estado no es '1')
                                             $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
@@ -297,14 +297,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $params_dif = array(
                                                 array((int)$id_documento,       SQLSRV_PARAM_IN),
                                             );
-                                        
+
                                             $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
                                             if ($stmt_dif === false) {
                                                 echo "Error en la ejecución de la declaración _dif en el índice $index.\n";
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
                                             $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
-                                        
+
                                             $monto_diferencia = $diferencia['MONTO_DIFERENCIA'] ?? 0;
 
                                             // Consulta para obtener el estado del documento
@@ -403,9 +403,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         </div>
                     </div> <!-- end col -->
                 </div> <!-- end row -->
-                <input type="hidden" id="selected_ids_docs"     name="selected_ids_docs[]">
+                <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
                 <input type="hidden" id="selected_ids_pareodoc" name="selected_ids_pareodoc[]">
-                <input type="hidden" id="selected_types"        name="selected_types[]">
+                <input type="hidden" id="selected_types" name="selected_types[]">
             </form>
         </div><!-- container -->
         <?php include('footer.php'); ?>
@@ -540,15 +540,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <script>
         function valida_envia() {
 
-            var selectedIdsDocs     = [];
+            var selectedIdsDocs = [];
             var selectedIdsPareoDoc = [];
-            var selectedTypes       = [];
+            var selectedTypes = [];
 
             // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
             document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
-                var ids         = checkbox.value.split(',');
-                var idDoc       = ids[0];
-                var idPareoDoc  = ids[1];
+                var ids = checkbox.value.split(',');
+                var idDoc = ids[0];
+                var idPareoDoc = ids[1];
 
                 // Obtener el valor de data-column
                 var checkboxType = checkbox.getAttribute('data-column');
@@ -560,9 +560,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             });
 
             // Asignar los valores a los campos ocultos
-            document.getElementById('selected_ids_docs').value      = selectedIdsDocs.join(',');
-            document.getElementById('selected_ids_pareodoc').value  = selectedIdsPareoDoc.join(',');
-            document.getElementById('selected_types').value         = selectedTypes.join(',');
+            document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
+            document.getElementById('selected_ids_pareodoc').value = selectedIdsPareoDoc.join(',');
+            document.getElementById('selected_types').value = selectedTypes.join(',');
 
             return true; // Asegúrate de que el formulario se envíe
 
@@ -716,7 +716,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 var diasMoraFilter = $('#dias_mora').val();
                 var estadoFilter = $('#estado_conc').val();
                 var diasMoraValue = parseFloat(data[9]) || 0;
-                var estadoValue = data[12]; 
+                var estadoValue = data[12];
 
                 // Filter by dias_mora
                 if (diasMoraFilter === "1") {

@@ -108,11 +108,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="row mr-2">
                         <div class="col-12 mx-2">
                             <p>
-                                Esta herramienta permite ingresar y gestionar cargas masivas de documentos asociados a deudores de clientes,
-                                utilizando un formato pre-establecido con un archivo base en Excel.
-                                Las <b>cargas</b> pueden ser revisadas para obtener el detalle de la cantidad de documentos que fueron leídos, cargados satisfactoriamente
-                                y rechazados según los criterios de validación correspondientes (<strong><a href="#">ver aquí</a></strong>), con detalle disponible para ambos casos.
-                                También se permite deshabilitar cargas en caso de errores en la asignación a clientes con el botón de <b>ESTADO</b>.
+                                En este módulo se visualizan las canalizaciones realizadas en el módulo anterior,
+                                que están listas para ser procesadas y a las cuales se les asignará un ID único.
+                                Este ID será utilizado para el ingreso del número de cheque en los documentos
+                                canalizados por cheque, y del número de remesa en los canalizados por transferencia.<br>
+                                Para los casos de canalización por cheque, se debe exportar un documento Excel con
+                                todos los cheques procesados, completar el campo de <b>N° CHEQUE</b> y luego cargar el
+                                archivo en el siguiente módulo. Para los canalizados por transferencia, solo se
+                                requiere cargar el documento de SISREC, el cual proporcionará el <b>N° REMESA</b> para
+                                aquellos que hayan hecho match.
                             </p>
                         </div>
                     </div>
@@ -387,9 +391,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div>
                         </div> <!-- final del tab -->
                     </div> <!--final de los tabs -->
-                    <input type="hidden" id="selected_ids_docs"         name="selected_ids_docs[]">
-                    <input type="hidden" id="selected_ids_pareosis"     name="selected_ids_pareosis[]">
-                    <input type="hidden" id="selected_canalizaciones"   name="selected_canalizaciones[]">
+                    <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
+                    <input type="hidden" id="selected_ids_pareosis" name="selected_ids_pareosis[]">
+                    <input type="hidden" id="selected_canalizaciones" name="selected_canalizaciones[]">
                 </form>
             </div>
 

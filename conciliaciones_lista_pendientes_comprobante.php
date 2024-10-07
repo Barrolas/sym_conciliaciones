@@ -144,11 +144,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         <div class="row mr-2">
                             <div class="col-12 mx-2">
                                 <p>
-                                    Esta herramienta permite visualizar y gestionar las transferencias ya pareadas en el sistema
-                                    y asignarle a cada cual si se canalizará por <b>CHEQUE</b> o <b>TRANSFERENCIA</b>.
-                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere dolores sequi animi ipsa quaerat
-                                    delectus veritatis veniam corrupti consequuntur cupiditate quidem totam asperiores optio at, dolore
-                                    vero incidunt maxime nulla.
+                                    En este módulo se visualizan las asignaciones que no lograron hacer match con
+                                    los documentos cargados en el paso anterior. Estos registros están en estado
+                                    pendiente, ya sea a la espera de una nueva carga que incluya los comprobantes
+                                    requeridos, o hasta que el usuario decida devolverlos a una etapa previa del
+                                    proceso para su reevaluación. Este seguimiento asegura que las asignaciones sean
+                                    gestionadas correctamente antes de avanzar en el flujo de conciliación.
                                 </p>
                             </div>
                         </div>

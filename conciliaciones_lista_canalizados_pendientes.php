@@ -106,11 +106,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="row mr-2">
                         <div class="col-12 mx-2">
                             <p>
-                                Esta herramienta permite ingresar y gestionar cargas masivas de documentos asociados a deudores de clientes,
-                                utilizando un formato pre-establecido con un archivo base en Excel.
-                                Las <b>cargas</b> pueden ser revisadas para obtener el detalle de la cantidad de documentos que fueron leídos, cargados satisfactoriamente
-                                y rechazados según los criterios de validación correspondientes (<strong><a href="#">ver aquí</a></strong>), con detalle disponible para ambos casos.
-                                También se permite deshabilitar cargas en caso de errores en la asignación a clientes con el botón de <b>ESTADO</b>.
+                                En este módulo se pueden visualizar los documentos que, aunque ya han sido cubiertos
+                                en su totalidad, permanecen en estado pendiente porque fueron saldados mediante
+                                un préstamo otorgado por la empresa. Hasta que dicho préstamo no sea pagado en su
+                                totalidad, estos documentos seguirán apareciendo en la lista y no podrán ser
+                                procesados ni avanzados dentro del flujo normal de conciliación.
                             </p>
                         </div>
                     </div>
