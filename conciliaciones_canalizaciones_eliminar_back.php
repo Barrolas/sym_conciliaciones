@@ -37,10 +37,13 @@ if (!$found_rows) {
 // Si hay resultados, procede a llamar al procedimiento almacenado
 // Si hay resultados, procede a llamar al procedimiento almacenado
 if ($found_rows) {
-    $sql_seleccion = "EXEC [_SP_CONCILIACIONES_CANALIZACIONES_ASOCIADAS_IDENTIFICAR] ?, ?";
+    $sql_seleccion = "EXEC [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR] ?, ?, ?, ?";
     $params_seleccion = array(
         array($id_doc,      SQLSRV_PARAM_IN),
         array($transaccion, SQLSRV_PARAM_IN),
+        array(1,            SQLSRV_PARAM_IN), // ID_ESTADO
+        array(2,            SQLSRV_PARAM_IN)  // ID_ETAPA
+    
     );
 
     $stmt_seleccion = sqlsrv_query($conn, $sql_seleccion, $params_seleccion);

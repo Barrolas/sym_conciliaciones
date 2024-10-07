@@ -156,6 +156,8 @@ while ($asignados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $monto_doc      = $asignados['MONTO_DOC'];
     $tipo_canal     = $asignados['ID_TIPO_CANALIZACION'];
     $canal          = substr($asignados['DESCRIPCION'], 0, 2);
+    $n_cheque       = $asignados['N_CHEQUE'] ?? '';
+
     //Variables pareo docs
     $benef_cta      = $p_docs['CUENTA_BENEFICIARIO'];
     $cte_rut        = $p_docs['RUT_CLIENTE'];
@@ -196,7 +198,7 @@ while ($asignados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $hojaCheques->setCellValueExplicitByColumnAndRow(10, $numeroDeFilaCheques, $producto, DataType::TYPE_STRING);
         $hojaCheques->setCellValueByColumnAndRow(11, $numeroDeFilaCheques, $cartera);
         $hojaCheques->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaCheques, $cant_docs, DataType::TYPE_STRING);
-        $hojaCheques->setCellValueByColumnAndRow(13, $numeroDeFilaCheques, '');
+        $hojaCheques->setCellValueByColumnAndRow(13, $numeroDeFilaCheques, $n_cheque);
 
         $numeroDeFilaCheques++;
     }

@@ -106,7 +106,6 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     $params_dif = array(
         array((int)$id_doc,             SQLSRV_PARAM_IN),
     );
-
     $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
     if ($stmt_dif === false) {
         echo "Error en la ejecución de la declaración _dif en el índice $index.\n";
@@ -147,13 +146,11 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
         array($id_docdeudores,     SQLSRV_PARAM_IN),
         array($id_usuario,         SQLSRV_PARAM_IN)
     );
-
     $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
     if ($stmt_operacion === false) {
         echo "Error en la ejecución de la declaración _operacion.\n";
         die(print_r(sqlsrv_errors(), true));
     }
-
 
     $cantidad_docs++;
 

@@ -157,8 +157,6 @@ foreach ($docs_combined as $index => $conciliacion) {
             echo "Error in preparing statement asignacion.\n";
             die(print_r(sqlsrv_errors(), true));
         }
-
-        // Ejecutar la consulta
         if (sqlsrv_execute($stmt_asignacion) === false) {
             echo "Error in executing statement asignacion.\n";
             die(print_r(sqlsrv_errors(), true));
@@ -176,20 +174,18 @@ foreach ($docs_combined as $index => $conciliacion) {
         print_r('Id asignacion: ' . $id_asignacion . '; ');
         //exit;
 
-
-        $sql_asociados = "{call [_SP_CONCILIACIONES_CANALIZACIONES_ASOCIADAS_IDENTIFICAR](?, ?)}";
+        $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
         $params_asociados = array(
             array($id_documento,    SQLSRV_PARAM_IN),
             array($transaccion,     SQLSRV_PARAM_IN),
+            array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
+            array(2,                SQLSRV_PARAM_IN)  // ID_ETAPA       
         );
-
         $stmt_asociados = sqlsrv_query($conn, $sql_asociados, $params_asociados);
-
         if ($stmt_asociados === false) {
             echo "Error in executing statement asociados.\n";
             die(print_r(sqlsrv_errors(), true));
         }
-
         while ($asociados = sqlsrv_fetch_array($stmt_asociados, SQLSRV_FETCH_ASSOC)) {
 
             $iddoc_asociado = $asociados['ID_DOCDEUDORES'];
@@ -220,7 +216,7 @@ foreach ($docs_combined as $index => $conciliacion) {
 
             $sql_estado = "{call [_SP_CONCILIACIONES_CANALIZACION_CAMBIA_ESTADO](?, ?)}";
             $params_estado = array(
-                array($iddoc_asociado,        SQLSRV_PARAM_IN),
+                array($iddoc_asociado,      SQLSRV_PARAM_IN),
                 array($estado_canalizacion, SQLSRV_PARAM_IN)
             );
 
@@ -233,16 +229,13 @@ foreach ($docs_combined as $index => $conciliacion) {
 
             $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_PROCESO_INSERTA](?, ?)}";
             $params_operacion = array(
-                array($iddoc_asociado,    SQLSRV_PARAM_IN),
+                array($iddoc_asociado,  SQLSRV_PARAM_IN),
                 array($idusuario,       SQLSRV_PARAM_IN)
             );
             $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
             if ($stmt_operacion === false) {
                 echo "Error in executing statement operacion.\n";
                 die(print_r(sqlsrv_errors(), true));
-            }
-
-            if ($tipo_canal == 1) {
             }
         }
     }

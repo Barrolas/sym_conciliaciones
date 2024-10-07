@@ -16,7 +16,7 @@ $op = $_GET["op"];
 
 <head>
 	<meta charset="utf-8" />
-	<title></title>
+	<title>Cargas SISREC</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="CRM" name="description" />
 	<meta content="" name="author" />

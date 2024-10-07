@@ -6,22 +6,26 @@ include("conexiones.php");
 noCache();
 
 // Obtener y sanitizar los datos de entrada
-$id_doc         = $_GET["id_doc"];      
-$transaccion    = $_GET["transaccion"];   
+$id_asignacion  = $_GET["id_asig"];      
+$id_doc         = $_GET["iddoc"];      
+$transaccion    = $_GET["transaccion"];      
 $id_usuario     = 1;
 
+print_r($id_asignacion . '; ');
 print_r($id_doc . '; ');
 print_r($transaccion . '; ');
+
 
 $sql_seleccion = "EXEC [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR] ?, ?, ?, ?";
 $params_seleccion = array(
     array($id_doc,      SQLSRV_PARAM_IN),
-    array($transaccion, SQLSRV_PARAM_IN),
-    array(1,            SQLSRV_PARAM_IN),
-    array(2,            SQLSRV_PARAM_IN)
+    array($transaccion, SQLSRV_PARAM_IN),   
+    array(1,            SQLSRV_PARAM_IN), // ID_ESTADO
+    array(4,            SQLSRV_PARAM_IN)  // ID_ETAPA
 );
 $stmt_seleccion = sqlsrv_query($conn, $sql_seleccion, $params_seleccion);
 if ($stmt_seleccion === false) {
+    echo "Error in executing statement seleccion.\n";
     die(print_r(sqlsrv_errors(), true));
 }
 
@@ -32,38 +36,25 @@ while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
     $id_pareodoc    = $seleccion["ID_PAREO_DOCDEUDORES"];
 
     // Procedimiento de eliminación si necesitas continuar
-    $sql_eliminar = "EXEC [_SP_CONCILIACIONES_OPERACION_CANALIZACION_ELIMINA] ?, ?, ?";
-    $params_eliminar = array(
+    $sql_opeliminar = "EXEC [_SP_CONCILIACIONES_OPERACION_ASIGNACION_ELIMINA] ?, ?, ?, ?";
+    $params_opeliminar = array(
         array($id_documento,    SQLSRV_PARAM_IN),
         array($id_pareodoc,     SQLSRV_PARAM_IN),
-        array($id_usuario,      SQLSRV_PARAM_IN),
+        array($id_asignacion,   SQLSRV_PARAM_IN),
+        array($id_usuario,      SQLSRV_PARAM_IN)
     );
-
-    $stmt_eliminar = sqlsrv_prepare($conn, $sql_eliminar, $params_eliminar);
-    if ($stmt_eliminar === false) {
+    $stmt_opeliminar = sqlsrv_prepare($conn, $sql_opeliminar, $params_opeliminar);
+    if ($stmt_opeliminar === false) {
+        echo "Error in preparing statement opeliminar.\n";
         die(print_r(sqlsrv_errors(), true));
     }
-    if (!sqlsrv_execute($stmt_eliminar)) {
+    if (!sqlsrv_execute($stmt_opeliminar)) {
+        echo "Error in executing statement opeliminar.\n";
         die(print_r(sqlsrv_errors(), true));
     }
-}
 
-$sql = "{call [_SP_CONCILIACIONES_CANALIZACION_ELIMINAR](?, ?, ?, ?, ?)}";
-$params = array(
-    array($id_documento,    SQLSRV_PARAM_IN),
-    array($rut_cl,          SQLSRV_PARAM_IN),
-    array($rut_dd,          SQLSRV_PARAM_IN),
-    array($f_venc,          SQLSRV_PARAM_IN),
-    array($ndoc,            SQLSRV_PARAM_IN),
-);
-$stmt = sqlsrv_prepare($conn, $sql, $params);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true));
-}
-if (!sqlsrv_execute($stmt)) {
-    die(print_r(sqlsrv_errors(), true));
 }
 
 // Redireccionar a la página de lista de conciliaciones
-header("Location: conciliaciones_lista_canalizados.php?op=2");
+header("Location: conciliaciones_lista_conciliados.php?op=2");
 exit;

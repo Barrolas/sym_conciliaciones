@@ -300,7 +300,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 // Convertir DateTime a cadena en el formato deseado
                                                 $f_venc = isset($detalles["F_VENC"]) && $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : 'Fecha no disponible';
                                                 ?>
-                                                <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>&transaccion=<?php echo $transaccion; ?>&id_doc=<?php echo $id_doc; ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_asignaciones_eliminar.php?id_asig=<?php echo $id_asignacion; ?>&iddoc=<?php echo $iddoc ?>&transaccion=<?php $transaccion ?>" class="btn btn-icon btn-rounded btn-danger">
                                                     <i class="feather-24" data-feather="x"></i>
                                                 </a>
                                             </td>

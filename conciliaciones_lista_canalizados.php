@@ -387,9 +387,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             </div>
                         </div> <!-- final del tab -->
                     </div> <!--final de los tabs -->
-                    <input type="hidden" id="selected_ids_docs" name="selected_ids_docs[]">
-                    <input type="hidden" id="selected_ids_pareosis" name="selected_ids_pareosis[]">
-                    <input type="hidden" id="selected_canalizaciones" name="selected_canalizaciones[]">
+                    <input type="hidden" id="selected_ids_docs"         name="selected_ids_docs[]">
+                    <input type="hidden" id="selected_ids_pareosis"     name="selected_ids_pareosis[]">
+                    <input type="hidden" id="selected_canalizaciones"   name="selected_canalizaciones[]">
                 </form>
             </div>
 

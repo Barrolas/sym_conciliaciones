@@ -114,22 +114,15 @@
             $pagodocs        = isset($spreadSheetAry[$i][11]) ? $spreadSheetAry[$i][11] : '';
             $n_cheque        = isset($spreadSheetAry[$i][12]) ? $spreadSheetAry[$i][12] : '';
 
-            // Convierte la fecha al formato Y-m-d compatible con SQL Server
             if (!empty($f_venc)) {
-                // Intentamos crear el objeto DateTime con el formato que esperas recibir
-                $dateTime = DateTime::createFromFormat('Y-m-d', $f_venc); // Ajusta el formato de entrada, por ejemplo, 'd/m/Y'
-
-                // Verifica si la fecha fue correctamente creada
+                $dateTime = DateTime::createFromFormat('Y-m-d', $f_venc);
                 if ($dateTime) {
-                    // Convierte a Y-m-d, que es el formato compatible con SQL Server
                     $f_venc = $dateTime->format('Y-m-d');
                 } else {
-                    // Si el formato no es válido, puedes manejarlo de otra manera
-                    $f_venc = null; // O puedes asignar un valor por defecto o simplemente manejar el error
+                    $f_venc = null;
                 }
             } else {
-                // Si no hay fecha, también puedes manejarlo asignando null u otro valor
-                $f_venc = null; // O algún valor por defecto
+                $f_venc = null;
             }
 
             //print_r($f_venc);
@@ -169,8 +162,53 @@
                 die(print_r(sqlsrv_errors(), true));
             }
 
-            $count++;
+            $sql_asign = "{call [_SP_CONCILIACIONES_ASIGNADOS_CONSULTA] (?)}";
+            $params_asign = array(
+                array((int)$idasignacion,             SQLSRV_PARAM_IN),
+            );
+            $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
+            if ($stmt_asign === false) {
+                echo "Error en la ejecución de la declaración _asign en el índice $index.\n";
+                die(print_r(sqlsrv_errors(), true));
+            }
+            $asignacion = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC);
 
+            $iddoc          = $asignacion['ID_DOCDEUDORES'];
+            $transaccion    = $asignacion['TRANSACCION'];
+
+            print_r($iddoc . '; ');
+            print_r($transaccion . '; ');
+            //exit;
+
+            $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
+            $params_asociados = array(
+                array($iddoc,           SQLSRV_PARAM_IN),
+                array($transaccion,     SQLSRV_PARAM_IN),
+                array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
+                array(3,                SQLSRV_PARAM_IN)  // ID_ETAPA       
+            );
+            $stmt_asociados = sqlsrv_query($conn, $sql_asociados, $params_asociados);
+            if ($stmt_asociados === false) {
+                echo "Error in executing statement asociados.\n";
+                die(print_r(sqlsrv_errors(), true));
+            }
+            while ($asociados = sqlsrv_fetch_array($stmt_asociados, SQLSRV_FETCH_ASSOC)) {
+
+                $iddoc_asoc = $asociados['ID_DOCDEUDORES'];
+
+                $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_ASIGNACION_INSERTA] (?, ?)}";
+                $params_operacion = array(
+                    array($iddoc_asoc,  SQLSRV_PARAM_IN),
+                    array($idusuario,   SQLSRV_PARAM_IN)
+                );
+                $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
+                if ($stmt_operacion === false) {
+                    echo "Error en la ejecución de la declaración _operacion.\n";
+                    die(print_r(sqlsrv_errors(), true));
+                }
+
+            }
+            $count++;
         }
         /*
         print_r($idcarga . ';');
