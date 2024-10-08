@@ -162,13 +162,15 @@
                 die(print_r(sqlsrv_errors(), true));
             }
 
-            $sql_asign = "{call [_SP_CONCILIACIONES_ASIGNADOS_CONSULTA] (?)}";
+            $estado1 = 1;
+            $estado2 = 1;
+            $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
             $params_asign = array(
-                array((int)$idasignacion,             SQLSRV_PARAM_IN),
+                array($estado1,     SQLSRV_PARAM_IN),
+                array($estado2,     SQLSRV_PARAM_IN),
             );
             $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
             if ($stmt_asign === false) {
-                echo "Error en la ejecución de la declaración _asign en el índice $index.\n";
                 die(print_r(sqlsrv_errors(), true));
             }
             $asignacion = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC);
@@ -206,7 +208,6 @@
                     echo "Error en la ejecución de la declaración _operacion.\n";
                     die(print_r(sqlsrv_errors(), true));
                 }
-
             }
             $count++;
         }

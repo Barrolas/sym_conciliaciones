@@ -17,7 +17,7 @@ if ($_FILES['archivo']['name'] != '') {
 	//datos del arhivo
 	$arr			= explode(".", $_FILES['archivo']['name']);
 	$extension		= $arr[1];
-	$nombre_archivo = 'CartolaBancaria.xls';
+	$nombre_archivo = 'CartolaBancaria.xlsx';
 	$tipo_archivo 	= $_FILES['archivo']['type'];
 	$tamano_archivo = $_FILES['archivo']['size'];
 	//echo $tipo_archivo ."<BR>";
@@ -37,7 +37,7 @@ if ($stmt1 === false) {
 	echo "Error en la ejecución de la declaración 1.\n";
 	die(print_r(sqlsrv_errors(), true));
 }
-
+/*
 $sql_asign = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA]";
 $stmt_asign = sqlsrv_query($conn, $sql_asign);
 if ($stmt_asign === false) {
@@ -62,7 +62,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 		//	$rowremesa = sqlsrv_fetch_array($stmt_remesa, SQLSRV_FETCH_ASSOC);
 	}
 }
-
+*/
 //INSERTAR OPERACION
 //ACTUALIZAR CARGA
-header("Location: cargas_sisrec.php?op=4");
+header("Location: cargas_cartola_bancaria.php?op=4");

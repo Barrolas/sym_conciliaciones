@@ -111,7 +111,7 @@ error_reporting(E_ALL);
                     </a>
                     <ul>
                         <li><a href="conciliaciones_lista_pareados.php">ASIGNAR CANAL</a></li>
-                        <li><a href="conciliaciones_lista_canalizados.php">CANALIZADOS</a></li>
+                        <li><a href="conciliaciones_lista_canalizados.php">PROCESAR</a></li>
                         <li><a href="conciliaciones_lista_canalizados_pendientes.php">CANALIZADOS PENDIENTES</a></li>
                         <li><a href="conciliaciones_exportar_procesados.php">EXPORTAR PROCESADOS</a></li>
                     </ul>
@@ -120,12 +120,13 @@ error_reporting(E_ALL);
                 <!-- Paso 3 -->
                 <li>
                     <a href="javascript:void(0);" class="menu-title">
-                        3. CARGA COMPROBANTES
+                        3. CARGAS
                         <span class="menu-arrow"><i class="mdi mdi-chevron-right"></i></span>
                     </a>
                     <ul>
                         <li><a href="cargas_cheques.php">CARGA CHEQUES</a></li>
                         <li><a href="cargas_sisrec.php">CARGA SISREC</a></li>
+                        <li><a href="cargas_cartola_bancaria.php">CARGA CARTOLA</a></li>
                     </ul>
                 </li>
 
@@ -137,26 +138,15 @@ error_reporting(E_ALL);
                     </a>
                     <ul>
                         <li><a href="conciliaciones_lista_pendientes_comprobante.php">PENDIENTES DE COMPROBANTE</a></li>
-                        <li><a href="conciliaciones_lista_conciliados.php">CONCILIADOS</a></li>
+                        <li><a href="conciliaciones_cartola_pendientes.php">CONCILIACIÓN</a></li>
                     </ul>
                 </li>
 
-                <!-- Paso 5 -->
-                <li>
-                    <a href="javascript:void(0);" class="menu-title">
-                        5. CARTOLA BANCARIA
-                        <span class="menu-arrow"><i class="mdi mdi-chevron-right"></i></span>
-                    </a>
-                    <ul>
-                        <li><a href="#">CARGA CARTOLA</a></li>
-                        <li><a href="#">CONCILIADOS</a></li>
-                    </ul>
-                </li>
 
                 <!-- Reportes -->
                 <li>
                     <a href="javascript:void(0);" class="menu-title">
-                        6. REPORTES
+                        5. REPORTES
                         <span class="menu-arrow"><i class="mdi mdi-chevron-right"></i></span>
                     </a>
                     <ul>

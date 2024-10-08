@@ -38,8 +38,14 @@ if ($stmt1 === false) {
 	die(print_r(sqlsrv_errors(), true));
 }
 
-$sql_asign = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA]";
-$stmt_asign = sqlsrv_query($conn, $sql_asign);
+$estado1 = 1;
+$estado2 = 1;
+$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$params_asign = array(
+    array($estado1,     SQLSRV_PARAM_IN),
+    array($estado2,     SQLSRV_PARAM_IN),
+);
+$stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
 if ($stmt_asign === false) {
 	die(print_r(sqlsrv_errors(), true));
 }

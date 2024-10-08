@@ -394,11 +394,14 @@ if ($saldo_disponible > 0 && $monto_diferencia == 0) {
     print_r($fecha_rec . '; ');
     print_r($idusuario . '; ');
     print_r($saldo_disponible . '; ');*/
+    $tipo_saldo = 1;
 
-    $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
+    $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?, ?, ?)}";
     $params_saldo = array(
         array($idpareo_sistema,     SQLSRV_PARAM_IN),
-        array($saldo_disponible,    SQLSRV_PARAM_IN)
+        array($tipo_saldo,          SQLSRV_PARAM_IN),
+        array($saldo_disponible,    SQLSRV_PARAM_IN),
+        array($idusuario,           SQLSRV_PARAM_IN)
     );
     // Ejecutar la consulta
     $stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);

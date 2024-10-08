@@ -90,14 +90,19 @@ $numeroDeFilaBancoCastigo_ch    = 2;
 $numeroDeFilaHipotecario_tr     = 2;
 $numeroDeFilaHipotecario_tr     = 2;
 
-$sql = "{call [_SP_CONCILIACIONES_ASIGNADOS_LISTA]}";
-
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
+$estado1 = 1;
+$estado2 = 2;
+$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$params_asign = array(
+    array($estado1,     SQLSRV_PARAM_IN),
+    array($estado2,     SQLSRV_PARAM_IN),
+);
+$stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
+if ($stmt_asign === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-while ($asignados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 
     $idpareo_sis    = $asignados['ID_PAREO_SISTEMA'];
     $iddoc          = $asignados['ID_DOCDEUDORES'];

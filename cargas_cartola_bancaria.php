@@ -16,7 +16,7 @@ $op = $_GET["op"];
 
 <head>
 	<meta charset="utf-8" />
-	<title>Cargas SISREC</title>
+	<title>Cargas Cartola Bancaria</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="CRM" name="description" />
 	<meta content="" name="author" />
@@ -59,7 +59,7 @@ $op = $_GET["op"];
 		<div class="page-content">
 			<div class="container-fluid">
 				<center>
-					<h4 class="mt-4">CARGA SISREC</h4>
+					<h4 class="mt-4">CARGA CARTOLA BANCARIA</h4>
 				</center>
 
 				<!-- Page-Title -->
@@ -76,7 +76,7 @@ $op = $_GET["op"];
 						<div class="card">
 
 							<div class="card-body">
-								<form method="post" action="cargas_sisrec_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
+								<form method="post" action="cargas_cartola_bancaria_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
 
 
 
