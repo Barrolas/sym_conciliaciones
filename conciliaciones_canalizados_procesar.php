@@ -88,8 +88,6 @@ if ($stmt_proceso === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-
-
 foreach ($docs_combined as $index => $conciliacion) {
 
     // Acceder a los datos dentro del arreglo docs_combined
@@ -239,7 +237,7 @@ foreach ($docs_combined as $index => $conciliacion) {
             }
         }
     }
-    $total_procesados++;
+    $total_procesados++;    
 }
 
 

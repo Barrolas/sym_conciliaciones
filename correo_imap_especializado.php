@@ -14,7 +14,7 @@ require_once ('phpexcel2/vendor/autoload.php');
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 require_once('PHPDecryptXLSXWithPassword.php');
- 
+
 // FIN LIBRERIAS
 // SET UP CONEXION SQL SERVER / HADES
 $serverName = "192.168.1.41\DESARROLLO"; 

@@ -113,7 +113,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         <!-- Page Content-->
         <div class="page-content" id="content">
-            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_canalizaciones_guardar.php" onsubmit="return valida_envia();return false;">
+            <form id="form_concilia" method="post" class="mr-0" action="#" onsubmit="return valida_envia();return false;">
                 <div class="container-fluid">
                     <!-- Page-Title -->
                     <div class="row">
@@ -199,7 +199,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                                 <div class="col-lg-1">
-                                    <button type="submit" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton" disabled>GUARDAR</button>
+                                    <a href="conciliaciones_devoluciones_asignar.php" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton">GUARDAR</a>
                                 </div>
                             </div><!--end form-group-->
                         </div><!--end col-->
@@ -263,9 +263,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="col-auto"><?php echo $conciliacion["NOMBRE"]; ?></td>
                                                 <td class="col-auto">$<?php echo number_format($conciliacion["SALDO"], 0, ',', '.'); ?></td>
                                                 <td class="font_mini">
-                                                    <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles_pd["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles_pd["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles_pd["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
-                                                        <i class="feather-24" data-feather="x"></i>
-                                                    </a>
+                                                    <?php if ($conciliacion["TIPO_SALDO"] == 'DEVOLUCION') { ?>
+                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles_pd["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles_pd["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles_pd["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                            <i class="feather-24" data-feather="x"></i>
+                                                        </a>
+                                                    <?php } ?>
                                                 </td>
                                             </tr> <?php
                                                 } ?>

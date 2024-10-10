@@ -167,45 +167,40 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="font_mini_header">N° REMESA/CHEQUE</th>
-                                        <th class="font_mini_header">CANAL</th>
+                                        <th class="font_mini_header">CUENTA</th>
+                                        <th class="font_mini_header">FECHA</th>
+                                        <th class="font_mini_header">DESCRIPCION</th>
+                                        <th class="font_mini_header">N° DOCUMENTO</th>
                                         <th class="font_mini_header">MONTO</th>
-                                        <th class="font_mini_header">COMPARAR</th>
+                                        <th class="font_mini_header"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql_conc    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_ENTRADA_LISTA]";
+                                    $sql_conc    = "EXEC [_SP_CONCILIACIONES_CARTOLA_SALIDAS_LISTA]";
                                     $stmt_conc = sqlsrv_query($conn, $sql_conc);
                                     if ($stmt_conc === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
-                                    while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
+                                    while ($conciliacion = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
 
-                                        $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
-                                        $canal          = $conciliados['CANAL'];
-                                        $n_remesa       = $conciliados['N_REMESA'];
-                                        $n_cheque       = $conciliados['N_CHEQUE'];
-                                        $monto_total    = $conciliados['MONTO_TOTAL'];
+                                        $cuenta         = $conciliacion['CUENTA'];
+                                        $fecha          = $conciliacion['FECHA'];
+                                        $descripcion    = $conciliacion['DESCRIPCION'];
+                                        $n_documento    = $conciliacion['N_DOCUMENTO'];
+                                        $monto_total    = $conciliacion['MONTO'];
 
-                                        // Crear una variable que contenga el valor a mostrar
-                                        $remesa_cheque = '';
-                                        if ($tipo_canal == 1) {
-                                            $remesa_cheque = $n_cheque; // Si es canal tipo 1, muestra el número de cheque
-                                        } elseif ($tipo_canal == 2) {
-                                            $remesa_cheque = $n_remesa; // Si es canal tipo 2, muestra el número de remesa
-                                        }
                                     ?>
                                         <tr>
                                             <!-- Usamos la variable $remesa_cheque para mostrar solo un valor en la celda -->
-                                            <td class="col-auto font_mini interes" id="interes">
-                                                <?php echo $remesa_cheque; ?>
-                                            </td>
-                                            <td class="col-auto font_mini"><?php echo $canal ?></td>
-                                            <td class="col-auto font_mini">$<?php echo number_format($monto_total, 0, ',', '.'); ?></td>
+                                            <td class="col-auto font_mini interes" id="interes"><?php echo $cuenta; ?></td>
+                                            <td class="col-auto font_mini"><?php echo $fecha ?></td>
+                                            <td class="col-auto font_mini"><?php echo $descripcion ?></td>
+                                            <td class="col-auto font_mini"><?php echo $n_documento ?></td>
+                                            <td class="col-auto font_mini">$<?php echo $monto_total; ?></td>
                                             <td class="col-1">
-                                                <a data-toggle="tooltip" title="Comparar con cartola" href="conciliaciones_cartola_pareo.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=1" class="btn btn-icon btn-rounded btn-info ml-2">
-                                                    <i class="feather-24" data-feather="folder"></i>
+                                                <a data-toggle="tooltip" title="Parear" href="conciliaciones_cartola_pareo.php?n_doc=<?php echo $n_documento; ?>" class="btn btn-icon btn-rounded btn-warning ml-2">
+                                                    <i class="feather-24" data-feather="minimize-2"></i>
                                                 </a>
                                             </td>
                                         </tr>
@@ -289,8 +284,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
             ], // Ordenar por la columna de índice 0 en orden ascendente
             "columnDefs": [{
                     "orderable": false,
-                    "targets": [6, 7]
-                } // Deshabilitar el ordenamiento para las columnas de índice 6 y 7
+                    "targets": [5]
+                } // Deshabilitar el ordenamiento para la columna de índice 5
             ]
         });
 
@@ -306,186 +301,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
             if (storedPageLength) {
                 table.page.len(parseInt(storedPageLength)).draw();
             }
-
-            // Cargar y aplicar el estado de las etiquetas seleccionadas en cada fila
-            loadTagStates();
-
-            // Cargar estado del checkbox de exclusión
-            var storedExcludeState = localStorage.getItem('exclude_tags');
-            $('#excluir_tags').prop('checked', storedExcludeState === 'true');
-
-            // Cargar los filtros guardados y actualizar el estado visual
-            var selectedTags = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            $('#filter-icons .icon-filter-filter').each(function() {
-                var tag = $(this).data('tag');
-                if (selectedTags.includes(tag)) {
-                    $(this).addClass('selected fas').removeClass('far');
-                } else {
-                    $(this).removeClass('selected fas').addClass('far');
-                }
-            });
-
-            // Verificar si el checkbox debe estar habilitado
-            updateExcludeCheckboxState();
-
-            // Aplicar los filtros a la tabla
-            filterTable();
         }
 
-        function loadTagStates() {
-            var tagStates = JSON.parse(localStorage.getItem('tag_states')) || {};
-            $('#datatable2 tbody tr').each(function() {
-                var rowId = $(this).data('id');
-                if (tagStates[rowId]) {
-                    $(this).find('.icon-row-filter').each(function() {
-                        var tag = $(this).data('tag');
-                        if (tagStates[rowId].includes(tag)) {
-                            $(this).addClass('selected fas').removeClass('far');
-                        } else {
-                            $(this).removeClass('selected fas').addClass('far');
-                        }
-                    });
-                }
-            });
-        }
-
-        function saveTagStates() {
-            var tagStates = {};
-            $('#datatable2 tbody tr').each(function() {
-                var rowId = $(this).data('id');
-                tagStates[rowId] = [];
-                $(this).find('.icon-row-filter.selected').each(function() {
-                    tagStates[rowId].push($(this).data('tag'));
-                });
-            });
-            localStorage.setItem('tag_states', JSON.stringify(tagStates));
-        }
-
-        $('#datatable2').on('click', '.icon-row-filter', function() {
-            var $icon = $(this);
-            var isSelected = $icon.hasClass('selected');
-            var rowId = $icon.closest('tr').data('id');
-
-            $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
-
-            saveTagStates();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
-            filterTable();
-        });
-
-        $('#filter-icons').on('click', '.icon-filter-filter', function() {
-            var $icon = $(this);
-            var isSelected = $icon.hasClass('selected');
-
-            $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
-
-            saveSelectedTags();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
-            filterTable();
-        });
-
-        function saveSelectedTags() {
-            var selectedTags = [];
-            $('#filter-icons .icon-filter-filter.selected').each(function() {
-                selectedTags.push($(this).data('tag'));
-            });
-            localStorage.setItem('selected_tags', JSON.stringify(selectedTags));
-        }
-
-        $('#cuenta_filter').on('change', function() {
-            var filterValue = $(this).val();
-            localStorage.setItem('selected_cuenta', filterValue);
-            filterTable();
-        });
-
-        $('#datatable2_length select').on('change', function() {
-            var pageLength = $(this).val();
-            localStorage.setItem('page_length', pageLength);
-            table.page.len(parseInt(pageLength)).draw();
-        });
-
-        $('#excluir_tags').on('change', function() {
-            var isChecked = $(this).is(':checked');
-            localStorage.setItem('exclude_tags', isChecked);
-            filterTable();
-        });
-
-        function filterTable() {
-            var selectedTags = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            var selectedCuenta = $('#cuenta_filter').val();
-            var excludeTags = $('#excluir_tags').is(':checked');
-
-            table.rows().every(function() {
-                var row = this.node();
-                var rowTags = [];
-                var rowCuenta = $(row).find('td').eq(4).text(); // Cambia el índice de la columna según tu tabla
-
-                $(row).find('.icon-row-filter').each(function() {
-                    if ($(this).hasClass('selected')) {
-                        rowTags.push($(this).data('tag'));
-                    }
-                });
-
-                var tagMatch = selectedTags.length === 0 || selectedTags.some(tag => rowTags.includes(tag));
-                if (excludeTags) {
-                    tagMatch = !tagMatch; // Invertir la lógica si está marcado el checkbox
-                }
-                var cuentaMatch = selectedCuenta === "0" || rowCuenta === selectedCuenta;
-
-                if (tagMatch && cuentaMatch) {
-                    $(row).show();
-                } else {
-                    $(row).hide();
-                }
-            });
-        }
-
-        function updateExcludeCheckboxState() {
-            var hasSelectedTags = $('#datatable2 tbody .icon-row-filter.selected').length > 0;
-            $('#excluir_tags').prop('disabled', !hasSelectedTags);
-        }
-
-        function clearFilters() {
-            localStorage.removeItem('selected_cuenta');
-            localStorage.removeItem('page_length');
-            localStorage.removeItem('exclude_tags');
-            localStorage.removeItem('selected_tags');
-            localStorage.removeItem('tag_states');
-
-            $('#cuenta_filter').val("0").change(); // Restablecer filtro de cuenta
-            $('#excluir_tags').prop('checked', false); // Restablecer checkbox de exclusión
-            $('#filter-icons .icon-filter-filter').removeClass('selected fas').addClass('far'); // Restablecer los íconos de filtro
-
-            table.search('').columns().search('').draw();
-        }
-
-        $('#clear-filters-btn').on('click', function() {
-            Swal.fire({
-                title: '¿Confirmas la acción?',
-                text: "Esto eliminará todos los filtros y etiquetas aplicadas",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Limpiar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    clearFilters();
-                    Swal.fire(
-                        'Filtros limpiados',
-                        'Todos los filtros y etiquetas se han eliminado.',
-                        'success'
-                    ).then(() => {
-                        location.reload();
-                    });
-                }
-            });
-        });
-
+        // Llamar a la función para aplicar los filtros al cargar
         applyFilters();
+
     });
 
     <?php if ($op == 1) { ?>

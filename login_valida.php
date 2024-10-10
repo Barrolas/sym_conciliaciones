@@ -84,8 +84,11 @@
 		}
 
 		$_SESSION["ID_USUARIO"] = $elusuario["ID_USUARIO"];
-		$_SESSION["PERFIL"] = $elusuario["ID_PERFIL"];
-		$_SESSION["NOMBRES"] = $elusuario["NOMBRES"] . ' ' . $elusuario["APELLIDOS"];
+		$_SESSION["PERFIL"] 	= $elusuario["ID_PERFIL"];
+		$_SESSION["NOMBRES"] 	= $elusuario["NOMBRES"] . ' ' . $elusuario["APELLIDOS"];
+
+		print_r($_SESSION["ID_USUARIO"]);
+
 
 		$sql_deudores = "EXEC [_SP_CONCILIACIONES_DEUDORES_ACTUALIZA]";
 		$stmt_deudores = sqlsrv_query($conn, $sql_deudores);

@@ -130,7 +130,7 @@ $fecha_rec                      = $_GET['fecha_rec'];
 $monto_diferencia               = $_GET['monto_diferencia'];
 $monto_transferido_con_puntos   = $_GET['monto'];
 $monto_transferido              = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
-$idusuario                      = 1;
+$idusuario                      = $_SESSION['ID_USUARIO'];
 $trae_cobertura                 = 0;
 $diferencia_prestamo            = ($monto_diferencia - $monto_transferido);
 $etapa                          = 1;
@@ -142,7 +142,7 @@ if ($es_entrecuentas == 1) {
 }
 /*
 print_r($_POST) . ";";
-print_r($_GET);
+print_r($_GET) . ";";
 print_r($monto_diferencia - $monto_transferido);
 exit;
 */
@@ -439,6 +439,28 @@ if ($saldo_disponible > 0 && $monto_diferencia == 0) {
         die(print_r(sqlsrv_errors(), true));
     }
 }
+
+if ($es_entrecuentas == 1){
+
+    $sql_entrecta = "{call [_SP_CONCILIACIONES_ENTRECUENTAS_INSERTA] (?, ?, ?, ?, ?, ?)}";
+    $params_entrecta = array(
+        array($idpareo_sistema,         SQLSRV_PARAM_IN),
+        array($transaccion,             SQLSRV_PARAM_IN),
+        array($cuenta_benef,            SQLSRV_PARAM_IN),
+        array($rut_cliente,             SQLSRV_PARAM_IN),
+        array($monto_transferido,       SQLSRV_PARAM_IN),
+        array($idusuario,               SQLSRV_PARAM_IN)
+    );
+    // Ejecutar la consulta
+    $stmt_entrecta = sqlsrv_query($conn, $sql_entrecta, $params_entrecta);
+
+    if ($stmt_entrecta === false) {
+        echo "Error in executing statement entrecta.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+
+
+};
 
 //print_r($idpareo_sistema);
 print_r(" post: " . $saldo_disponible);

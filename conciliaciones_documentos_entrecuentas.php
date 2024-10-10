@@ -8,7 +8,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    die(print_r(sqlsrv_errors(), true));
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -19,11 +19,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$ndoc    = $_GET["n_doc"];
+$transaccion_ord    = $_GET["transaccion"];
+$rut_ordenante      = $_GET["rut_ordenante"];
+$cuenta_ben         = $_GET["cuenta"];
 
-$sql_detalles   = "{call [_SP_CONCILIACIONES_CARTOLA_SALIDAS_CONSULTA](?)}";
+$sql_detalles    = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION](?)}";
 $params_detalles = array(
-    array($ndoc,     SQLSRV_PARAM_IN)
+    array($transaccion_ord,     SQLSRV_PARAM_IN)
 );
 $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
 if ($stmt_detalles === false) {
@@ -32,18 +34,20 @@ if ($stmt_detalles === false) {
 }
 $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
-$cuenta         = $detalles['CUENTA'];
-$fecha          = $detalles['FECHA'];
-$descripcion    = $detalles['DESCRIPCION'];
-$n_documento    = $detalles['N_DOCUMENTO'];
-$monto_total    = $detalles['MONTO'];
+$cuenta_ben     = $detalles['CUENTA_BENEF'];
+$cuenta_ord     = $detalles['CUENTA_ORD'];
+$nom_ordenante  = $detalles['NOMBRE_ORDENANTE'];
+$fecha_rec      = $detalles['FECHA_RECEP'];
+$rut_ordenante  = $detalles['RUT_ORDENANTE'];
+$monto_transf   = $detalles['MONTO_TRANSACCION']; // Valor con puntos
+$monto_transf   = (int) str_replace('.', '', $monto_transf); // Elimina los puntos y convierte a entero
 
 $existe             = 0;
 $idestado           = 0;
-$estado             = '';
 $rut_deudor         = 0;
 $monto_ingresado    = 0;
 $monto_diferencia   = 0;
+$estado             = '';
 
 ?>
 
@@ -151,7 +155,7 @@ $monto_diferencia   = 0;
                                     <ol class="breadcrumb">
 
                                         <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
-                                        <li class="breadcrumb-item active">Pareo Cartola</li>
+                                        <li class="breadcrumb-item active">Entrecuentas</li>
                                     </ol>
                                 </div>
                             </div>
@@ -163,7 +167,7 @@ $monto_diferencia   = 0;
                     <div class="row">
                         <div class="col">
                             <h3>
-                                <b>Pareo Cartola</b>
+                                <b>Entrecuentas</b>
                             </h3>
                         </div>
                         <div class="row">
@@ -182,24 +186,27 @@ $monto_diferencia   = 0;
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
-                                    <div class="col-lg-4">
+                                    <div class="col-lg-3">
                                         <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                        <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
+                                        <input type="text" class="form-control col-9" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                     </div>
                                     <div class="col-lg-3">
-                                        <label class="col-4" for="fecha_ultima_cartola">CUENTA</label>
-                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
+                                        <label class="col-4" for="fecha_ultima_cartola">CTA ORD</label>
+                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-9" maxlength="50" autocomplete="off" value="<?= $cuenta_ord ?>" disabled />
                                     </div>
-                                    <div class="col-lg-4">
-                                        <label class="col-4" for="fecha_ultima_cartola">N° DOCUMENTO</label>
-                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $ndoc . ' - ' . $fecha ?>" disabled />
+                                    <div class="col-lg-3">
+                                        <label class="col-4" for="fecha_ultima_cartola">CTA BF</label>
+                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-9" maxlength="50" autocomplete="off" value="<?= $cuenta_ben ?>" disabled />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label class="col-4" for="fecha_ultima_cartola">TRANSACCIÓN</label>
+                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-9" maxlength="50" autocomplete="off" value="<?= $transaccion_ord . ' - ' . $fecha_rec ?>" disabled />
                                     </div>
                                 </div><!--end form-group-->
                             </div><!--end col-->
                         </div>
 
-
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php  ?>">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_entrecuentas_guardar.php?transaccion=<?php echo $transaccion_ord; ?>&cuenta_ord=<?php echo $cuenta_ord; ?>&cuenta_ben=<?php echo $cuenta_ben; ?>">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -220,7 +227,7 @@ $monto_diferencia   = 0;
                                                     </div>
                                                 </td>
                                                 <td align="right">
-                                                    <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
+                                                    <a align="right" href="conciliaciones_transferencias_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -231,20 +238,30 @@ $monto_diferencia   = 0;
                                         <div class="col-md-12">
 
                                             <div class="form-group row text-center justify-content-between">
-                                                <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                    <label for="monto" class="col-lg-4 col-form-label">MONTO</label>
+                                                <div class="col-lg-8 d-flex align-items-center">
+                                                    <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
                                                     <div class="col-lg-8">
-                                                        <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $monto_total ?>" disabled />
+                                                        <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $rut_ordenante . ' - ' . htmlspecialchars($nom_ordenante, ENT_QUOTES, 'UTF-8') ?>"
+                                                            disabled />
                                                     </div>
                                                 </div>
-                                                <!--<div class="col-lg-4 d-flex align-items-start">
+                                            </div>
+
+                                            <div class="form-group row text-center justify-content-between">
+                                                <div class="col-lg-4 d-flex align-items-center justify-content-end">
+                                                    <label for="monto" class="col-lg-4 col-form-label">TRANSF</label>
+                                                    <div class="col-lg-8">
+                                                        <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $detalles['MONTO_TRANSACCION'] ?>" disabled />
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 d-flex align-items-start">
                                                     <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
                                                     <div class="col-lg-8">
                                                         <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
-                                                        <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
+                                                        <input type="text"  name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
                                                         <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
                                                     </div>
-                                                </div> -->
+                                                </div>
                                             </div>
 
                                             <hr>
@@ -256,50 +273,47 @@ $monto_diferencia   = 0;
                                         <thead>
                                             <tr>
                                                 <th class="col-1 font_mini_header"></th>
-                                                <th class="font_mini_header">CANAL</th>
-                                                <th class="font_mini_header">REMESA</th>
+                                                <th class="font_mini_header">TRANSACCION</th>
+                                                <th class="font_mini_header">CTA. ACTUAL</th>
+                                                <th class="font_mini_header">CTA. CORRESP</th>
+                                                <th class="font_mini_header">RUT CTE</th>
                                                 <th class="font_mini_header">MONTO</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $sql_conc    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_ENTRADA_LISTA]";
-                                            $stmt_conc = sqlsrv_query($conn, $sql_conc);
-                                            if ($stmt_conc === false) {
+
+                                            // Consulta para obtener documentos asignados
+                                            $sql_entrecuentas = "{call [_SP_CONCILIACIONES_ENTRECUENTAS_LISTA]}";
+                                            $stmt_entrecuentas = sqlsrv_query($conn, $sql_entrecuentas);
+
+                                            if ($stmt_entrecuentas === false) {
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
-                                            while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
+                                            while ($entrecuentas = sqlsrv_fetch_array($stmt_entrecuentas, SQLSRV_FETCH_ASSOC)) {
 
-                                                $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
-                                                $canal          = $conciliados['CANAL'];
-                                                $n_remesa       = $conciliados['N_REMESA'];
-                                                $monto_entrada  = $conciliados['MONTO_TR'];
-                                                $monto_saldo    = $conciliados['MONTO_SALDO'];
+                                                $id_entrecuenta     = $entrecuentas['ID_ENTRECUENTAS'];
+                                                $cuenta_origen      = $entrecuentas['CUENTA_ORIGEN'];
+                                                $cuenta_corresp     = $entrecuentas['CUENTA_CORRESPONDIENTE'];
+                                                $transaccion_ent    = $entrecuentas['TRANSACCION'];
+                                                $rut_cte            = $entrecuentas['RUT_CLIENTE'];
+                                                $monto_entrecta     = $entrecuentas['MONTO_ENTRECUENTAS'];
 
-                                                // Crear una variable que contenga el valor a mostrar
-                                                $remesa_cheque = '';
-                                                if ($tipo_canal == 1) {
-                                                    $remesa_cheque = $n_cheque; // Si es canal tipo 1, muestra el número de cheque
-                                                } elseif ($tipo_canal == 2) {
-                                                    $remesa_cheque = $n_remesa; // Si es canal tipo 2, muestra el número de remesa
-                                                }
-
-                                                $isDisabled = ($monto_entrada <> $monto_total) ? 'disabled' : '';
+                                                $isDisabled     = ($monto_transf != $monto_entrecta || $cuenta_ben != $cuenta_corresp || $cuenta_ord != $cuenta_origen) ? 'disabled' : '';
 
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="" <?php echo $isDisabled; ?>>
+                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $id_entrecuenta; ?>" <?php echo $isDisabled; ?> />
                                                     </td>
-                                                    <td class="col-auto font_mini interes" id="interes">
-                                                        <?php echo $remesa_cheque; ?>
-                                                    </td>
-                                                    <td class="col-auto font_mini"><?php echo $canal ?></td>
-                                                    <td class="col-auto font_mini">
-                                                        $<?php echo number_format($monto_entrada == 0 ? $monto_saldo : $monto_entrada, 0, ',', '.'); ?>
-                                                    </td>
+                                                    <td class="transaccion col-auto font_mini" id="transaccion"><?php echo $transaccion_ent; ?></td>
+                                                    <td class="cuenta_origen col-auto font_mini" id="cuenta_origen"><?php echo $cuenta_origen; ?></td>
+                                                    <td class="cuenta_corresp col-auto font_mini" id="cuenta_corresp"><?php echo $cuenta_corresp; ?></td>
+                                                    <td class="rut_cte col-auto  font_mini" id="rut_cte"><?php echo $rut_cte; ?></td>
+                                                    <td class="monto_entrecta col-auto font_mini" id="monto_entrecta">$<?php echo number_format($monto_entrecta, 0, ',', '.'); ?></td>
                                                 </tr> <?php
-                                                    } ?>
+                                                    }
+                                                        ?>
                                         </tbody>
                                     </table>
                                 </div><!-- end card-body -->
@@ -371,7 +385,7 @@ exit; */ ?>
                 orderable: false
             }, ],
             order: [
-                [3, 'desc']
+                [1, 'asc']
             ],
             createdRow: function(row, data, dataIndex) {
                 $(row).attr('id', 'row-' + dataIndex);
@@ -380,7 +394,7 @@ exit; */ ?>
 
         // Actualizar Total basado en la columna 2 de la fila seleccionada
         function actualizarTotal(valor) {
-            $('#total2').val('$' + (valor || 0));
+            $('#total2').val('$' + (valor || 0).toLocaleString('de-DE'));
         }
 
         // Manejar la selección/deselección de radios
@@ -388,8 +402,8 @@ exit; */ ?>
             var isChecked = $(this).is(':checked');
             var rowId = $(this).closest('tr').attr('id');
             var rowData = table.row('#' + rowId).data();
-            var valor = isChecked ? parseFloat(rowData[2]) || 0 : 0;
-
+            var valorSanitizado = rowData[5].replace(/[.$]/g, '').replace(',', '.'); // Reemplaza $ y puntos
+            var valor = isChecked ? parseFloat(valorSanitizado) || 0 : 0;
             actualizarTotal(valor);
             updateConciliarButton();
         });
@@ -419,7 +433,7 @@ exit; */ ?>
 <script>
     function limpiarFormulario() {
         // Redireccionar para limpiar
-        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&matched=3';
+        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion_ord ?>&cuenta=<?php echo $cuenta_ben ?>&matched=3';
     }
 </script>
 
