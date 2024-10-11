@@ -237,7 +237,7 @@ foreach ($docs_combined as $index => $conciliacion) {
             }
         }
     }
-    $total_procesados++;    
+    $total_procesados++;
 }
 
 

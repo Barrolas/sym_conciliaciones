@@ -58,7 +58,7 @@ $fecha_rec                      = isset($_GET['fecha_rec'])     ? $_GET['fecha_r
 $monto_transferido_con_puntos   = isset($_GET['monto'])         ? $_GET['monto'] : 0;
 $monto_transferido              = str_replace(['.', ' '], '', $monto_transferido_con_puntos);
 $monto_diferencia               = 0;
-$idusuario                      = 1;
+$idusuario                      = $_SESSION['ID_USUARIO'];
 $trae_cobertura                 = 0;
 $diferencia_prestamo            = 0;
 $nombre_ordenante               = null;
@@ -241,10 +241,13 @@ if ($stmt5 === false) {
 //print_r($saldo_disponible);
 
 if ($saldo_disponible > 0) {
-    $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
+    $tipo_saldo = 1; // || TIPOS SALDOS: 1 = POR DIFERENCIA || 2 = DEVOLUCION TOTAL ||
+    $sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?, ?, ?)}";
     $params_saldo = array(
         array($idpareo_sistema,     SQLSRV_PARAM_IN),
-        array($saldo_disponible,    SQLSRV_PARAM_IN)
+        array($tipo_saldo,          SQLSRV_PARAM_IN),
+        array($saldo_disponible,    SQLSRV_PARAM_IN),
+        array($idusuario,           SQLSRV_PARAM_IN)
     );
     $stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
     if ($stmt_saldo === false) {

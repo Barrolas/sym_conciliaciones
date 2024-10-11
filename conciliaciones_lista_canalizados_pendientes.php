@@ -195,26 +195,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]";
+                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_DIFERENCIAS_LISTA]";
                                     $stmt = sqlsrv_query($conn, $sql);
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
+                                        $diferencia_doc     = $conciliacion['DIFERENCIA'];
                                         $id_documento       = $conciliacion['ID_DOCDEUDORES'];
-                                        $diferencia_doc     = 0;
-
-                                        $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?)}";
-                                        $params_diferencia = array(
-                                            array($id_documento,        SQLSRV_PARAM_IN),
-                                        );
-                                        $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
-                                        if ($stmt_diferencia === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        // Procesar resultados de la consulta de detalles
-                                        $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
 
                                         $sql_psistema = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_ID_DOC](?)}";
                                         $params_psistema = array(
@@ -300,7 +289,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 // Convertir DateTime a cadena en el formato deseado
                                                 $f_venc = isset($detalles["F_VENC"]) && $detalles["F_VENC"] instanceof DateTime ? $detalles["F_VENC"]->format('Y-m-d') : 'Fecha no disponible';
                                                 ?>
-                                                <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_asignaciones_eliminar.php?id_asig=<?php echo $id_asignacion; ?>&iddoc=<?php echo $iddoc ?>&transaccion=<?php $transaccion ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo $cte_rut; ?>&r_dd=<?php echo $deud_rut; ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($operacion); ?>&transaccion=<?php echo $transaccion; ?>&id_doc=<?php echo $id_doc; ?>" class="btn btn-icon btn-rounded btn-danger">
                                                     <i class="feather-24" data-feather="x"></i>
                                                 </a>
                                             </td>

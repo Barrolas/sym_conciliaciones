@@ -654,7 +654,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     targets: 3,
                     render: function(data, type, row, meta) {
                         // Verificar si el valor de la columna 17 es 1
-                        if (row[16] == 1) {
+                        if (row[17] == 1) {
                             // Aplicar estilo rojo al valor de la columna 3
                             return '<span class="text-danger"><b>' + data + '</b></span>';
                         }
