@@ -37,6 +37,7 @@ $fecha          = $detalles['FECHA'];
 $descripcion    = $detalles['DESCRIPCION'];
 $n_documento    = $detalles['N_DOCUMENTO'];
 $monto_total    = $detalles['MONTO'];
+$monto_total_sanitizado   = preg_replace('/[^0-9]/', '', $detalles['MONTO']);
 
 $existe             = 0;
 $idestado           = 0;
@@ -212,15 +213,15 @@ $monto_diferencia   = 0;
                                                         <div class="col-auto mr-0">
                                                             <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
                                                         </div>
+                                                        <td align="right">
+                                                            <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
+                                                        </td>
                                                         <!--
                                                         <div class="col-auto">
                                                             <button type="button" class="btn btn-md btn-secondary" onclick="limpiarFormulario();"><i class="fa fa-times"></i> LIMPIAR</button>
                                                         </div>
                                                         -->
                                                     </div>
-                                                </td>
-                                                <td align="right">
-                                                    <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -256,8 +257,8 @@ $monto_diferencia   = 0;
                                         <thead>
                                             <tr>
                                                 <th class="col-1 font_mini_header"></th>
+                                                <th class="font_mini_header">N° REMESA/DEVOLUCION</th>
                                                 <th class="font_mini_header">CANAL</th>
-                                                <th class="font_mini_header">REMESA</th>
                                                 <th class="font_mini_header">MONTO</th>
                                             </tr>
                                         </thead>
@@ -270,29 +271,38 @@ $monto_diferencia   = 0;
                                             }
                                             while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
 
+                                                $id_saldo       = $conciliados['ID_CONCILIACION_SALDO'];
                                                 $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
                                                 $canal          = $conciliados['CANAL'];
                                                 $n_remesa       = $conciliados['N_REMESA'];
                                                 $monto_entrada  = $conciliados['MONTO_TR'];
+                                                $monto_entrada_sanitizado = preg_replace('/[^0-9]/', '', $conciliados['MONTO_TR']);
                                                 $monto_saldo    = $conciliados['MONTO_SALDO'];
 
-                                                // Crear una variable que contenga el valor a mostrar
-                                                $remesa_cheque = '';
+                                                $codigo = '';
                                                 if ($tipo_canal == 1) {
-                                                    $remesa_cheque = $n_cheque; // Si es canal tipo 1, muestra el número de cheque
+                                                    $codigo = !empty($n_cheque) ? $n_cheque : ''; // Si es tipo 1, asigna el número de cheque si existe, de lo contrario, deja vacío
                                                 } elseif ($tipo_canal == 2) {
-                                                    $remesa_cheque = $n_remesa; // Si es canal tipo 2, muestra el número de remesa
+                                                    $codigo = !empty($n_remesa) ? $n_remesa : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
+                                                } elseif ($tipo_canal == 3) {
+                                                    $codigo = !empty($id_saldo) ? $id_saldo : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
                                                 }
-
-                                                $isDisabled = ($monto_entrada <> $monto_total) ? 'disabled' : '';
+                                                // Condición para deshabilitar dependiendo del tipo de canalización
+                                                if ($tipo_canal == 2) {
+                                                    // Comparar monto_entrada_sanitizado con monto_total_sanitizado
+                                                    $isDisabled = ($monto_entrada_sanitizado <> $monto_total_sanitizado) ? 'disabled' : '';
+                                                } elseif ($tipo_canal == 3) {
+                                                    // Comparar monto_saldo_sanitizado con monto_total_sanitizado
+                                                    $isDisabled = ($monto_saldo <> $monto_total_sanitizado) ? 'disabled' : '';
+                                                }
 
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="" <?php echo $isDisabled; ?>>
+                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo ?>" <?php echo $isDisabled; ?>>
                                                     </td>
                                                     <td class="col-auto font_mini interes" id="interes">
-                                                        <?php echo $remesa_cheque; ?>
+                                                        <?php echo $codigo; ?>
                                                     </td>
                                                     <td class="col-auto font_mini"><?php echo $canal ?></td>
                                                     <td class="col-auto font_mini">

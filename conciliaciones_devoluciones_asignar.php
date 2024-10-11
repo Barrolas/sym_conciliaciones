@@ -20,11 +20,13 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
     $id_ps          = $conciliacion['ID_PAREO_SISTEMA'];
     $transaccion    = $conciliacion['TRANSACCION'];
+    $idsaldo        = $conciliacion['ID_CONCILIACION_SALDO'];
     
-    $sql_asig = "{call [_SP_CONCILIACIONES_ASIGNACION_DEVOLUCION_INSERTAR](?, ?, ?)}";
+    $sql_asig = "{call [_SP_CONCILIACIONES_ASIGNACION_DEVOLUCION_INSERTAR](?, ?, ?, ?)}";
     $params_asig = array(
         array($id_ps,       SQLSRV_PARAM_IN),
         array($transaccion, SQLSRV_PARAM_IN),
+        array($idsaldo,     SQLSRV_PARAM_IN),
         array($idusuario,   SQLSRV_PARAM_IN)
     );
     $stmt_asig = sqlsrv_query($conn, $sql_asig, $params_asig);

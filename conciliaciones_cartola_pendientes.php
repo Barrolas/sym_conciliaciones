@@ -280,7 +280,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             "searching": true, // Habilita la búsqueda
             "ordering": true, // Habilita el ordenamiento
             "order": [
-                [0, 'asc']
+                [4, 'desc']
             ], // Ordenar por la columna de índice 0 en orden ascendente
             "columnDefs": [{
                     "orderable": false,
