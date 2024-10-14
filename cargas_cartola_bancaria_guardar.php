@@ -9,7 +9,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$idusuario 		= 1;
+$idusuario 		= $_SESSION['ID_USUARIO'];
 
 if ($_FILES['archivo']['name'] != '') {
 
@@ -37,9 +37,15 @@ if ($stmt1 === false) {
 	echo "Error en la ejecución de la declaración 1.\n";
 	die(print_r(sqlsrv_errors(), true));
 }
-/*
-$sql_asign = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA]";
-$stmt_asign = sqlsrv_query($conn, $sql_asign);
+
+$estado1 = 2;
+$estado2 = 2;
+$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$params_asign = array(
+    array($estado1,     SQLSRV_PARAM_IN),
+    array($estado2,     SQLSRV_PARAM_IN),
+);
+$stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
 if ($stmt_asign === false) {
 	die(print_r(sqlsrv_errors(), true));
 }
@@ -49,8 +55,8 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 	$id_asignacion 	= $asignados['ID_ASIGNACION'];
 	$tipo_canal		= $asignados['ID_TIPO_CANALIZACION'];
 
-	if ($tipo_canal == 2) {
-		$sql_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_REMESAS_ACTUALIZA](?, ?)}";
+	if ($tipo_canal == 1) {
+		$sql_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_CHEQUES_ACTUALIZA](?, ?)}";
 		$params_remesa = array(
 			array($id_asignacion,   SQLSRV_PARAM_IN),
 			array($idusuario,     	SQLSRV_PARAM_IN),
@@ -62,7 +68,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 		//	$rowremesa = sqlsrv_fetch_array($stmt_remesa, SQLSRV_FETCH_ASSOC);
 	}
 }
-*/
+
 //INSERTAR OPERACION
 //ACTUALIZAR CARGA
 header("Location: cargas_cartola_bancaria.php?op=4");

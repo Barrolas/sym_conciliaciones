@@ -138,7 +138,8 @@ error_reporting(E_ALL);
                     </a>
                     <ul>
                         <li><a href="conciliaciones_lista_pendientes_comprobante.php">PENDIENTES DE COMPROBANTE</a></li>
-                        <li><a href="conciliaciones_cartola_pendientes.php">CONCILIACIÓN</a></li>
+                        <li><a href="conciliaciones_cartola_pendientes.php">REMESAS Y DEVOLUCIONES</a></li>
+                        <li><a href="conciliaciones_lista_conciliados.php">CONCILIADOS</a></li>
                     </ul>
                 </li>
 

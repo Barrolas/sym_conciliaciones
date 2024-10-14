@@ -237,16 +237,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $estado = 2;
-                                        $sql    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?";
-                                        $params = array(
-                                            array($estado,     SQLSRV_PARAM_IN),
+                                        $estado1 = 3;
+                                        $estado2 = 3;
+                                        $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+                                        $params_asign = array(
+                                            array($estado1,     SQLSRV_PARAM_IN),
+                                            array($estado2,     SQLSRV_PARAM_IN),
                                         );
-                                        $stmt = sqlsrv_query($conn, $sql, $params);
-                                        if ($stmt === false) {
+                                        $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
+                                        if ($stmt_asign === false) {
                                             die(print_r(sqlsrv_errors(), true));
                                         }
-                                        while ($asignados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+
+                                        while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
+
 
                                             $idpareo_sis    = $asignados['ID_PAREO_SISTEMA'];
                                             $iddoc          = $asignados['ID_DOCDEUDORES'];
