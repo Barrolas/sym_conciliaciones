@@ -19,12 +19,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$transaccion    = $_GET["transaccion"];
+$ndoc    = $_GET["n_doc"];
 
-$sql_detalles   = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION](?)}";
-
+$sql_detalles   = "{call [_SP_CONCILIACIONES_CARTOLA_SALIDAS_CONSULTA](?)}";
 $params_detalles = array(
-    array($transaccion,     SQLSRV_PARAM_IN)
+    array($ndoc,     SQLSRV_PARAM_IN)
 );
 $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
 if ($stmt_detalles === false) {
@@ -33,11 +32,12 @@ if ($stmt_detalles === false) {
 }
 $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
-$cuenta         = $detalles['CUENTA_BENEF'];
-$nom_ordenante  = $detalles['NOMBRE_ORDENANTE'];
-$fecha_rec      = $detalles['FECHA_RECEP'];
-$rut_ordenante  = $detalles['RUT_ORDENANTE'];
-$monto_transf   = $detalles['MONTO_TRANSACCION'];
+$cuenta         = $detalles['CUENTA'];
+$fecha          = $detalles['FECHA'];
+$descripcion    = $detalles['DESCRIPCION'];
+$n_documento    = $detalles['N_DOCUMENTO'];
+$monto_total    = $detalles['MONTO'];
+$monto_total_sanitizado   = preg_replace('/[^0-9]/', '', $detalles['MONTO']);
 
 $existe             = 0;
 $idestado           = 0;
@@ -152,7 +152,7 @@ $monto_diferencia   = 0;
                                     <ol class="breadcrumb">
 
                                         <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
-                                        <li class="breadcrumb-item active">Diferencias</li>
+                                        <li class="breadcrumb-item active">Pareo Cartola</li>
                                     </ol>
                                 </div>
                             </div>
@@ -164,7 +164,7 @@ $monto_diferencia   = 0;
                     <div class="row">
                         <div class="col">
                             <h3>
-                                <b>Diferencias</b>
+                                <b>Pareo Cartola</b>
                             </h3>
                         </div>
                         <div class="row">
@@ -192,15 +192,15 @@ $monto_diferencia   = 0;
                                         <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
                                     </div>
                                     <div class="col-lg-4">
-                                        <label class="col-4" for="fecha_ultima_cartola">TRANSACCIÓN</label>
-                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $transaccion . ' - ' . $fecha_rec ?>" disabled />
+                                        <label class="col-4" for="fecha_ultima_cartola">N° DOCUMENTO</label>
+                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $ndoc . ' - ' . $fecha ?>" disabled />
                                     </div>
                                 </div><!--end form-group-->
                             </div><!--end col-->
                         </div>
 
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&monto=<?php echo $detalles['MONTO_TRANSACCION'] ?>&fecha_rec=<?php echo $fecha_rec ?>">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php  ?>">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -213,15 +213,15 @@ $monto_diferencia   = 0;
                                                         <div class="col-auto mr-0">
                                                             <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
                                                         </div>
+                                                        <td align="right">
+                                                            <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
+                                                        </td>
                                                         <!--
                                                         <div class="col-auto">
                                                             <button type="button" class="btn btn-md btn-secondary" onclick="limpiarFormulario();"><i class="fa fa-times"></i> LIMPIAR</button>
                                                         </div>
                                                         -->
                                                     </div>
-                                                </td>
-                                                <td align="right">
-                                                    <a align="right" href="conciliaciones_transferencias_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -232,30 +232,20 @@ $monto_diferencia   = 0;
                                         <div class="col-md-12">
 
                                             <div class="form-group row text-center justify-content-between">
-                                                <div class="col-lg-8 d-flex align-items-center">
-                                                    <label for="ordenante" class="col-lg-4 col-form-label">ORDENANTE</label>
-                                                    <div class="col-lg-8">
-                                                        <input type="text" name="ordenante" id="ordenante" class="form-control" maxlength="50" autocomplete="off" value="<?= $rut_ordenante . ' - ' . htmlspecialchars($nom_ordenante, ENT_QUOTES, 'UTF-8') ?>"
-                                                            disabled />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group row text-center justify-content-between">
                                                 <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                    <label for="monto" class="col-lg-4 col-form-label">TRANSF</label>
+                                                    <label for="monto" class="col-lg-4 col-form-label">MONTO</label>
                                                     <div class="col-lg-8">
-                                                        <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $detalles['MONTO_TRANSACCION'] ?>" disabled />
+                                                        <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $monto_total ?>" disabled />
                                                     </div>
                                                 </div>
-                                                <div class="col-lg-4 d-flex align-items-start">
+                                                <!--<div class="col-lg-4 d-flex align-items-start">
                                                     <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
                                                     <div class="col-lg-8">
                                                         <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
                                                         <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
                                                         <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
                                                     </div>
-                                                </div>
+                                                </div> -->
                                             </div>
 
                                             <hr>
@@ -267,100 +257,59 @@ $monto_diferencia   = 0;
                                         <thead>
                                             <tr>
                                                 <th class="col-1 font_mini_header"></th>
-                                                <th class="font_mini_header">F. VENC</th>
-                                                <th class="font_mini_header" style="display: none;">MONTO</th> <!-- Columna oculta -->
-                                                <th class="font_mini_header">$ DOC</th>
-                                                <th class="font_mini_header">OPERACIÓN</th>
-                                                <th class="font_mini_header">RUT CTE</th>
-                                                <th class="font_mini_header">CARTERA</th>
-                                                <th class="font_mini_header">RUT DEUD</th>
-                                                <th class="font_mini_header">DIF</th>
+                                                <th class="font_mini_header">N° REMESA/DEVOLUCION</th>
+                                                <th class="font_mini_header">CANAL</th>
+                                                <th class="font_mini_header">MONTO</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
-
-                                            // Consulta para obtener documentos asignados
-                                            $sql3 = "{call [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]}";
-                                            $stmt3 = sqlsrv_query($conn, $sql3);
-
-                                            if ($stmt3 === false) {
+                                            $sql_conc    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_ENTRADA_LISTA]";
+                                            $stmt_conc = sqlsrv_query($conn, $sql_conc);
+                                            if ($stmt_conc === false) {
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
+                                            while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
 
-                                            while ($diferencias = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+                                                $id_saldo       = $conciliados['ID_CONCILIACION_SALDO'];
+                                                $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
+                                                $canal          = $conciliados['CANAL'];
+                                                $n_remesa       = $conciliados['N_REMESA'];
+                                                $monto_entrada  = $conciliados['MONTO_TR'];
+                                                $monto_entrada_sanitizado = preg_replace('/[^0-9]/', '', $conciliados['MONTO_TR']);
+                                                $monto_saldo    = $conciliados['MONTO_SALDO'];
 
-                                                $id_documento = $diferencias['ID_DOCDEUDORES'];
-
-                                                // Consulta para obtener documentos asignados
-                                                $sql_4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                                $params_4 = array($id_documento);  // Primero defines los parámetros
-                                                $stmt_4 = sqlsrv_query($conn, $sql_4, $params_4);  // Luego ejecutas la consulta con los parámetros
-
-                                                if ($stmt_4 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
+                                                $codigo = '';
+                                                if ($tipo_canal == 1) {
+                                                    $codigo = !empty($n_cheque) ? $n_cheque : ''; // Si es tipo 1, asigna el número de cheque si existe, de lo contrario, deja vacío
+                                                } elseif ($tipo_canal == 2) {
+                                                    $codigo = !empty($n_remesa) ? $n_remesa : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
+                                                } elseif ($tipo_canal == 3) {
+                                                    $codigo = !empty($id_saldo) ? $id_saldo : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
                                                 }
-
-                                                $consulta = sqlsrv_fetch_array($stmt_4, SQLSRV_FETCH_ASSOC);
-                                                $rut_deudor = $consulta['RUT_DEUDOR'];
-
-
-
-                                                // Consulta para obtener documentos asignados
-                                                $sql_5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
-                                                $params_5 = array($rut_deudor);
-                                                $stmt_5 = sqlsrv_query($conn, $sql_5, $params_5);
-
-                                                if ($stmt_5 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
+                                                // Condición para deshabilitar dependiendo del tipo de canalización
+                                                if ($tipo_canal == 2) {
+                                                    // Comparar monto_entrada_sanitizado con monto_total_sanitizado
+                                                    $isDisabled = ($monto_entrada_sanitizado <> $monto_total_sanitizado) ? 'disabled' : '';
+                                                } elseif ($tipo_canal == 3) {
+                                                    // Comparar monto_saldo_sanitizado con monto_total_sanitizado
+                                                    $isDisabled = ($monto_saldo <> $monto_total_sanitizado) ? 'disabled' : '';
                                                 }
-
-                                                $docdetalles = sqlsrv_fetch_array($stmt_5, SQLSRV_FETCH_ASSOC);
-
-                                                $f_venc = isset($consulta["F_VENC"])
-                                                    ? (is_a($consulta["F_VENC"], 'DateTime')
-                                                        ? $consulta["F_VENC"]->format('Y-m-d')
-                                                        : $consulta["F_VENC"])
-                                                    : 'Sin fecha';
-                                                $monto_doc      = isset($consulta['MONTO_DOCUMENTO'])          ? $consulta['MONTO_DOCUMENTO'] : '';
-                                                $subproducto    = isset($docdetalles["SUBPRODUCTO"])    ? $docdetalles["SUBPRODUCTO"] : '';
-                                                $n_doc          = isset($consulta["N_DOC"])          ? $consulta["N_DOC"] : '';
-                                                $rut_deudor     = isset($rut_deudor)                    ? $rut_deudor  : '';
-                                                $rut_cliente    = isset($consulta["RUT_CLIENTE"])    ? $consulta["RUT_CLIENTE"] : '';
-                                                $nom_cliente    = isset($consulta["NOM_CLIENTE"])    ? $consulta["NOM_CLIENTE"] : '';
-                                                $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
-
-                                                // Sanitización para comparación
-                                                $prestamos_sanitizado       = (int) str_replace(['$', '.'], '', $prestamos);
-                                                $monto_transf_sanitizado    = (int) str_replace(['$', '.'], '', $monto_transf);
-
-                                                // Comparación con $monto_transf para habilitar o deshabilitar el radio button
-                                                $isDisabled = ($prestamos_sanitizado > $monto_transf_sanitizado) ? 'disabled' : '';
 
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $id_documento . ',' . $prestamos; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" <?php echo $isDisabled; ?> />
+                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo ?>" <?php echo $isDisabled; ?>>
                                                     </td>
-                                                    <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
-                                                    <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $prestamos; ?></td>
-                                                    <td class="monto_doc col-auto font_mini" id="monto_doc">
-                                                        $<?php
-                                                            if (is_numeric($monto_doc)) {
-                                                                echo number_format((float)$monto_doc, 0, ',', '.');
-                                                            } else {
-                                                                echo "Valor no válido";
-                                                            }
-                                                            ?>
+                                                    <td class="col-auto font_mini interes" id="interes">
+                                                        <?php echo $codigo; ?>
                                                     </td>
-                                                    <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($n_doc); ?></td>
-                                                    <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $rut_cliente; ?></td>
-                                                    <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $nom_cliente; ?></td>
-                                                    <td class="rut_deudor col-auto  font_mini" id="rut_deudor"><?php echo $rut_deudor; ?></td>
-                                                    <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($prestamos, 0, ',', '.'); ?></td>
+                                                    <td class="col-auto font_mini"><?php echo $canal ?></td>
+                                                    <td class="col-auto font_mini">
+                                                        $<?php echo number_format($monto_entrada == 0 ? $monto_saldo : $monto_entrada, 0, ',', '.'); ?>
+                                                    </td>
                                                 </tr> <?php
-                                                    }
-                                                        ?>
+                                                    } ?>
                                         </tbody>
                                     </table>
                                 </div><!-- end card-body -->
@@ -428,16 +377,11 @@ exit; */ ?>
         var table = $('#datatable2').DataTable({
             responsive: true,
             columnDefs: [{
-                    targets: [0],
-                    orderable: false
-                },
-                {
-                    targets: [2],
-                    visible: false
-                }
-            ],
+                targets: [0],
+                orderable: false
+            }, ],
             order: [
-                [1, 'asc']
+                [3, 'desc']
             ],
             createdRow: function(row, data, dataIndex) {
                 $(row).attr('id', 'row-' + dataIndex);

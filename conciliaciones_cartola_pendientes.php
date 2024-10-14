@@ -41,7 +41,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <head>
     <meta charset="utf-8" />
-    <title>Pareo</title>
+    <title>Cartola pareo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
@@ -112,7 +112,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Transferencias recibidas</b>
+                            <b>Conciliación</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
@@ -121,7 +121,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 Esta herramienta permite visualizar las transferencias que aún no han sido pareadas en el sistema. Las transferencias se identifican según el estado de su coincidencia a través de botones con distintos colores:
                             </p>
                             <ul>
-                                <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b>  Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
+                                <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b> Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
                                 <li><span class="text-success"><i class="feather-24 mr-2" data-feather="plus"></i></span><b>Sin coincidencia:</b> Corresponde a transferencias donde el RUT del deudor no está determinado. Estas transferencias están disponibles para ser asignadas manualmente.</li>
                             </ul>
                         </div>
@@ -156,24 +156,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                             </div>
-                            <div id="filter-icons" class="col-lg-3 mt-4">
-                                <div class="col-lg-6" id="filter-controls">
-                                    <label for="excluir_tags">
-                                        <input type="checkbox" id="excluir_tags"> Excluir
-                                    </label>
-                                </div>
-                                <div class="col-lg-6">
-                                    <i class="far fa-star icon-filter-filter star" data-tag="star"></i>
-                                    <i class="far fa-bell icon-filter-filter bell" data-tag="bell"></i>
-                                    <i class="far fa-flag icon-filter-filter flag" data-tag="flag"></i>
-                                </div>
-
-                            </div>
-                            <div class="col-lg-3 mt-5">
-                                <button id="clear-filters-btn" class="btn btn-secondary">
-                                    <i class="fa fa-times pr-2"></i>LIMPIAR
-                                </button>
-                            </div>
 
                         </div><!--end form-group-->
                     </div><!--end col-->
@@ -185,50 +167,42 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>F. RECEP</th>
-                                        <th>RUT ORD</th>
-                                        <th>NOMBRE</th>
-                                        <th>TRANSACCION</th>
-                                        <th>CTA. BENEF</th>
-                                        <th>MONTO</th>
-                                        <th>ETIQUETAS</th>
-                                        <th>ASIGNAR</th>
+                                        <th class="font_mini_header">CUENTA</th>
+                                        <th class="font_mini_header">FECHA</th>
+                                        <th class="font_mini_header">DESCRIPCION</th>
+                                        <th class="font_mini_header">N° DOCUMENTO</th>
+                                        <th class="font_mini_header">MONTO</th>
+                                        <th class="font_mini_header"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_TRANSFERENCIAS_PENDIENTES_LISTA]";
-                                    $stmt = sqlsrv_query($conn, $sql);
-                                    if ($stmt === false) {
+                                    $sql_conc    = "EXEC [_SP_CONCILIACIONES_CARTOLA_SALIDAS_LISTA]";
+                                    $stmt_conc = sqlsrv_query($conn, $sql_conc);
+                                    if ($stmt_conc === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
-                                    while ($transferencia = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                    while ($conciliacion = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
+
+                                        $cuenta         = $conciliacion['CUENTA'];
+                                        $fecha          = $conciliacion['FECHA'];
+                                        $descripcion    = $conciliacion['DESCRIPCION'];
+                                        $n_documento    = $conciliacion['N_DOCUMENTO'];
+                                        $monto_total    = $conciliacion['MONTO'];
+
                                     ?>
-                                        <tr data-id="<?php echo $transferencia["TRANSACCION"]; ?>">
-                                            <td class="col-1"><?php echo $transferencia["FECHA"]; ?></td>
-                                            <td class="col-1"> <?php echo $transferencia["RUT"]; ?></td>
-                                            <td class="col-3"> <?php echo $transferencia["NOMBRE"]; ?></td>
-                                            <td class="col-auto"> <?php echo $transferencia["TRANSACCION"]; ?></td>
-                                            <td class="col-auto"><?php echo $transferencia["CUENTA"]; ?></td>
-                                            <td class="col-auto">$<?php echo $transferencia["MONTO"]; ?></td>
-                                            <td class="col-auto">
-                                                <i class="far fa-star icon-row-filter star" data-tag="star"></i>
-                                                <i class="far fa-bell icon-row-filter bell" data-tag="bell"></i>
-                                                <i class="far fa-flag icon-row-filter flag" data-tag="flag"></i>
+                                        <tr>
+                                            <!-- Usamos la variable $remesa_cheque para mostrar solo un valor en la celda -->
+                                            <td class="col-auto font_mini interes" id="interes"><?php echo $cuenta; ?></td>
+                                            <td class="col-auto font_mini"><?php echo $fecha ?></td>
+                                            <td class="col-auto font_mini"><?php echo $descripcion ?></td>
+                                            <td class="col-auto font_mini"><?php echo $n_documento ?></td>
+                                            <td class="col-auto font_mini">$<?php echo $monto_total; ?></td>
+                                            <td class="col-1">
+                                                <a data-toggle="tooltip" title="Parear" href="conciliaciones_cartola_pareo.php?n_doc=<?php echo $n_documento; ?>" class="btn btn-icon btn-rounded btn-warning ml-2">
+                                                    <i class="feather-24" data-feather="minimize-2"></i>
+                                                </a>
                                             </td>
-                                            <?php if ($transferencia["RUT_DEUDOR"] == NULL) { ?>
-                                                <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver documentos" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=0" class="btn btn-icon btn-rounded btn-success ml-2">
-                                                        <i class="feather-24" data-feather="plus"></i>
-                                                    </a>
-                                                </td>
-                                            <?php } else { ?>
-                                                <td class="col-1">
-                                                    <a data-toggle="tooltip" title="Ver documentos" href="conciliaciones_documentos.php?transaccion=<?php echo $transferencia["TRANSACCION"]; ?>&rut_ordenante=<?php echo $transferencia["RUT"]; ?>&rut_deudor=<?php echo $transferencia["RUT_DEUDOR"]; ?>&cuenta=<?php echo $transferencia["CUENTA"]; ?>&matched=1" class="btn btn-icon btn-rounded btn-info ml-2">
-                                                        <i class="feather-24" data-feather="folder"></i>
-                                                    </a>
-                                                </td>
-                                            <?php }; ?>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
@@ -306,12 +280,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
             "searching": true, // Habilita la búsqueda
             "ordering": true, // Habilita el ordenamiento
             "order": [
-                [0, 'asc']
+                [4, 'desc']
             ], // Ordenar por la columna de índice 0 en orden ascendente
             "columnDefs": [{
                     "orderable": false,
-                    "targets": [6, 7]
-                } // Deshabilitar el ordenamiento para las columnas de índice 6 y 7
+                    "targets": [5]
+                } // Deshabilitar el ordenamiento para la columna de índice 5
             ]
         });
 
@@ -327,186 +301,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
             if (storedPageLength) {
                 table.page.len(parseInt(storedPageLength)).draw();
             }
-
-            // Cargar y aplicar el estado de las etiquetas seleccionadas en cada fila
-            loadTagStates();
-
-            // Cargar estado del checkbox de exclusión
-            var storedExcludeState = localStorage.getItem('exclude_tags');
-            $('#excluir_tags').prop('checked', storedExcludeState === 'true');
-
-            // Cargar los filtros guardados y actualizar el estado visual
-            var selectedTags = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            $('#filter-icons .icon-filter-filter').each(function() {
-                var tag = $(this).data('tag');
-                if (selectedTags.includes(tag)) {
-                    $(this).addClass('selected fas').removeClass('far');
-                } else {
-                    $(this).removeClass('selected fas').addClass('far');
-                }
-            });
-
-            // Verificar si el checkbox debe estar habilitado
-            updateExcludeCheckboxState();
-
-            // Aplicar los filtros a la tabla
-            filterTable();
         }
 
-        function loadTagStates() {
-            var tagStates = JSON.parse(localStorage.getItem('tag_states')) || {};
-            $('#datatable2 tbody tr').each(function() {
-                var rowId = $(this).data('id');
-                if (tagStates[rowId]) {
-                    $(this).find('.icon-row-filter').each(function() {
-                        var tag = $(this).data('tag');
-                        if (tagStates[rowId].includes(tag)) {
-                            $(this).addClass('selected fas').removeClass('far');
-                        } else {
-                            $(this).removeClass('selected fas').addClass('far');
-                        }
-                    });
-                }
-            });
-        }
-
-        function saveTagStates() {
-            var tagStates = {};
-            $('#datatable2 tbody tr').each(function() {
-                var rowId = $(this).data('id');
-                tagStates[rowId] = [];
-                $(this).find('.icon-row-filter.selected').each(function() {
-                    tagStates[rowId].push($(this).data('tag'));
-                });
-            });
-            localStorage.setItem('tag_states', JSON.stringify(tagStates));
-        }
-
-        $('#datatable2').on('click', '.icon-row-filter', function() {
-            var $icon = $(this);
-            var isSelected = $icon.hasClass('selected');
-            var rowId = $icon.closest('tr').data('id');
-
-            $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
-
-            saveTagStates();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
-            filterTable();
-        });
-
-        $('#filter-icons').on('click', '.icon-filter-filter', function() {
-            var $icon = $(this);
-            var isSelected = $icon.hasClass('selected');
-
-            $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
-
-            saveSelectedTags();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
-            filterTable();
-        });
-
-        function saveSelectedTags() {
-            var selectedTags = [];
-            $('#filter-icons .icon-filter-filter.selected').each(function() {
-                selectedTags.push($(this).data('tag'));
-            });
-            localStorage.setItem('selected_tags', JSON.stringify(selectedTags));
-        }
-
-        $('#cuenta_filter').on('change', function() {
-            var filterValue = $(this).val();
-            localStorage.setItem('selected_cuenta', filterValue);
-            filterTable();
-        });
-
-        $('#datatable2_length select').on('change', function() {
-            var pageLength = $(this).val();
-            localStorage.setItem('page_length', pageLength);
-            table.page.len(parseInt(pageLength)).draw();
-        });
-
-        $('#excluir_tags').on('change', function() {
-            var isChecked = $(this).is(':checked');
-            localStorage.setItem('exclude_tags', isChecked);
-            filterTable();
-        });
-
-        function filterTable() {
-            var selectedTags = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            var selectedCuenta = $('#cuenta_filter').val();
-            var excludeTags = $('#excluir_tags').is(':checked');
-
-            table.rows().every(function() {
-                var row = this.node();
-                var rowTags = [];
-                var rowCuenta = $(row).find('td').eq(4).text(); // Cambia el índice de la columna según tu tabla
-
-                $(row).find('.icon-row-filter').each(function() {
-                    if ($(this).hasClass('selected')) {
-                        rowTags.push($(this).data('tag'));
-                    }
-                });
-
-                var tagMatch = selectedTags.length === 0 || selectedTags.some(tag => rowTags.includes(tag));
-                if (excludeTags) {
-                    tagMatch = !tagMatch; // Invertir la lógica si está marcado el checkbox
-                }
-                var cuentaMatch = selectedCuenta === "0" || rowCuenta === selectedCuenta;
-
-                if (tagMatch && cuentaMatch) {
-                    $(row).show();
-                } else {
-                    $(row).hide();
-                }
-            });
-        }
-
-        function updateExcludeCheckboxState() {
-            var hasSelectedTags = $('#datatable2 tbody .icon-row-filter.selected').length > 0;
-            $('#excluir_tags').prop('disabled', !hasSelectedTags);
-        }
-
-        function clearFilters() {
-            localStorage.removeItem('selected_cuenta');
-            localStorage.removeItem('page_length');
-            localStorage.removeItem('exclude_tags');
-            localStorage.removeItem('selected_tags');
-            localStorage.removeItem('tag_states');
-
-            $('#cuenta_filter').val("0").change(); // Restablecer filtro de cuenta
-            $('#excluir_tags').prop('checked', false); // Restablecer checkbox de exclusión
-            $('#filter-icons .icon-filter-filter').removeClass('selected fas').addClass('far'); // Restablecer los íconos de filtro
-
-            table.search('').columns().search('').draw();
-        }
-
-        $('#clear-filters-btn').on('click', function() {
-            Swal.fire({
-                title: '¿Confirmas la acción?',
-                text: "Esto eliminará todos los filtros y etiquetas aplicadas",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Limpiar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    clearFilters();
-                    Swal.fire(
-                        'Filtros limpiados',
-                        'Todos los filtros y etiquetas se han eliminado.',
-                        'success'
-                    ).then(() => {
-                        location.reload();
-                    });
-                }
-            });
-        });
-
+        // Llamar a la función para aplicar los filtros al cargar
         applyFilters();
+
     });
 
     <?php if ($op == 1) { ?>

@@ -1,42 +1,46 @@
 <?php
 session_start();
 include("funciones.php");
-$op =  0;
-if (isset($_GET["op"])) {
-	$op = $_GET["op"];
-};
+include("conexiones.php");
+//include("permisos_adm.php");
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(0);
 
+$op = $_GET["op"];
 ?>
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
 	<meta charset="utf-8" />
-	<title>Carga Conciliaciones</title>
+	<title>Cargas Cartola Bancaria</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="CRM" name="description" />
 	<meta content="" name="author" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
 	<!-- App favicon -->
 	<link rel="shortcut icon" href="assets/images/favicon.ico">
+
 	<link href="plugins/dropify/css/dropify.min.css" rel="stylesheet">
+
 	<!-- Plugins css -->
 	<link href="plugins/select2/select2.min.css" rel="stylesheet" type="text/css" />
 	<link href="plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet" type="text/css" />
 	<link href="plugins/timepicker/bootstrap-material-datetimepicker.css" rel="stylesheet">
 	<link href="plugins/bootstrap-touchspin/css/jquery.bootstrap-touchspin.min.css" rel="stylesheet" />
-	<link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
+
 	<!-- App css -->
 	<link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 	<link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
 	<link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
+
 	<link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
 	<script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
+
 </head>
 
 <body class="dark-sidenav">
@@ -51,24 +55,31 @@ error_reporting(0);
 
 		<!-- Top Bar End -->
 		<?php include("menu_top.php"); ?>
-
-		<!-- Pantalla de Carga -->
-		<div id="loading-screen">
-			<div class="spinner mr-3"></div>
-			<p>Cargando...</p>
-		</div>
-
 		<!-- Page Content-->
-		<div class="page-content" id="content">
+		<div class="page-content">
 			<div class="container-fluid">
-				<center><h4 class="mt-4">CARGA CONCILIACIONES</h4></center>
+				<center>
+					<h4 class="mt-4">CARGA CARTOLA BANCARIA</h4>
+				</center>
+
+				<!-- Page-Title -->
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="page-title-box">
+						</div><!--end row-->
+					</div><!--end page-title-box-->
+				</div><!--end col-->
+				<!-- end page title end breadcrumb -->
 				<br><br>
 				<div class="row">
 					<div class="col-lg-9 offset-md-2">
 						<div class="card">
 
 							<div class="card-body">
-								<form method="post" action="cargas_conciliaciones_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
+								<form method="post" action="cargas_cartola_bancaria_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
+
+
+
 									<div class="row">
 
 										<div class="col-md-6">
@@ -82,18 +93,20 @@ error_reporting(0);
 										</div><!--end col-->
 									</div><!--end row-->
 									<div class="mt-3" align="center">
-										<button type="submit" class="btn btn-primary waves-effect waves-light" onclick="showLoadingScreen()">CARGAR</button>
+										<button type="submit" class="btn btn-primary waves-effect waves-light">CARGAR</button>
 									</div>
 								</form>
 							</div> <!-- end card-body -->
 						</div> <!-- end card -->
 					</div> <!-- end col -->
 				</div> <!-- end row -->
-			</div><!-- container -->
+			</div> <!-- end row -->
 
-		</div>
-		<!-- end page content -->
+		</div><!-- container -->
+
 		<?php include('footer.php'); ?>
+	</div>
+	<!-- end page content -->
 	</div>
 	<!-- end page-wrapper -->
 	<!-- jQuery  -->
@@ -107,6 +120,7 @@ error_reporting(0);
 
 
 	<!-- Plugins js -->
+
 	<script src="plugins/select2/select2.min.js"></script>
 	<script src="plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
 	<script src="plugins/timepicker/bootstrap-material-datetimepicker.js"></script>
@@ -185,6 +199,7 @@ error_reporting(0);
 
 
 		function valida_envia() {
+			//valido el nombre
 			if (document.formulario.archivo.value.length == 0) {
 				Swal.fire({
 					width: 600,
@@ -192,33 +207,20 @@ error_reporting(0);
 					title: 'Debe ingresar un Archivo.',
 					showConfirmButton: false,
 					timer: 2000,
-				});
+				})
 				return false;
 			}
-			return true;
-		}
 
-		function showLoadingScreen() {
-			if (valida_envia()) {
-				document.getElementById('loading-screen').style.display = 'flex';
-				document.formulario.submit();
-			}
+			document.formulario.submit();
 		}
-
-		window.onload = function() {
-			// Oculta la pantalla de carga y muestra el contenido principal
-			document.getElementById('loading-screen').style.display = 'none';
-			document.getElementById('content').style.display = 'block';
-		};
 	</script>
-
 	<?php if ($op == 1) { ?>
 		<div class="content">
 			<script>
 				Swal.fire({
 					width: 600,
-					icon: 'success',
-					title: 'ARCHIVO PROCESADO',
+					icon: 'error',
+					title: 'RUT NO EXISTE',
 					showConfirmButton: false,
 					timer: 2000,
 				})
@@ -230,8 +232,8 @@ error_reporting(0);
 			<script>
 				Swal.fire({
 					width: 600,
-					icon: 'success',
-					title: 'ARCHIVO SUBIDO',
+					icon: 'error',
+					title: 'USUARIO O CONTRASEÑA ERRONEA',
 					showConfirmButton: false,
 					timer: 2000,
 				})

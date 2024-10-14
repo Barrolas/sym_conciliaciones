@@ -8,7 +8,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    die(print_r(sqlsrv_errors(), true));
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -19,12 +19,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$transaccion    = $_GET["transaccion"];
+$transaccion_ord    = $_GET["transaccion"];
+$rut_ordenante      = $_GET["rut_ordenante"];
+$cuenta_ben         = $_GET["cuenta"];
 
-$sql_detalles   = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION](?)}";
-
+$sql_detalles    = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION](?)}";
 $params_detalles = array(
-    array($transaccion,     SQLSRV_PARAM_IN)
+    array($transaccion_ord,     SQLSRV_PARAM_IN)
 );
 $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
 if ($stmt_detalles === false) {
@@ -33,18 +34,20 @@ if ($stmt_detalles === false) {
 }
 $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
-$cuenta         = $detalles['CUENTA_BENEF'];
+$cuenta_ben     = $detalles['CUENTA_BENEF'];
+$cuenta_ord     = $detalles['CUENTA_ORD'];
 $nom_ordenante  = $detalles['NOMBRE_ORDENANTE'];
 $fecha_rec      = $detalles['FECHA_RECEP'];
 $rut_ordenante  = $detalles['RUT_ORDENANTE'];
-$monto_transf   = $detalles['MONTO_TRANSACCION'];
+$monto_transf   = $detalles['MONTO_TRANSACCION']; // Valor con puntos
+$monto_transf   = (int) str_replace('.', '', $monto_transf); // Elimina los puntos y convierte a entero
 
 $existe             = 0;
 $idestado           = 0;
-$estado             = '';
 $rut_deudor         = 0;
 $monto_ingresado    = 0;
 $monto_diferencia   = 0;
+$estado             = '';
 
 ?>
 
@@ -152,7 +155,7 @@ $monto_diferencia   = 0;
                                     <ol class="breadcrumb">
 
                                         <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
-                                        <li class="breadcrumb-item active">Diferencias</li>
+                                        <li class="breadcrumb-item active">Entrecuentas</li>
                                     </ol>
                                 </div>
                             </div>
@@ -164,7 +167,7 @@ $monto_diferencia   = 0;
                     <div class="row">
                         <div class="col">
                             <h3>
-                                <b>Diferencias</b>
+                                <b>Entrecuentas</b>
                             </h3>
                         </div>
                         <div class="row">
@@ -183,24 +186,27 @@ $monto_diferencia   = 0;
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
-                                    <div class="col-lg-4">
+                                    <div class="col-lg-3">
                                         <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                        <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
+                                        <input type="text" class="form-control col-9" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                     </div>
                                     <div class="col-lg-3">
-                                        <label class="col-4" for="fecha_ultima_cartola">CUENTA</label>
-                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
+                                        <label class="col-4" for="fecha_ultima_cartola">CTA ORD</label>
+                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-9" maxlength="50" autocomplete="off" value="<?= $cuenta_ord ?>" disabled />
                                     </div>
-                                    <div class="col-lg-4">
+                                    <div class="col-lg-3">
+                                        <label class="col-4" for="fecha_ultima_cartola">CTA BF</label>
+                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-9" maxlength="50" autocomplete="off" value="<?= $cuenta_ben ?>" disabled />
+                                    </div>
+                                    <div class="col-lg-3">
                                         <label class="col-4" for="fecha_ultima_cartola">TRANSACCIÓN</label>
-                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $transaccion . ' - ' . $fecha_rec ?>" disabled />
+                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-9" maxlength="50" autocomplete="off" value="<?= $transaccion_ord . ' - ' . $fecha_rec ?>" disabled />
                                     </div>
                                 </div><!--end form-group-->
                             </div><!--end col-->
                         </div>
 
-
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&monto=<?php echo $detalles['MONTO_TRANSACCION'] ?>&fecha_rec=<?php echo $fecha_rec ?>">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_entrecuentas_guardar.php?transaccion=<?php echo $transaccion_ord; ?>&cuenta_ord=<?php echo $cuenta_ord; ?>&cuenta_ben=<?php echo $cuenta_ben; ?>">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -252,7 +258,7 @@ $monto_diferencia   = 0;
                                                     <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
                                                     <div class="col-lg-8">
                                                         <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
-                                                        <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
+                                                        <input type="text"  name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
                                                         <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
                                                     </div>
                                                 </div>
@@ -267,97 +273,44 @@ $monto_diferencia   = 0;
                                         <thead>
                                             <tr>
                                                 <th class="col-1 font_mini_header"></th>
-                                                <th class="font_mini_header">F. VENC</th>
-                                                <th class="font_mini_header" style="display: none;">MONTO</th> <!-- Columna oculta -->
-                                                <th class="font_mini_header">$ DOC</th>
-                                                <th class="font_mini_header">OPERACIÓN</th>
+                                                <th class="font_mini_header">TRANSACCION</th>
+                                                <th class="font_mini_header">CTA. ACTUAL</th>
+                                                <th class="font_mini_header">CTA. CORRESP</th>
                                                 <th class="font_mini_header">RUT CTE</th>
-                                                <th class="font_mini_header">CARTERA</th>
-                                                <th class="font_mini_header">RUT DEUD</th>
-                                                <th class="font_mini_header">DIF</th>
+                                                <th class="font_mini_header">MONTO</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
 
                                             // Consulta para obtener documentos asignados
-                                            $sql3 = "{call [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]}";
-                                            $stmt3 = sqlsrv_query($conn, $sql3);
+                                            $sql_entrecuentas = "{call [_SP_CONCILIACIONES_ENTRECUENTAS_LISTA]}";
+                                            $stmt_entrecuentas = sqlsrv_query($conn, $sql_entrecuentas);
 
-                                            if ($stmt3 === false) {
+                                            if ($stmt_entrecuentas === false) {
                                                 die(print_r(sqlsrv_errors(), true));
                                             }
+                                            while ($entrecuentas = sqlsrv_fetch_array($stmt_entrecuentas, SQLSRV_FETCH_ASSOC)) {
 
-                                            while ($diferencias = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+                                                $id_entrecuenta     = $entrecuentas['ID_ENTRECUENTAS'];
+                                                $cuenta_origen      = $entrecuentas['CUENTA_ORIGEN'];
+                                                $cuenta_corresp     = $entrecuentas['CUENTA_CORRESPONDIENTE'];
+                                                $transaccion_ent    = $entrecuentas['TRANSACCION'];
+                                                $rut_cte            = $entrecuentas['RUT_CLIENTE'];
+                                                $monto_entrecta     = $entrecuentas['MONTO_ENTRECUENTAS'];
 
-                                                $id_documento = $diferencias['ID_DOCDEUDORES'];
-
-                                                // Consulta para obtener documentos asignados
-                                                $sql_4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                                $params_4 = array($id_documento);  // Primero defines los parámetros
-                                                $stmt_4 = sqlsrv_query($conn, $sql_4, $params_4);  // Luego ejecutas la consulta con los parámetros
-
-                                                if ($stmt_4 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-
-                                                $consulta = sqlsrv_fetch_array($stmt_4, SQLSRV_FETCH_ASSOC);
-                                                $rut_deudor = $consulta['RUT_DEUDOR'];
-
-
-
-                                                // Consulta para obtener documentos asignados
-                                                $sql_5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
-                                                $params_5 = array($rut_deudor);
-                                                $stmt_5 = sqlsrv_query($conn, $sql_5, $params_5);
-
-                                                if ($stmt_5 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-
-                                                $docdetalles = sqlsrv_fetch_array($stmt_5, SQLSRV_FETCH_ASSOC);
-
-                                                $f_venc = isset($consulta["F_VENC"])
-                                                    ? (is_a($consulta["F_VENC"], 'DateTime')
-                                                        ? $consulta["F_VENC"]->format('Y-m-d')
-                                                        : $consulta["F_VENC"])
-                                                    : 'Sin fecha';
-                                                $monto_doc      = isset($consulta['MONTO_DOCUMENTO'])          ? $consulta['MONTO_DOCUMENTO'] : '';
-                                                $subproducto    = isset($docdetalles["SUBPRODUCTO"])    ? $docdetalles["SUBPRODUCTO"] : '';
-                                                $n_doc          = isset($consulta["N_DOC"])          ? $consulta["N_DOC"] : '';
-                                                $rut_deudor     = isset($rut_deudor)                    ? $rut_deudor  : '';
-                                                $rut_cliente    = isset($consulta["RUT_CLIENTE"])    ? $consulta["RUT_CLIENTE"] : '';
-                                                $nom_cliente    = isset($consulta["NOM_CLIENTE"])    ? $consulta["NOM_CLIENTE"] : '';
-                                                $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
-
-                                                // Sanitización para comparación
-                                                $prestamos_sanitizado       = (int) str_replace(['$', '.'], '', $prestamos);
-                                                $monto_transf_sanitizado    = (int) str_replace(['$', '.'], '', $monto_transf);
-
-                                                // Comparación con $monto_transf para habilitar o deshabilitar el radio button
-                                                $isDisabled = ($prestamos_sanitizado > $monto_transf_sanitizado) ? 'disabled' : '';
+                                                $isDisabled     = ($monto_transf != $monto_entrecta || $cuenta_ben != $cuenta_corresp || $cuenta_ord != $cuenta_origen) ? 'disabled' : '';
 
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $id_documento . ',' . $prestamos; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" <?php echo $isDisabled; ?> />
+                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $id_entrecuenta; ?>" <?php echo $isDisabled; ?> />
                                                     </td>
-                                                    <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
-                                                    <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $prestamos; ?></td>
-                                                    <td class="monto_doc col-auto font_mini" id="monto_doc">
-                                                        $<?php
-                                                            if (is_numeric($monto_doc)) {
-                                                                echo number_format((float)$monto_doc, 0, ',', '.');
-                                                            } else {
-                                                                echo "Valor no válido";
-                                                            }
-                                                            ?>
-                                                    </td>
-                                                    <td class="n_doc col-auto font_mini" id="n_doc"><?php echo htmlspecialchars($n_doc); ?></td>
-                                                    <td class="rut_cliente col-auto font_mini" id="rut_cliente"><?php echo $rut_cliente; ?></td>
-                                                    <td class="nom_cliente col-auto font_mini" id="nom_cliente"><?php echo $nom_cliente; ?></td>
-                                                    <td class="rut_deudor col-auto  font_mini" id="rut_deudor"><?php echo $rut_deudor; ?></td>
-                                                    <td class="monto_pareo col-auto font_mini" id="monto_pareo">$<?php echo number_format($prestamos, 0, ',', '.'); ?></td>
+                                                    <td class="transaccion col-auto font_mini" id="transaccion"><?php echo $transaccion_ent; ?></td>
+                                                    <td class="cuenta_origen col-auto font_mini" id="cuenta_origen"><?php echo $cuenta_origen; ?></td>
+                                                    <td class="cuenta_corresp col-auto font_mini" id="cuenta_corresp"><?php echo $cuenta_corresp; ?></td>
+                                                    <td class="rut_cte col-auto  font_mini" id="rut_cte"><?php echo $rut_cte; ?></td>
+                                                    <td class="monto_entrecta col-auto font_mini" id="monto_entrecta">$<?php echo number_format($monto_entrecta, 0, ',', '.'); ?></td>
                                                 </tr> <?php
                                                     }
                                                         ?>
@@ -428,14 +381,9 @@ exit; */ ?>
         var table = $('#datatable2').DataTable({
             responsive: true,
             columnDefs: [{
-                    targets: [0],
-                    orderable: false
-                },
-                {
-                    targets: [2],
-                    visible: false
-                }
-            ],
+                targets: [0],
+                orderable: false
+            }, ],
             order: [
                 [1, 'asc']
             ],
@@ -446,7 +394,7 @@ exit; */ ?>
 
         // Actualizar Total basado en la columna 2 de la fila seleccionada
         function actualizarTotal(valor) {
-            $('#total2').val('$' + (valor || 0));
+            $('#total2').val('$' + (valor || 0).toLocaleString('de-DE'));
         }
 
         // Manejar la selección/deselección de radios
@@ -454,8 +402,8 @@ exit; */ ?>
             var isChecked = $(this).is(':checked');
             var rowId = $(this).closest('tr').attr('id');
             var rowData = table.row('#' + rowId).data();
-            var valor = isChecked ? parseFloat(rowData[2]) || 0 : 0;
-
+            var valorSanitizado = rowData[5].replace(/[.$]/g, '').replace(',', '.'); // Reemplaza $ y puntos
+            var valor = isChecked ? parseFloat(valorSanitizado) || 0 : 0;
             actualizarTotal(valor);
             updateConciliarButton();
         });
@@ -485,7 +433,7 @@ exit; */ ?>
 <script>
     function limpiarFormulario() {
         // Redireccionar para limpiar
-        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&matched=3';
+        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion_ord ?>&cuenta=<?php echo $cuenta_ben ?>&matched=3';
     }
 </script>
 

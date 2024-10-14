@@ -25,29 +25,53 @@ $documento
     ->setTitle('Archivo de Proceso')
     ->setDescription('Archivo de Proceso');
 
-$hojaCMR_tr = $documento->getActiveSheet();
+$hojaCheques = $documento->getActiveSheet();
+$hojaCheques->setTitle("CHEQUES");
+$hojaCheques->getStyle('A1:M1')->getFont()->setBold(true);
+$hojaCheques->setSelectedCell('A2');
+
+$hojaCMR_tr = $documento->createSheet();
 $hojaCMR_tr->setTitle("TR CMR");
+$hojaCMR_tr->getStyle('A1:L1')->getFont()->setBold(true);
+$hojaCMR_tr->setSelectedCell('A2');
 
 $hojaBancoVigente_tr = $documento->createSheet();
 $hojaBancoVigente_tr->setTitle("TR B. Vigente");
+$hojaBancoVigente_tr->getStyle('A1:N1')->getFont()->setBold(true);
+$hojaBancoVigente_tr->setSelectedCell('A2');
 
 $hojaBancoCastigo_tr = $documento->createSheet();
 $hojaBancoCastigo_tr->setTitle("TR B. Castigo");
+$hojaBancoCastigo_tr->getStyle('A1:O1')->getFont()->setBold(true);
+$hojaBancoCastigo_tr->setSelectedCell('A2');
 
 $hojaCMR_ch = $documento->createSheet();
 $hojaCMR_ch->setTitle("CH CMR");
+$hojaCMR_ch->getStyle('A1:L1')->getFont()->setBold(true);
+$hojaCMR_ch->setSelectedCell('A2');
 
 $hojaBancoVigente_ch = $documento->createSheet();
 $hojaBancoVigente_ch->setTitle("CH B. Vigente");
+$hojaBancoVigente_ch->getStyle('A1:N1')->getFont()->setBold(true);
+$hojaBancoVigente_ch->setSelectedCell('A2');
 
 $hojaBancoCastigo_ch = $documento->createSheet();
 $hojaBancoCastigo_ch->setTitle("CH B. Castigo");
+$hojaBancoCastigo_ch->getStyle('A1:O1')->getFont()->setBold(true);
+$hojaBancoCastigo_ch->setSelectedCell('A2');
 
 $hojaHipotecario_tr = $documento->createSheet();
 $hojaHipotecario_tr->setTitle("TR HIPOT");
+$hojaHipotecario_tr->getStyle('A1:L1')->getFont()->setBold(true);
+$hojaHipotecario_tr->setSelectedCell('A2');
 
 $hojaHipotecario_ch = $documento->createSheet();
 $hojaHipotecario_ch->setTitle("CH HIPOT");
+$hojaHipotecario_ch->getStyle('A1:O1')->getFont()->setBold(true);
+$hojaHipotecario_ch->setSelectedCell('A2');
+
+// Establece la primera hoja (hojaCheques) como la hoja activa
+$documento->setActiveSheetIndex(0);
 
 function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
 {
@@ -76,17 +100,7 @@ function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
     }
 }
 
-$id_proceso = $_GET['id'];
-
-$sql = "{call [_SP_CONCILIACIONES_CANALIZADOS_PROCESOS_DETALLES_CONSULTA](?)}";
-$params = array(
-    array($id_proceso,     SQLSRV_PARAM_IN)
-);
-$stmt = sqlsrv_query($conn, $sql, $params);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true));
-}
-
+$numeroDeFilaCheques            = 2;
 $numeroDeFilaCMR_tr             = 2;
 $numeroDeFilaBancoVigente_tr    = 2;
 $numeroDeFilaBancoCastigo_tr    = 2;
@@ -96,10 +110,17 @@ $numeroDeFilaBancoCastigo_ch    = 2;
 $numeroDeFilaHipotecario_tr     = 2;
 $numeroDeFilaHipotecario_ch     = 2;
 
-while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+$sql = "{call [_SP_CONCILIACIONES_ASIGNADOS_LISTA]}";
 
-    $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
-    $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
+$stmt = sqlsrv_query($conn, $sql);
+if ($stmt === false) {
+    die(print_r(sqlsrv_errors(), true));
+}
+
+while ($asignados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+
+    $idpareo_sis    = $asignados['ID_PAREO_SISTEMA'];
+    $id_asignacion  = $asignados['ID_ASIGNACION'];
 
     $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID_PS](?)}";
     $params_pd = array(
@@ -110,6 +131,8 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         die(print_r(sqlsrv_errors(), true));
     }
     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
+
+    $cuenta = $p_docs['CUENTA_BENEFICIARIO'];
 
     $sql_qtydocs = "{call [_SP_CONCILIACIONES_CANALIZADOS_PROCESADOS_CANTIDAD_PAREO_SISTEMA](?)}";
     $params_qtydocs = array(
@@ -132,26 +155,61 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
     //Variables pareo sistema
-    $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
-    $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
-    $ord_rut        = $p_sistema['ORDENANTE_RUT'];
-    $ord_dv         = $p_sistema['ORDENANTE_DV'];
-    $ord_banco      = $p_sistema['ORDENANTE_BANCO'];
-    $ord_cta        = $p_sistema['ORDENANTE_CUENTA'];
-    $deud_rut       = $p_sistema['DEUDOR_RUT'];
-    $deud_dv        = $p_sistema['DEUDOR_DV'];
-    $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
-    $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
-    $pago_docs      = $pagodocs ['DESCRIPCION_PAGOS'];
-    $cant_docs      = $qtydocs  ['CANT_DOCS'];
+    $deud_rut       = $asignados['DEUDOR_RUT'];
+    $deud_dv        = $asignados['DEUDOR_DV'];
+    $deud_nom       = $asignados['DEUDOR_NOMBRE'];
+    $cant_docs      = $asignados['PAGO_DOCS'];
+    $operacion      = $asignados['N_DOC'];
+    $tipo_canal     = $asignados['ID_TIPO_CANALIZACION'];
     //Variables pareo docs
-    $operacion      = $p_docs['N_DOC'];
+    $benef_cta      = $p_docs['CUENTA_BENEFICIARIO'];
+    $cte_rut        = $p_docs['RUT_CLIENTE'];
+    $f_recepcion    = $p_docs['FECHA_RECEPCION'];
+    $f_venc         = isset($p_docs['F_VENC']) ? $p_docs['F_VENC']->format('Y-m-d') : '';
+    $monto_tr       = $p_docs['MONTO_TRANSACCION'];
+    $ord_rut        = $p_docs['ORDENANTE_RUT'];
+    $ord_dv         = $p_docs['ORDENANTE_DV'];
+    $ord_banco      = $p_docs['ORDENANTE_BANCO'];
+    $ord_cta        = $p_docs['ORDENANTE_CUENTA'];
     $monto_doc      = $p_docs['MONTO_DOCUMENTO'];
     $producto       = $p_docs['SUBPRODUCTO'];
     $cartera        = $p_docs['CARTERA'];
-    $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
+    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
 
-/* ====================================================TRANSFERENCIAS======================================================*/
+    /*
+    print_r($p_docs);
+    print_r($asignados);
+    print_r($pagodocs);
+*/
+    //exit;
+
+    /* ====================================================SUMARIO CHEQUES======================================================*/
+
+    // Bloque CMR TRANSFERENCIA
+    if ($tipo_canal == 1) {
+        // Escribir encabezado de los productos para CMR
+        $encabezadoCheques = ["ID", "Rut Titular", "DVT", "Nombre Titular", "Cta. Benef", "Rut Cliente", "Operación", "V. Cuota", "F. Venc", "Subproducto", "Cartera", "N° Cuotas", "N° Documento"];
+        $hojaCheques->fromArray($encabezadoCheques, null, 'A1');
+
+        $hojaCheques->setCellValueByColumnAndRow(1, $numeroDeFilaCheques, $id_asignacion);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaCheques, $deud_rut, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaCheques, $deud_dv, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(4, $numeroDeFilaCheques, $deud_nom, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaCheques, $benef_cta, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(6, $numeroDeFilaCheques, $cte_rut, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaCheques, $operacion, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaCheques, $monto_doc, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueByColumnAndRow(9, $numeroDeFilaCheques, $f_venc);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(10, $numeroDeFilaCheques, $producto, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueByColumnAndRow(11, $numeroDeFilaCheques, $cartera);
+        $hojaCheques->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaCheques, $pago_docs, DataType::TYPE_STRING);
+        $hojaCheques->setCellValueByColumnAndRow(13, $numeroDeFilaCheques, '');
+
+        $numeroDeFilaCheques++;
+    }
+
+
+    /* ====================================================TRANSFERENCIAS======================================================*/
 
     // Bloque CMR TRANSFERENCIA
     if ($tipo_canal == 2 && $benef_cta == '61682381' && $producto != 'HIPOTECARIO') {
@@ -159,7 +217,7 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $encabezadoCMR_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
         $hojaCMR_tr->fromArray($encabezadoCMR_tr, null, 'A1');
 
-        $hojaCMR_tr->setCellValueByColumnAndRow         (1, $numeroDeFilaCMR_tr, $idpareo_sis);
+        $hojaCMR_tr->setCellValueByColumnAndRow         (1, $numeroDeFilaCMR_tr, $id_asignacion);
         $hojaCMR_tr->setCellValueExplicitByColumnAndRow (2, $numeroDeFilaCMR_tr, $ord_rut, DataType::TYPE_STRING);
         $hojaCMR_tr->setCellValueExplicitByColumnAndRow (3, $numeroDeFilaCMR_tr, $ord_dv, DataType::TYPE_STRING);
         $hojaCMR_tr->setCellValueByColumnAndRow         (4, $numeroDeFilaCMR_tr, $ord_banco);
@@ -168,9 +226,9 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $hojaCMR_tr->setCellValueExplicitByColumnAndRow (7, $numeroDeFilaCMR_tr, $deud_rut, DataType::TYPE_STRING);
         $hojaCMR_tr->setCellValueExplicitByColumnAndRow (8, $numeroDeFilaCMR_tr, $deud_dv, DataType::TYPE_STRING);
         $hojaCMR_tr->setCellValueExplicitByColumnAndRow (9, $numeroDeFilaCMR_tr, $operacion, DataType::TYPE_STRING);
-        $hojaCMR_tr->setCellValueByColumnAndRow         (10,$numeroDeFilaCMR_tr, $monto_doc);
-        $hojaCMR_tr->setCellValueExplicitByColumnAndRow (11,$numeroDeFilaCMR_tr, $cartera, DataType::TYPE_STRING);
-        $hojaCMR_tr->setCellValueExplicitByColumnAndRow (12,$numeroDeFilaCMR_tr, $benef_cta, DataType::TYPE_STRING);
+        $hojaCMR_tr->setCellValueByColumnAndRow         (10, $numeroDeFilaCMR_tr, $monto_doc);
+        $hojaCMR_tr->setCellValueExplicitByColumnAndRow (11, $numeroDeFilaCMR_tr, $cartera, DataType::TYPE_STRING);
+        $hojaCMR_tr->setCellValueExplicitByColumnAndRow (12, $numeroDeFilaCMR_tr, $benef_cta, DataType::TYPE_STRING);
 
         $numeroDeFilaCMR_tr++;
     }
@@ -181,20 +239,20 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $encabezadoBancoVigente_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Nombre Producto", "Cartera", "N° Cuotas a pagar", "Cuenta Beneficiario"];
         $hojaBancoVigente_tr->fromArray($encabezadoBancoVigente_tr, null, 'A1');
 
-        $hojaBancoVigente_tr->setCellValueByColumnAndRow        (1, $numeroDeFilaBancoVigente_tr, $idpareo_sis);
+        $hojaBancoVigente_tr->setCellValueByColumnAndRow(1, $numeroDeFilaBancoVigente_tr, $id_asignacion);
         $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaBancoVigente_tr, $ord_rut,    DataType::TYPE_STRING);
         $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaBancoVigente_tr, $ord_dv,     DataType::TYPE_STRING);
-        $hojaBancoVigente_tr->setCellValueByColumnAndRow        (4, $numeroDeFilaBancoVigente_tr, $ord_banco);
+        $hojaBancoVigente_tr->setCellValueByColumnAndRow(4, $numeroDeFilaBancoVigente_tr, $ord_banco);
         $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaBancoVigente_tr, $ord_cta,    DataType::TYPE_STRING);
-        $hojaBancoVigente_tr->setCellValueByColumnAndRow        (6, $numeroDeFilaBancoVigente_tr, $monto_tr);
+        $hojaBancoVigente_tr->setCellValueByColumnAndRow(6, $numeroDeFilaBancoVigente_tr, $monto_tr);
         $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaBancoVigente_tr, $deud_rut,   DataType::TYPE_STRING);
         $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaBancoVigente_tr, $deud_dv,    DataType::TYPE_STRING);
         $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaBancoVigente_tr, $operacion,  DataType::TYPE_STRING);
-        $hojaBancoVigente_tr->setCellValueByColumnAndRow        (10,$numeroDeFilaBancoVigente_tr, $monto_doc);
-        $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(11,$numeroDeFilaBancoVigente_tr, $producto,   DataType::TYPE_STRING);
-        $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaBancoVigente_tr, $cartera,    DataType::TYPE_STRING);
-        $hojaBancoVigente_tr->setCellValueByColumnAndRow        (13,$numeroDeFilaBancoVigente_tr, $pago_docs);
-        $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(14,$numeroDeFilaBancoVigente_tr, $benef_cta,  DataType::TYPE_STRING);
+        $hojaBancoVigente_tr->setCellValueByColumnAndRow(10, $numeroDeFilaBancoVigente_tr, $monto_doc);
+        $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(11, $numeroDeFilaBancoVigente_tr, $producto,   DataType::TYPE_STRING);
+        $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaBancoVigente_tr, $cartera,    DataType::TYPE_STRING);
+        $hojaBancoVigente_tr->setCellValueByColumnAndRow(13, $numeroDeFilaBancoVigente_tr, $pago_docs);
+        $hojaBancoVigente_tr->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaBancoVigente_tr, $benef_cta,  DataType::TYPE_STRING);
 
         $numeroDeFilaBancoVigente_tr++;
     }
@@ -205,26 +263,26 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $encabezadoBancoCastigo_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "N° Cuotas", "Cartera", "N° Cuotas a pagar", "Nombre Deudor", "Cuenta Beneficiario"];
         $hojaBancoCastigo_tr->fromArray($encabezadoBancoCastigo_tr, null, 'A1');
 
-        $hojaBancoCastigo_tr->setCellValueByColumnAndRow        (1, $numeroDeFilaBancoCastigo_tr, $idpareo_sis);
+        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(1, $numeroDeFilaBancoCastigo_tr, $id_asignacion);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaBancoCastigo_tr, $ord_rut,    DataType::TYPE_STRING);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaBancoCastigo_tr, $ord_dv,     DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueByColumnAndRow        (4, $numeroDeFilaBancoCastigo_tr, $ord_banco);
+        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(4, $numeroDeFilaBancoCastigo_tr, $ord_banco);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaBancoCastigo_tr, $ord_cta,    DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueByColumnAndRow        (6, $numeroDeFilaBancoCastigo_tr, $monto_tr);
+        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(6, $numeroDeFilaBancoCastigo_tr, $monto_tr);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaBancoCastigo_tr, $deud_rut,   DataType::TYPE_STRING);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaBancoCastigo_tr, $deud_dv,    DataType::TYPE_STRING);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaBancoCastigo_tr, $operacion,  DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueByColumnAndRow        (10,$numeroDeFilaBancoCastigo_tr, $monto_doc);
-        $hojaBancoCastigo_tr->setCellValueByColumnAndRow        (11,$numeroDeFilaBancoCastigo_tr, $cant_docs);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaBancoCastigo_tr, $cartera . " BANCO", DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(13,$numeroDeFilaBancoCastigo_tr, $pago_docs,  DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(14,$numeroDeFilaBancoCastigo_tr, $deud_nom,   DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(15,$numeroDeFilaBancoCastigo_tr, $benef_cta,  DataType::TYPE_STRING);
+        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(10, $numeroDeFilaBancoCastigo_tr, $monto_doc);
+        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(11, $numeroDeFilaBancoCastigo_tr, $cant_docs);
+        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaBancoCastigo_tr, $cartera . " BANCO", DataType::TYPE_STRING);
+        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(13, $numeroDeFilaBancoCastigo_tr, $pago_docs,  DataType::TYPE_STRING);
+        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaBancoCastigo_tr, $deud_nom,   DataType::TYPE_STRING);
+        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(15, $numeroDeFilaBancoCastigo_tr, $benef_cta,  DataType::TYPE_STRING);
 
         $numeroDeFilaBancoCastigo_tr++;
     }
 
-/* ==========================================================CHEQUES========================================================*/
+    /* ==========================================================CHEQUES========================================================*/
 
     // Bloque CMR CHEQUE
     if ($tipo_canal == 1 && $benef_cta == '61682381' && $producto != 'HIPOTECARIO') {
@@ -232,18 +290,18 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $encabezadoCMR_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
         $hojaCMR_ch->fromArray($encabezadoCMR_tr, null, 'A1');
 
-        $hojaCMR_ch->setCellValueByColumnAndRow         (1, $numeroDeFilaCMR_ch, $idpareo_sis);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (2, $numeroDeFilaCMR_ch, $ord_rut, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (3, $numeroDeFilaCMR_ch, $ord_dv, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueByColumnAndRow         (4, $numeroDeFilaCMR_ch, $ord_banco);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (5, $numeroDeFilaCMR_ch, $ord_cta, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueByColumnAndRow         (6, $numeroDeFilaCMR_ch, $monto_tr);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (7, $numeroDeFilaCMR_ch, $deud_rut, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (8, $numeroDeFilaCMR_ch, $deud_dv, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (9, $numeroDeFilaCMR_ch, $operacion, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueByColumnAndRow         (10,$numeroDeFilaCMR_ch, $monto_doc);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (11,$numeroDeFilaCMR_ch, $cartera, DataType::TYPE_STRING);
-        $hojaCMR_ch->setCellValueExplicitByColumnAndRow (12,$numeroDeFilaCMR_ch, $benef_cta, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueByColumnAndRow(1, $numeroDeFilaCMR_ch, $id_asignacion);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaCMR_ch, $ord_rut, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaCMR_ch, $ord_dv, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueByColumnAndRow(4, $numeroDeFilaCMR_ch, $ord_banco);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaCMR_ch, $ord_cta, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueByColumnAndRow(6, $numeroDeFilaCMR_ch, $monto_tr);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaCMR_ch, $deud_rut, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaCMR_ch, $deud_dv, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaCMR_ch, $operacion, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueByColumnAndRow(10, $numeroDeFilaCMR_ch, $monto_doc);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(11, $numeroDeFilaCMR_ch, $cartera, DataType::TYPE_STRING);
+        $hojaCMR_ch->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaCMR_ch, $benef_cta, DataType::TYPE_STRING);
 
         $numeroDeFilaCMR_ch++;
     }
@@ -254,20 +312,20 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $encabezadoBancoVigente_ch = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Nombre Producto", "Cartera", "N° Cuotas a pagar", "Cuenta Beneficiario"];
         $hojaBancoVigente_ch->fromArray($encabezadoBancoVigente_ch, null, 'A1');
 
-        $hojaBancoVigente_ch->setCellValueByColumnAndRow        (1, $numeroDeFilaBancoVigente_ch, $idpareo_sis);
+        $hojaBancoVigente_ch->setCellValueByColumnAndRow(1, $numeroDeFilaBancoVigente_ch, $id_asignacion);
         $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaBancoVigente_ch, $ord_rut,    DataType::TYPE_STRING);
         $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaBancoVigente_ch, $ord_dv,     DataType::TYPE_STRING);
-        $hojaBancoVigente_ch->setCellValueByColumnAndRow        (4, $numeroDeFilaBancoVigente_ch, $ord_banco);
+        $hojaBancoVigente_ch->setCellValueByColumnAndRow(4, $numeroDeFilaBancoVigente_ch, $ord_banco);
         $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaBancoVigente_ch, $ord_cta,    DataType::TYPE_STRING);
-        $hojaBancoVigente_ch->setCellValueByColumnAndRow        (6, $numeroDeFilaBancoVigente_ch, $monto_tr);
+        $hojaBancoVigente_ch->setCellValueByColumnAndRow(6, $numeroDeFilaBancoVigente_ch, $monto_tr);
         $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaBancoVigente_ch, $deud_rut,   DataType::TYPE_STRING);
         $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaBancoVigente_ch, $deud_dv,    DataType::TYPE_STRING);
         $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaBancoVigente_ch, $operacion,  DataType::TYPE_STRING);
-        $hojaBancoVigente_ch->setCellValueByColumnAndRow        (10,$numeroDeFilaBancoVigente_ch, $monto_doc);
-        $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(11,$numeroDeFilaBancoVigente_ch, $producto,   DataType::TYPE_STRING);
-        $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaBancoVigente_ch, $cartera,    DataType::TYPE_STRING);
-        $hojaBancoVigente_ch->setCellValueByColumnAndRow        (13,$numeroDeFilaBancoVigente_ch, $pago_docs);
-        $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(14,$numeroDeFilaBancoVigente_ch, $benef_cta,  DataType::TYPE_STRING);
+        $hojaBancoVigente_ch->setCellValueByColumnAndRow(10, $numeroDeFilaBancoVigente_ch, $monto_doc);
+        $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(11, $numeroDeFilaBancoVigente_ch, $producto,   DataType::TYPE_STRING);
+        $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaBancoVigente_ch, $cartera,    DataType::TYPE_STRING);
+        $hojaBancoVigente_ch->setCellValueByColumnAndRow(13, $numeroDeFilaBancoVigente_ch, $pago_docs);
+        $hojaBancoVigente_ch->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaBancoVigente_ch, $benef_cta,  DataType::TYPE_STRING);
 
         $numeroDeFilaBancoVigente_ch++;
     }
@@ -278,21 +336,21 @@ while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $encabezadoBancoCastigo_ch = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "N° Cuotas", "Cartera", "N° Cuotas a pagar", "Nombre Deudor", "Cuenta Beneficiario"];
         $hojaBancoCastigo_ch->fromArray($encabezadoBancoCastigo_ch, null, 'A1');
 
-        $hojaBancoCastigo_ch->setCellValueByColumnAndRow        (1, $numeroDeFilaBancoCastigo_ch, $idpareo_sis);
+        $hojaBancoCastigo_ch->setCellValueByColumnAndRow(1, $numeroDeFilaBancoCastigo_ch, $id_asignacion);
         $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaBancoCastigo_ch, $ord_rut,    DataType::TYPE_STRING);
         $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaBancoCastigo_ch, $ord_dv,     DataType::TYPE_STRING);
-        $hojaBancoCastigo_ch->setCellValueByColumnAndRow        (4, $numeroDeFilaBancoCastigo_ch, $ord_banco);
+        $hojaBancoCastigo_ch->setCellValueByColumnAndRow(4, $numeroDeFilaBancoCastigo_ch, $ord_banco);
         $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaBancoCastigo_ch, $ord_cta,    DataType::TYPE_STRING);
-        $hojaBancoCastigo_ch->setCellValueByColumnAndRow        (6, $numeroDeFilaBancoCastigo_ch, $monto_tr);
+        $hojaBancoCastigo_ch->setCellValueByColumnAndRow(6, $numeroDeFilaBancoCastigo_ch, $monto_tr);
         $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaBancoCastigo_ch, $deud_rut,   DataType::TYPE_STRING);
         $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaBancoCastigo_ch, $deud_dv,    DataType::TYPE_STRING);
         $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaBancoCastigo_ch, $operacion,  DataType::TYPE_STRING);
-        $hojaBancoCastigo_ch->setCellValueByColumnAndRow        (10,$numeroDeFilaBancoCastigo_ch, $monto_doc);
-        $hojaBancoCastigo_ch->setCellValueByColumnAndRow        (11,$numeroDeFilaBancoCastigo_ch, $cant_docs);
-        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaBancoCastigo_ch, $cartera . " BANCO", DataType::TYPE_STRING);
-        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(13,$numeroDeFilaBancoCastigo_ch, $pago_docs,  DataType::TYPE_STRING);
-        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(14,$numeroDeFilaBancoCastigo_ch, $deud_nom,   DataType::TYPE_STRING);
-        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(15,$numeroDeFilaBancoCastigo_ch, $benef_cta,  DataType::TYPE_STRING);
+        $hojaBancoCastigo_ch->setCellValueByColumnAndRow(10, $numeroDeFilaBancoCastigo_ch, $monto_doc);
+        $hojaBancoCastigo_ch->setCellValueByColumnAndRow(11, $numeroDeFilaBancoCastigo_ch, $cant_docs);
+        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaBancoCastigo_ch, $cartera . " BANCO", DataType::TYPE_STRING);
+        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(13, $numeroDeFilaBancoCastigo_ch, $pago_docs,  DataType::TYPE_STRING);
+        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaBancoCastigo_ch, $deud_nom,   DataType::TYPE_STRING);
+        $hojaBancoCastigo_ch->setCellValueExplicitByColumnAndRow(15, $numeroDeFilaBancoCastigo_ch, $benef_cta,  DataType::TYPE_STRING);
 
         $numeroDeFilaBancoCastigo_ch++;
     }
@@ -312,6 +370,7 @@ while ($hipotecario = sqlsrv_fetch_array($stmt_hipotecario, SQLSRV_FETCH_ASSOC))
 
     //Variables pareo sistema
     $id_ps_hipotecario          = $hipotecario['ID_PS'];
+    $id_asign_hipotecario       = $hipotecario['ID_ASIGNACION'];
     $ord_rut_hipotecario        = $hipotecario['ORDENANTE_RUT'];
     $ord_dv_hipotecario         = $hipotecario['ORDENANTE_DV'];
     $ord_banco_hipotecario      = $hipotecario['ORDENANTE_BANCO'];
@@ -325,55 +384,34 @@ while ($hipotecario = sqlsrv_fetch_array($stmt_hipotecario, SQLSRV_FETCH_ASSOC))
     $cartera_hipotecario        = $hipotecario['CARTERA'];
     $benef_cta_hipotecario      = $hipotecario['CUENTA_BENEFICIARIO'];
     $tipo_canal_hipotecario     = $hipotecario['CANAL'];
+    $canalizacion_hipotecario   = $hipotecario['CANALIZACION'];
 
-/* ======================================================HIPOTECARIOS=====================================================*/
+    /* ======================================================HIPOTECARIOS=====================================================*/
 
-    // Bloque Hipotecario CHEQUE
-    if ($tipo_canal_hipotecario == 1 && $benef_cta_hipotecario == '29743125' && $producto_hipotecario == 'HIPOTECARIO') {
-        // Escribir encabezado de los productos para Banco Vigente
-        $encabezadoHipotecario_ch = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
+        $encabezadoHipotecario_ch = ["ID", "Canal", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Subproducto", "Cartera", "Cuenta Beneficiario"];
         $hojaHipotecario_ch->fromArray($encabezadoHipotecario_ch, null, 'A1');
 
-        $hojaHipotecario_ch->setCellValueByColumnAndRow        (1, $numeroDeFilaHipotecario_ch, $id_ps_hipotecario);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaHipotecario_ch, $ord_rut_hipotecario,    DataType::TYPE_STRING);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaHipotecario_ch, $ord_dv_hipotecario,     DataType::TYPE_STRING);
-        $hojaHipotecario_ch->setCellValueByColumnAndRow        (4, $numeroDeFilaHipotecario_ch, $ord_banco_hipotecario);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaHipotecario_ch, $ord_cta_hipotecario,    DataType::TYPE_STRING);
-        $hojaHipotecario_ch->setCellValueByColumnAndRow        (6, $numeroDeFilaHipotecario_ch, $monto_tr_hipotecario);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaHipotecario_ch, $deud_rut_hipotecario,   DataType::TYPE_STRING);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaHipotecario_ch, $deud_dv_hipotecario,    DataType::TYPE_STRING);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaHipotecario_ch, $operacion_hipotecario,  DataType::TYPE_STRING);
-        $hojaHipotecario_ch->setCellValueByColumnAndRow        (10,$numeroDeFilaHipotecario_ch, $monto_doc_hipotecario);
-        $hojaHipotecario_ch->setCellValueByColumnAndRow        (11,$numeroDeFilaHipotecario_ch, $cartera_hipotecario);
-        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaHipotecario_ch, $benef_cta_hipotecario,  DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (1, $numeroDeFilaHipotecario_ch, $id_asign_hipotecario);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (2, $numeroDeFilaHipotecario_ch, $canalizacion_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (3, $numeroDeFilaHipotecario_ch, $ord_rut_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (4, $numeroDeFilaHipotecario_ch, $ord_dv_hipotecario,     DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (5, $numeroDeFilaHipotecario_ch, $ord_banco_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (6, $numeroDeFilaHipotecario_ch, $ord_cta_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (7, $numeroDeFilaHipotecario_ch, $monto_tr_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (8, $numeroDeFilaHipotecario_ch, $deud_rut_hipotecario,   DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (9, $numeroDeFilaHipotecario_ch, $deud_dv_hipotecario,    DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (10, $numeroDeFilaHipotecario_ch, $operacion_hipotecario,  DataType::TYPE_STRING);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (11, $numeroDeFilaHipotecario_ch, $monto_doc_hipotecario);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (12, $numeroDeFilaHipotecario_ch, $producto_hipotecario);
+        $hojaHipotecario_ch->setCellValueByColumnAndRow         (13, $numeroDeFilaHipotecario_ch, $cartera_hipotecario);
+        $hojaHipotecario_ch->setCellValueExplicitByColumnAndRow (14, $numeroDeFilaHipotecario_ch, $benef_cta_hipotecario,  DataType::TYPE_STRING);
 
         $numeroDeFilaHipotecario_ch++;
-    }
 
-    // Bloque Hipotecario CHEQUE
-    if ($tipo_canal_hipotecario == 2 && $benef_cta_hipotecario == '29743125' && $producto_hipotecario == 'HIPOTECARIO') {
-        // Escribir encabezado de los productos para Banco Vigente
-        $encabezadoHipotecario_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
-        $hojaHipotecario_tr->fromArray($encabezadoHipotecario_tr, null, 'A1');
-
-        $hojaHipotecario_tr->setCellValueByColumnAndRow        (1, $numeroDeFilaHipotecario_tr, $id_ps_hipotecario);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(2, $numeroDeFilaHipotecario_tr, $ord_rut_hipotecario,    DataType::TYPE_STRING);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(3, $numeroDeFilaHipotecario_tr, $ord_dv_hipotecario,     DataType::TYPE_STRING);
-        $hojaHipotecario_tr->setCellValueByColumnAndRow        (4, $numeroDeFilaHipotecario_tr, $ord_banco_hipotecario);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(5, $numeroDeFilaHipotecario_tr, $ord_cta_hipotecario,    DataType::TYPE_STRING);
-        $hojaHipotecario_tr->setCellValueByColumnAndRow        (6, $numeroDeFilaHipotecario_tr, $monto_tr_hipotecario);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaHipotecario_tr, $deud_rut_hipotecario,   DataType::TYPE_STRING);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaHipotecario_tr, $deud_dv_hipotecario,    DataType::TYPE_STRING);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaHipotecario_tr, $operacion_hipotecario,  DataType::TYPE_STRING);
-        $hojaHipotecario_tr->setCellValueByColumnAndRow        (10,$numeroDeFilaHipotecario_tr, $monto_doc_hipotecario);
-        $hojaHipotecario_tr->setCellValueByColumnAndRow        (11,$numeroDeFilaHipotecario_tr, $cartera_hipotecario);
-        $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(12,$numeroDeFilaHipotecario_tr, $benef_cta_hipotecario,  DataType::TYPE_STRING);
-
-        $numeroDeFilaHipotecario_tr++;
-    }
 }
 
 // Ajustar el ancho de las columnas en ambas hojas
+autoSizeColumns($hojaCheques);
 autoSizeColumns($hojaCMR_tr);
 autoSizeColumns($hojaBancoVigente_tr);
 autoSizeColumns($hojaBancoCastigo_tr);

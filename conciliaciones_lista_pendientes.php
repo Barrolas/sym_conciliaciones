@@ -103,17 +103,17 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="row">
                     <div class="col">
                         <h3>
-                            <b>Pendientes</b>
+                            <b>Pareados pendientes</b>
                         </h3>
                     </div>
                     <div class="row mr-2">
                         <div class="col-12 mx-2">
                             <p>
-                                Esta herramienta permite ingresar y gestionar cargas masivas de documentos asociados a deudores de clientes,
-                                utilizando un formato pre-establecido con un archivo base en Excel.
-                                Las <b>cargas</b> pueden ser revisadas para obtener el detalle de la cantidad de documentos que fueron leídos, cargados satisfactoriamente
-                                y rechazados según los criterios de validación correspondientes (<strong><a href="cargas_crear.php">ver aquí</a></strong>), con detalle disponible para ambos casos.
-                                También se permite deshabilitar cargas en caso de errores en la asignación a clientes con el botón de <b>ESTADO</b>.
+                                En este módulo se pueden visualizar los documentos que ya han sido pareados, pero que,
+                                debido a las características del tipo de cartera, no permiten que se realicen abonos.
+                                Como resultado, estos documentos quedan en estado pendiente, a la espera de ser
+                                cubiertos conforme a los criterios específicos establecidos para cada tipo de cartera.
+                                Dichos criterios varían según la naturaleza de la cartera y sus políticas de gestión.
                             </p>
                         </div>
                     </div>

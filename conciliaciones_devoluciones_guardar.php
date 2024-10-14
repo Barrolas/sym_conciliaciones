@@ -67,13 +67,16 @@ if ($stmt_tipo_ps === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-$sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?)}";
+$tipo_saldo = 2;
+
+$sql_saldo = "{call [_SP_CONCILIACIONES_SALDO_INSERTA] (?, ?, ?, ?)}";
 $params_saldo = array(
     array($idpareo_sistema,     SQLSRV_PARAM_IN),
-    array($monto,               SQLSRV_PARAM_IN)
+    array($tipo_saldo,          SQLSRV_PARAM_IN),
+    array($monto,               SQLSRV_PARAM_IN),
+    array($idusuario,           SQLSRV_PARAM_IN)
 );
 $stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
-
 if ($stmt_saldo === false) {
     echo "Error in executing statement saldo.\n";
     die(print_r(sqlsrv_errors(), true));

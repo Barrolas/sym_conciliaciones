@@ -280,7 +280,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                         </div>
 
                         <?php if ($existe == 1 && ($matched == 1 || $matched == 3)) { ?>
-                            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?php echo $gestion["MONTO"] ?>&fecha_rec=<?php echo $gestion["FECHA"] ?>&monto_diferencia=<?php echo isset($monto_diferencia) ? $monto_diferencia : '0' ?>&op=2" onsubmit="return valida_envia();return false;">
+                            <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_pareos_guardar.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&rut_deudor=<?php echo $rut_deudor ?>&cuenta=<?php echo $cuenta ?>&monto=<?php echo $gestion["MONTO"] ?>&fecha_rec=<?php echo $gestion["FECHA"] ?>&monto_diferencia=<?php echo isset($monto_diferencia) ? $monto_diferencia : '0' ?>&nombre_ordenante=<?php echo htmlspecialchars($gestion["NOMBRE"], ENT_QUOTES, 'UTF-8') ?>&op=2" onsubmit="return valida_envia();return false;">
                                 <div class="card ">
                                     <div class="card-header" style="background-color: #0055a6">
                                         <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -321,6 +321,21 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                     </div>
                                                                                 </div>
                                                                             </td>
+
+                                                                            <?php if ($rut_ordenante == '77206260-5') { ?>
+
+                                                                                <td align="right">
+                                                                                    <div class="col-auto p-0">
+                                                                                        <a class="btn btn-md btn-success ml-3 mb-0" id="search_button" style="transform: translateX(-6px);" href="conciliaciones_documentos_entrecuentas.php?transaccion=<?php echo $transaccion; ?>&rut_ordenante=<?php echo $rut_ordenante; ?>&cuenta=<?php echo $cuenta; ?>">
+                                                                                            ENTRECUENTAS <i class="fa fa-search custom-size py-1 ml-2"></i>
+                                                                                        </a>
+                                                                                    </div>
+                                                                                </td>
+
+
+                                                                            <?php
+                                                                            } ?>
+
                                                                             <td align="right">
                                                                                 <div class="col-auto p-0">
                                                                                     <a class="btn btn-md btn-info ml-3 mb-0" id="search_button" style="transform: translateX(-6px);" href="conciliaciones_documentos_diferencias.php?transaccion=<?php echo $transaccion; ?>&rut_ordenante=<?php echo $rut_ordenante; ?>&cuenta=<?php echo $cuenta; ?>">
@@ -471,13 +486,13 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                             $estado_doc = $transferencia["ESTADO_DOC"];
                                                                             switch ($estado_doc) {
                                                                                 case '001':
-                                                                                    $estado_doc_text = 'VIGENTE';
+                                                                                    $estado_doc_text = '001-VIGENTE';
                                                                                     break;
                                                                                 case '014':
-                                                                                    $estado_doc_text = 'PAGADO';
+                                                                                    $estado_doc_text = '014-PAGADO';
                                                                                     break;
                                                                                 case '333':
-                                                                                    $estado_doc_text = 'NO VIGENTE';
+                                                                                    $estado_doc_text = '333-NO VGTE';
                                                                                     break;
                                                                                 default:
                                                                                     $estado_doc_text = $estado_doc;
@@ -526,7 +541,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                         ?>
                                                                             <tr>
                                                                                 <td class="col-1" style="text-align: center;">
-                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo . ',' . $monto_ingresado  . ',' . $prestamos; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
+                                                                                    <input type="checkbox" class="iddocumento_checkbox" name="iddocumento_checkbox[]" value="<?php echo $id_documento . ',' . $monto_doc . ',' . $fecha_venc . ',' . $subproducto . ',' . $monto_pareo . ',' . $monto_ingresado  . ',' . $prestamos  . ',' . $n_doc; ?>" data-n-doc="<?php echo htmlspecialchars($n_doc); ?>" />
                                                                                 </td>
                                                                                 <td class="f_venc col-auto font_mini" id="f_venc"><?php echo $f_venc; ?></td>
                                                                                 <td class="valor col-auto font_mini" id="valor" style="display: none;"><?php echo $transferencia["MONTO"]; ?></td>
@@ -814,8 +829,8 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                 }
             ],
             order: [
-                [9, 'desc'],
-                [1, 'asc']
+                [9, 'asc'],
+                [1, 'asc'],
             ],
             createdRow: function(row, data, dataIndex) {
                 $(row).attr('id', 'row-' + dataIndex);

@@ -3,6 +3,7 @@ session_start();
 
 include("funciones.php");
 include("conexiones.php");
+include("permisos_adm.php");
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

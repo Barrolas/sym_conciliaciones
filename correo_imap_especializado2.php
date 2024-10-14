@@ -9,12 +9,13 @@
 <?php
 // ini_set('display_errors','On');
 // Librerias
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
 include('funciones.php');
 require_once ('phpexcel2/vendor/autoload.php');
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 require_once('PHPDecryptXLSXWithPassword.php');
-
+ 
 // FIN LIBRERIAS
 // SET UP CONEXION SQL SERVER / HADES
 $serverName = "192.168.1.41\DESARROLLO"; 
@@ -133,6 +134,14 @@ foreach ($emails as $email) {
   
     echo "NUMERO MENSAJE : ".$msgno;
     echo  "<BR>SUBJECT : " . ($resultados[0]->subject).'<BR>';
+
+	$pos 		= strpos($resultados[0]->from, 'BpoDOCS');
+	if ($pos != '') {
+		echo "<<<<<------ SPAM ---->>>>>";
+		continue;
+	};
+
+
    /*   if ($msgno <> 289) {
         continue;
     }
@@ -268,8 +277,8 @@ foreach ($emails as $email) {
 		$tipo_archivo = 0;	
 	}
 	
-	$pos 		= strpos($resultados[0]->subject, 'agos recover al');
-	echo "EL POS OPERACIONES RECOVER ::::::: ".$pos.'<BR>';
+	$pos 		= strpos($resultados[0]->subject, 'Exclusion Operaciones');
+	echo "COOPEUCH_EXCLUSIONES ::::::: ".$pos.'<BR>';
 	if ($pos != '') {
 		$proceso =  "COOPEUCH_EXCLUSIONES";
 		echo $proceso;
@@ -283,7 +292,26 @@ foreach ($emails as $email) {
 		echo $proceso;
 		$tipo_archivo = 0;	
 	}
-	
+
+	$pos 		= strpos(mb_convert_encoding($resultados[0]->subject, 'UTF-8', 'auto'), 'Asignación Cartera Vigente');
+	echo "EL POS PAGOS HIPOTECARIO ::::::: ".$pos.'<BR>';
+    echo "UFT-8".mb_convert_encoding($resultados[0]->subject, 'UTF-8', 'auto');
+	if ($pos != '') {
+		$proceso =  "RIPLEY_CARGA";
+		echo $proceso;
+		$tipo_archivo = 0;	
+        exit;
+	}
+
+	$pos 		= strpos(strtoupper($resultados[0]->subject), 'AJUSTE');
+	$pos2 		= strpos(strtoupper($resultados[0]->subject), 'CMR CASTIGO');
+	echo "EL POS PAGOS SISI ::::::: ".$pos.'<BR>';
+	if ($pos != '' and $pos2 != '') {
+		$proceso =  "BANCO_SISI";
+		echo $proceso;
+		$tipo_archivo = 0;	
+	}
+
     echo "PPPPPPPPPROCESO : " . $proceso;
 	// continue;
 	
@@ -389,6 +417,9 @@ foreach ($emails as $email) {
 					elseif ($proceso == 'FALABELLA') {
 						$folder = "$repositorio\\excel_pagos\FALABELLA";
 					}
+					elseif ($proceso == "BANCO_SISI") {
+						$folder = "$repositorio\\excel_pagos\FALABELLA\CMRCASTIGO";
+					}
 					elseif ($proceso == 'CRUZVERDE VIGENTE' or $proceso == 'CRUZVERDE CASTIGO' or $proceso == 'CRUZVERDE PILOTO') {
 						$folder = "$repositorio\\excel_pagos\CRUZVERDE";
 					} elseif ($proceso == 'RIPLEY') {
@@ -428,7 +459,7 @@ foreach ($emails as $email) {
 					} else {
 						// CARGAS
                         if ($proceso == 'RIPLEY_VIGENTES' ) {
-							$stmt = sqlsrv_query( $conn, "delete from _dv_vigentes_diarios_ripley" );
+							$stmt = sqlsrv_query( $conn2, "delete from _dv_vigentes_diarios_ripley" );
 							echo "RIPLEY _ VIGENTES".$proceso;
 							$fp = fopen("vigentes.csv", "w+");
 							fwrite($fp, $attachment['attachment']);
@@ -449,40 +480,50 @@ foreach ($emails as $email) {
 									echo $data[0].' -> '.$data[1].' -> '.$data[2].' -> '.$data[3];
 									echo "<BR>";
 									*/
-									$sql = " INSERT INTO [dbo].[_dv_vigentes_diarios_ripley]
+							$sql = " INSERT INTO [dbo].[_dv_vigentes_diarios_ripley]
 									(
 									[FECHA_PROC]									
 									,[RUT_CLIENTE]
 									)
 							VALUES
-							(".trim($data[0])."
-									,'".trim($data[7])."'
-									,'".trim($data[12])."'
+							(
+									'".$hoy_corto."'
+									,'".trim($data[11])."'
 									)"; 
-									//echo $sql.'<BR>';
+							// echo $sql.'<BR>';
 								$stmt = sqlsrv_query( $conn2, $sql );
 							};
+							$sql3 = "
+							insert into _dv_vigentes_diarios_ripley_historico
+							select * 
+							from _dv_vigentes_diarios_ripley";
+							$stmt = sqlsrv_query( $conn2, $sql );
+
+
 							$sql = 'Exec _SP_DV_GUARDA_EMAIL_PROCESADOS 777777,'.$msgno;
 							echo $sql;
 							$stmt = sqlsrv_query( $conn4, $sql );
 							unlink('vigentes.csv');
 						}						 
 						elseif ($proceso == 'COOPEUCH_EXCLUSIONES' ) {
-							$stmt = sqlsrv_query( $conn4, "delete from dv_exclusion_coopeuch_terreno_telefonica" );
+							$stmt = sqlsrv_query( $conn2, "delete from dv_exclusion_coopeuch_terreno_telefonica" );
 							echo $proceso;
 							$proc = 'EXCLUSIONOPERACIONES_TELEFONICA_TERRENO_'.$ano.$mes.$dia.'.csv'; 
 							$fp = fopen($proc, "w+");
 							fwrite($fp, $attachment['attachment']);
 							fclose($fp);
 							
-							echo $proceso;
+							
 							$proc1 = 'EXCLUSIONOPERACIONES_DIGITAL_'.$ano.$mes.$dia.'.csv'; 
+							echo $proc1;
 							$fp = fopen($proc1, "w+");
 							fwrite($fp, $attachment['attachment']);
 							fclose($fp);
                             $fp = fopen ($proc,"r");
 							// echo date('d-m-Y h:m:s');
-							while ($data = fgetcsv ($fp, 1000, ",")) {
+							while ($data = fgetcsv ($fp, 1000, ";")) {
+								// print_r($data);
+								// echo "<br>";
 							/*  $num = count ($data);
 								
 							
@@ -502,23 +543,26 @@ foreach ($emails as $email) {
 									,[GLOSA_ULTIMA_GESTION]
 									,FECHA_PROCESO)
 							VALUES
-									(".trim($data[0])."
-									,".trim($data[1])."
-									,".trim($data[2])."
-									,".trim($data[3])."
-									,".trim($data[4])."
-									,".trim($data[5])."
-									,".trim($data[6])."
-									,".trim($data[7])."
-									,".trim($data[8])."
-									,".trim($data[9])."
+									('".trim($data[0])."'
+									,'".trim($data[1])."'
+									,'".trim($data[2])."'
+									,'".trim($data[3])."'
+									,'".trim($data[4])."'
+									,'".trim($data[5])."'
+									,'".trim($data[6])."'
+									
+									,'".trim($data[8])."'
+									,'".trim($data[9])."'
 									,'$hoy_corto')";
-							//        echo $sql.'<BR>';
+							        // echo $sql.'<BR>';
 								$stmt = sqlsrv_query( $conn2, $sql );
 
 							}					
-							copy("rutero.csv",$folder ."\\procesados\\rutero$hoy_corto.csv");
-                            unlink('rutero.csv');
+							
+                            unlink($proc);
+							$sql = 'Exec _SP_DV_GUARDA_EMAIL_PROCESADOS 999999,'.$msgno;
+							echo $sql;
+							$stmt = sqlsrv_query( $conn4, $sql );
 						} 
 						elseif ($proceso == 'RUTERO' ) {
 
@@ -601,7 +645,35 @@ foreach ($emails as $email) {
 
 							$sql  = 'Exec _SP_CARGA_FALABELLA_CONSUMO;';
 							$stmt = sqlsrv_query( $conn3, $sql );
+							
 							*/
+						} elseif ($proceso == 'BANCO_SISI' ) { 
+							
+							$fp = fopen("$filename", "w");
+							fwrite($fp, $attachment['attachment']);
+							fclose($fp);
+							
+							$reader         = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+							$spreadsheet    = $reader->load($filename);
+							$sheet          = $spreadsheet->getActiveSheet();
+
+							$spreadsheet->getActiveSheet()->setTitle("Hoja1");
+							$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+
+							$writer->save("pagos_sisi.xlsx");
+							
+							copy('pagos_sisi.xlsx', 'c:\excel_pagos\FALABELLA\CMRCASTIGO\pagos_sisi.xlsx');
+
+							unlink($filename);
+
+							/*$sql  = 'Exec _SP_CARGA_FALABELLA_HIPO;';
+							$stmt = sqlsrv_query( $conn3, $sql );	
+
+							$sql  = 'Exec _SP_COPIA_HIPO;';
+							$stmt = sqlsrv_query( $conn2, $sql );*/
+
+							$sql = 'Exec _SP_DV_GUARDA_EMAIL_PROCESADOS 96509673,'.$msgno; // PLAN PAGOS
+							$stmt = sqlsrv_query( $conn4, $sql );
 						} elseif ($proceso == 'BANCO_HIPO' ) { 
 							
 							$fp = fopen("$filename", "w");
@@ -625,9 +697,7 @@ foreach ($emails as $email) {
 							$sql  = 'Exec _SP_CARGA_FALABELLA_HIPO;';
 							$stmt = sqlsrv_query( $conn3, $sql );	
 
-							$sql  = 'Exec _SP_COPIA_HIPO;';
-							$stmt = sqlsrv_query( $conn2, $sql );
-
+							
 						} elseif ($proceso == 'ABAKOS_CARGAS' ) {
 
 							echo 'ATACHADO : ' . $filename.'<BR>';
@@ -753,7 +823,15 @@ foreach ($emails as $email) {
 							$spreadsheet = new Spreadsheet();
 							$inputFileType = 'Xlsx';
 							$inputFileName = 'RECOVER.xlsx';
+							
+							$reader         = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+							$spreadsheet    = $reader->load($inputFileName);
+							$sheet          = $spreadsheet->getActiveSheet();
 
+							$spreadsheet->getActiveSheet()->setTitle("BBDD");
+							$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+
+							$writer->save("RECOVER.xlsx");
 							/*
 
 							$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName );

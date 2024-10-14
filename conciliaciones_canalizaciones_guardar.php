@@ -75,6 +75,8 @@ echo "<pre>";
 print_r($id_canalizacion);
 echo "</pre>";
 
+
+
 // Insertar documentos
 echo "<h3>Procesando documentos:</h3>";
 foreach ($selected_ids_docs as $index => $id_docdeudores) {
@@ -85,11 +87,50 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     // Depuración: imprimir valores actuales
     echo "Processing: Index = $index, ID DocDeudores = $id_docdeudores, ID Pareo Doc = $id_pareo_doc, Type = $type<br>";
 
-    $sql2 = "{call [_SP_CONCILIACIONES_CANALIZACION_DOCUMENTO_INSERTA] (?, ?, ?, ?)}";
+    $sql_docdeudores = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_CONSULTA] (?)}";
+    $params_docdeudores = array(
+        array((int)$id_pareo_doc,       SQLSRV_PARAM_IN),
+    );
+    $stmt_docdeudores = sqlsrv_query($conn, $sql_docdeudores, $params_docdeudores);
+    if ($stmt_docdeudores === false) {
+        echo "Error en la ejecución de la declaración _docdeudores en el índice $index.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+    $docdeudores = sqlsrv_fetch_array($stmt_docdeudores, SQLSRV_FETCH_ASSOC);
+
+    $id_doc             = $docdeudores['ID_DOCDEUDORES'];
+    $monto_diferencia   = 0;
+    $estado_canal       = 0;
+
+    $sql_dif = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA] (?)}";
+    $params_dif = array(
+        array((int)$id_doc,             SQLSRV_PARAM_IN),
+    );
+    $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
+    if ($stmt_dif === false) {
+        echo "Error en la ejecución de la declaración _dif en el índice $index.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+    $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
+
+    $monto_diferencia = $diferencia['MONTO_DIFERENCIA'] ?? 0;
+
+    if ($monto_diferencia > 0) {
+        $estado_canal = 4;
+    } elseif ($monto_diferencia == 0) {
+        $estado_canal = 1;
+    }
+
+    print_r("Monto diferencia: " . $monto_diferencia);
+    print_r("Estado: " . $estado_canal);
+    //exit;
+
+    $sql2 = "{call [_SP_CONCILIACIONES_CANALIZACION_DOCUMENTO_INSERTA] (?, ?, ?, ?, ?)}";
     $params2 = array(
         array((int)$id_canalizacion,    SQLSRV_PARAM_IN),
         array((int)$type,               SQLSRV_PARAM_IN),
         array((int)$id_pareo_doc,       SQLSRV_PARAM_IN),
+        array((int)$estado_canal,       SQLSRV_PARAM_IN),
         array((int)$id_usuario,         SQLSRV_PARAM_IN)
     );
 
@@ -98,6 +139,19 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
         echo "Error en la ejecución de la declaración 2 en el índice $index.\n";
         die(print_r(sqlsrv_errors(), true));
     }
+
+    // Actualizar canalización
+    $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_CANALIZACION_INSERTA] (?, ?)}";
+    $params_operacion = array(
+        array($id_docdeudores,     SQLSRV_PARAM_IN),
+        array($id_usuario,         SQLSRV_PARAM_IN)
+    );
+    $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
+    if ($stmt_operacion === false) {
+        echo "Error en la ejecución de la declaración _operacion.\n";
+        die(print_r(sqlsrv_errors(), true));
+    }
+
     $cantidad_docs++;
 
     // Depuración: verificar éxito de la inserción
@@ -124,10 +178,5 @@ echo "<pre>";
 print_r($cantidad_docs);
 echo "</pre>";
 
-//exit;
-
-// Redirigir a otra página
 header("Location: conciliaciones_lista_pareados.php?op=1");
 exit;
-
-?>
