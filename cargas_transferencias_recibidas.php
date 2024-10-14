@@ -68,7 +68,7 @@ error_reporting(0);
 						<div class="card">
 
 							<div class="card-body">
-								<form method="post" action="cargas_conciliaciones_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
+								<form method="post" action="cargas_transferencias_recibidas_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
 									<div class="row">
 
 										<div class="col-md-6">

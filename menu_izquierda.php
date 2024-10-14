@@ -96,7 +96,7 @@ error_reporting(E_ALL);
                         <span class="menu-arrow"><i class="mdi mdi-chevron-right"></i></span>
                     </a>
                     <ul>
-                        <li><a href="cargas_conciliaciones.php">CARGA TRANSFERENCIAS</a></li>
+                        <li><a href="cargas_transferencias_recibidas.php">CARGA TRANSFERENCIAS</a></li>
                         <li><a href="conciliaciones_transferencias_pendientes.php">TRANSFERENCIAS RECIBIDAS</a></li>
                         <li><a href="conciliaciones_lista_pendientes.php">PAREADOS PENDIENTES</a></li>
                         <li><a href="conciliaciones_exportar_indeterminados.php">EXPORTAR INDETERMINADOS</a></li>

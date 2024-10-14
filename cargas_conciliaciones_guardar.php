@@ -106,7 +106,7 @@ error_reporting(E_ALL);
 		$letraMayorDeColumna = $excelSheet->getHighestColumn(); // Letra
 
 
-		$sql = "delete from [192.168.1.193].conciliacion.dbo.[Transferencias_Recibidas]";
+		$sql = "delete from [dbo].[Transferencias_Recibidas]";
 
 		$stmt = sqlsrv_query($conn, $sql);
 		if ($stmt === false) {
