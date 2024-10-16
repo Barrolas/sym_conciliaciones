@@ -246,7 +246,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                                     $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
                                                     $id_doc             = $p_sistema['ID_DOCDEUDORES'];
-                                                    $cuenta             = $p_sistema['CUENTA_BENEFICIARIO'];
+                                                    $entrecuenta        = $p_sistema['ENTRE_CUENTAS'];
 
                                                     $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
                                                     $params_pd = array(
@@ -280,8 +280,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                                     $disabled           =  '';
 
+                                                    if ($entrecuenta == 2) {
+                                                        $benef_cta      = $p_sistema['CUENTA_CORRESPONDIENTE'];
+                                                        $transaccion    = $p_sistema['ENTRE_CUENTAS_TRANSACCION'];
+                                                    } else {
+                                                        $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
+                                                        $transaccion    = $p_sistema['TRANSACCION'];
+                                                    }
+                                                    
                                                     //Variables pareo sistema
-                                                    $transaccion    = $p_sistema['TRANSACCION'];
                                                     $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
                                                     $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
                                                     $ord_rut        = $p_sistema['ORDENANTE_RUT'];
@@ -292,7 +299,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     $deud_dv        = $p_sistema['DEUDOR_DV'];
                                                     $cte_rut        = $p_sistema['RUT_CLIENTE'];
                                                     $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
-                                                    $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
                                                     $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
                                                     //Variables pareo docs
                                                     $operacion      = $p_docs['N_DOC'];
@@ -311,7 +317,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                                 <input class="form-check-input ch_checkbox"
                                                                     name="ch_checkbox[]"
                                                                     type="checkbox"
-                                                                    value="<?php echo $idpareo_sis . ',' . $id_doc . ',' . $operacion . ',' . $transaccion . ',' . $deud_nom . ',' . $deud_rut . ',' . $deud_dv . ',' . $pago_docs . ',' . $tipo_canal; ?>"
+                                                                    value="<?php echo $idpareo_sis . ',' . $id_doc . ',' . $operacion . ',' . $transaccion . ',' . $deud_nom . ',' . $deud_rut . ',' . $deud_dv . ',' . $pago_docs . ',' . $tipo_canal . ',' . $benef_cta; ?>"
                                                                     data-column="1"
                                                                     onclick="toggleRowCheckbox(this)"
                                                                     <?php echo $disabled; ?>>

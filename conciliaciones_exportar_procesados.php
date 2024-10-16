@@ -119,8 +119,6 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     }
     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
 
-    $cuenta = $p_docs['CUENTA_BENEFICIARIO'];
-
     $sql_docdetalles = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
     $params_docdetalles = array(
         array($iddoc,     SQLSRV_PARAM_IN),
@@ -130,8 +128,6 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
         die(print_r(sqlsrv_errors(), true));
     }
     $docdetalles = sqlsrv_fetch_array($stmt_docdetalles, SQLSRV_FETCH_ASSOC);
-
-    $cuenta = $p_docs['CUENTA_BENEFICIARIO'];
 
     $sql_qtydocs = "{call [_SP_CONCILIACIONES_CANALIZADOS_PROCESADOS_CANTIDAD_PAREO_SISTEMA](?)}";
     $params_qtydocs = array(
@@ -163,9 +159,9 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     $tipo_canal     = $asignados['ID_TIPO_CANALIZACION'];
     $canal          = substr($asignados['DESCRIPCION'], 0, 2);
     $n_cheque       = $asignados['N_CHEQUE'] ?? '';
+    $benef_cta      = $asignados['CUENTA_BENEFICIARIO'];
 
     //Variables pareo docs
-    $benef_cta      = $p_docs['CUENTA_BENEFICIARIO'];
     $cte_rut        = $p_docs['RUT_CLIENTE'];
     $f_recepcion    = $p_docs['FECHA_RECEPCION'];
     $f_venc         = isset($docdetalles['F_VENC']) ? $docdetalles['F_VENC']->format('Y-m-d') : '';
