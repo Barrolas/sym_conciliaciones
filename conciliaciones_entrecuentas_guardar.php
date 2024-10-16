@@ -39,7 +39,7 @@ $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
 $id_ps_origen = $detalles['ID_PAREO_SISTEMA']; 
 
-/* =============== Pareo Sistema de Entrecuentas =============== */
+/* =============== Pareo Sistema creado para Entrecuentas =============== */
 
 $sql_tr_ord = "{call [_SP_CONCILIACIONES_TRANSFERENCIAS_PENDIENTES_CONSULTA] (?, ?)}";
 $params_tr_ord = array(

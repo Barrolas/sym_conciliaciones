@@ -339,10 +339,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             }
 
                                             $id_pareodoc        = $docdetalles['PAR_DOC'];
-                                            $cuenta_benef       = $trdetalles['CUENTA'];
                                             $f_venc             = $docdetalles['F_VENC']->format('Y/m/d');
                                             $f_rec              = $trdetalles['F_REC'];
-                                            $transaccion        = $trdetalles['TRANSACCION'];
                                             $rut_dd             = $trdetalles['RUT_DEUDOR'];
                                             $n_doc              = $docdetalles['N_DOC'];
                                             $dias_mora          = $docdetalles['DIAS_MORA'];
@@ -351,6 +349,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $monto_doc          = $docdetalles['MONTO_DOC_FINAL'];
                                             $monto_cubierto     = $docdetalles['MONTO_CUBIERTO'];
                                             $subproducto        = $docdetalles['SUBPRODUCTO'];
+                                            $entrecuenta_estado = $trdetalles['ENTRE_CUENTAS'];
+                                            if($entrecuenta_estado < 2){
+                                                $cuenta_benef   = $trdetalles['CUENTA'];
+                                                $transaccion    = $trdetalles['TRANSACCION'];
+                                            } else {
+                                                $cuenta_benef   = $trdetalles['CUENTA_CORRESPONDIENTE'];
+                                                $transaccion    = $trdetalles['ENTRE_CUENTAS_TRANSACCION'];
+                                            }
 
                                         ?>
                                             <tr>

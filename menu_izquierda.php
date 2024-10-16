@@ -116,8 +116,7 @@ error_reporting(E_ALL);
                         <li><a href="conciliaciones_exportar_procesados.php">EXPORTAR PROCESADOS</a></li>
                     </ul>
                 </li>
-
-                <!-- Paso 3 -->
+<!--  
                 <li>
                     <a href="javascript:void(0);" class="menu-title">
                         3. CARGAS
@@ -130,7 +129,7 @@ error_reporting(E_ALL);
                     </ul>
                 </li>
 
-                <!-- Paso 4 -->
+    
                 <li>
                     <a href="javascript:void(0);" class="menu-title">
                         4. CONCILIACIÓN
@@ -142,12 +141,12 @@ error_reporting(E_ALL);
                         <li><a href="conciliaciones_lista_conciliados.php">CONCILIADOS</a></li>
                     </ul>
                 </li>
-
+    -->
 
                 <!-- Reportes -->
                 <li>
                     <a href="javascript:void(0);" class="menu-title">
-                        5. REPORTES
+                        3. REPORTES
                         <span class="menu-arrow"><i class="mdi mdi-chevron-right"></i></span>
                     </a>
                     <ul>
