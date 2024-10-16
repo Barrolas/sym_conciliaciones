@@ -200,7 +200,7 @@ $monto_diferencia   = 0;
                         </div>
 
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_diferencias_guardar.php?rut_ordenante=<?php  ?>">
+                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_cartola_pareo_guardar.php?rut_ordenante=<?php  ?>">
                             <div class="card ">
                                 <div class="card-header" style="background-color: #0055a6">
                                     <table width="100%" border="0" cellspacing="2" cellpadding="0">
@@ -299,7 +299,7 @@ $monto_diferencia   = 0;
                                             ?>
                                                 <tr>
                                                     <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo ?>" <?php echo $isDisabled; ?>>
+                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo. ',' . $tipo_canal ?>" <?php echo $isDisabled; ?>>
                                                     </td>
                                                     <td class="col-auto font_mini interes" id="interes">
                                                         <?php echo $codigo; ?>

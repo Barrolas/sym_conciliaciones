@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Carga Conciliaciones</title>
+    <title>Carga Cheques</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta content="CRM" name="description" />
     <meta content="" name="author" />
@@ -39,7 +39,6 @@
         include("funciones.php");
         include("conexiones.php");
         noCache();
-
 
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
@@ -83,8 +82,9 @@
         $letraMayorDeColumna    = $excelSheet->getHighestColumn(); // Letra
 
         // Insertar datos desde el archivo Excel
-        $count = 0; // Contador de registros
-        $idcarga = 0;
+        $count      = 0; // Contador de registros
+        $idcarga    = 0;
+        $tipo_canal = 1;
 
         //Crear registro en la cheque_carga y recuperar ID con SCOPE
         $sql_carga = "{call [_SP_CONCILIACIONES_CARGA_CHEQUES_INSERTA](?, ?)}";
@@ -163,11 +163,12 @@
             }
 
             $estado1 = 2;
-            $estado2 = 2;
-            $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+            $estado2 = 3;
+            $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_CONSULTA] ?, ?, ?";
             $params_asign = array(
-                array($estado1,     SQLSRV_PARAM_IN),
-                array($estado2,     SQLSRV_PARAM_IN),
+                array($idasignacion,    SQLSRV_PARAM_IN),
+                array($estado1,         SQLSRV_PARAM_IN),
+                array($estado2,         SQLSRV_PARAM_IN),
             );
             $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
             if ($stmt_asign === false) {
@@ -175,38 +176,89 @@
             }
             $asignacion = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC);
 
-            $iddoc          = $asignacion['ID_DOCDEUDORES'];
-            $transaccion    = $asignacion['TRANSACCION'];
+            if (!empty($asignacion)) {
 
-            print_r($iddoc . '; ');
-            print_r($transaccion . '; ');
-            //exit;
+                $iddoc          = $asignacion['ID_DOCDEUDORES'];
+                $transaccion    = $asignacion['TRANSACCION'];
 
-            $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
-            $params_asociados = array(
-                array($iddoc,           SQLSRV_PARAM_IN),
-                array($transaccion,     SQLSRV_PARAM_IN),
-                array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
-                array(3,                SQLSRV_PARAM_IN)  // ID_ETAPA       
-            );
-            $stmt_asociados = sqlsrv_query($conn, $sql_asociados, $params_asociados);
-            if ($stmt_asociados === false) {
-                echo "Error in executing statement asociados.\n";
-                die(print_r(sqlsrv_errors(), true));
-            }
-            while ($asociados = sqlsrv_fetch_array($stmt_asociados, SQLSRV_FETCH_ASSOC)) {
+                print_r($iddoc . '; ');
+                print_r($transaccion . '; ');
+                
 
-                $iddoc_asoc = $asociados['ID_DOCDEUDORES'];
-
-                $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_ASIGNACION_INSERTA] (?, ?)}";
-                $params_operacion = array(
-                    array($iddoc_asoc,  SQLSRV_PARAM_IN),
-                    array($idusuario,   SQLSRV_PARAM_IN)
+                $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
+                $params_asociados = array(
+                    array($iddoc,           SQLSRV_PARAM_IN),
+                    array($transaccion,     SQLSRV_PARAM_IN),
+                    array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
+                    array(3,                SQLSRV_PARAM_IN)  // ID_ETAPA       
                 );
-                $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
-                if ($stmt_operacion === false) {
-                    echo "Error en la ejecución de la declaración _operacion.\n";
+                $stmt_asociados = sqlsrv_query($conn, $sql_asociados, $params_asociados);
+                if ($stmt_asociados === false) {
+                    echo "Error in executing statement asociados.\n";
                     die(print_r(sqlsrv_errors(), true));
+                }
+                while ($asociados = sqlsrv_fetch_array($stmt_asociados, SQLSRV_FETCH_ASSOC)) {
+
+                    $iddoc_asoc = $asociados['ID_DOCDEUDORES'];
+
+                    $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_ASIGNACION_INSERTA] (?, ?)}";
+                    $params_operacion = array(
+                        array($iddoc_asoc,  SQLSRV_PARAM_IN),
+                        array($idusuario,   SQLSRV_PARAM_IN)
+                    );
+                    $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
+                    if ($stmt_operacion === false) {
+                        echo "Error en la ejecución de la declaración _operacion.\n";
+                        die(print_r(sqlsrv_errors(), true));
+                    }
+                }
+
+                $sql_ch    = "EXEC [_SP_CONCILIACIONES_CARTOLA_CHEQUES_CONSULTA] ?";
+                $params_ch = array(
+                    array($n_cheque,     SQLSRV_PARAM_IN),
+                );
+                $stmt_ch = sqlsrv_query($conn, $sql_ch, $params_ch);
+                if ($stmt_ch === false) {
+                    die(print_r(sqlsrv_errors(), true));
+                }
+                $cheque = sqlsrv_fetch_array($stmt_ch, SQLSRV_FETCH_ASSOC);
+
+                $n_documento = isset($cheque['N_DOCUMENTO']) ? $cheque['N_DOCUMENTO'] : null;
+                $cuenta      = isset($cheque['CUENTA']) ? $cheque['CUENTA'] : null;
+                $fecha       = isset($cheque['FECHA']) ? $cheque['FECHA'] : null;
+                $monto       = isset($cheque['MONTO']) ? $cheque['MONTO'] : null;
+
+                print_r('n_documento: ' . $n_documento);
+                print_r('cuenta: ' . $cuenta);
+                print_r('fecha: ' . $fecha);
+                print_r('monto: ' . $monto);
+
+                if ($monto !== null) {
+                    $monto = preg_replace('/[^\d]/', '', $monto);
+                }
+/*
+                print_r('ncheque: ' . $n_cheque);
+                print_r('ndoc: ' . $n_documento);
+                exit;
+*/
+                if ($n_cheque == $n_documento) {
+
+                    // Insertar en conciliación
+                    $sql_conciliacion = "{call [_SP_CONCILIACIONES_CONCILIACION_INSERTAR](?, ?, ?, ?, ?, ?, ?)}";
+                    $params_conciliacion = array(
+                        array($n_documento,             SQLSRV_PARAM_IN),
+                        array($cuenta,                  SQLSRV_PARAM_IN),
+                        array($fecha,                   SQLSRV_PARAM_IN),
+                        array($n_cheque,                SQLSRV_PARAM_IN),
+                        array($tipo_canal,              SQLSRV_PARAM_IN),
+                        array($monto,                   SQLSRV_PARAM_IN),
+                        array($idusuario,               SQLSRV_PARAM_IN)
+                    );
+                    $stmt_conciliacion = sqlsrv_query($conn, $sql_conciliacion, $params_conciliacion);
+                    if ($stmt_conciliacion === false) {
+                        echo "Error in executing statement conciliacion.\n";
+                        die(print_r(sqlsrv_errors(), true));
+                    }
                 }
             }
             $count++;

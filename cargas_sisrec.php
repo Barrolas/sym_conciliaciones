@@ -21,35 +21,26 @@ $op = $_GET["op"];
 	<meta content="CRM" name="description" />
 	<meta content="" name="author" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-
 	<!-- App favicon -->
 	<link rel="shortcut icon" href="assets/images/favicon.ico">
-
 	<link href="plugins/dropify/css/dropify.min.css" rel="stylesheet">
-
 	<!-- Plugins css -->
 	<link href="plugins/select2/select2.min.css" rel="stylesheet" type="text/css" />
 	<link href="plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet" type="text/css" />
 	<link href="plugins/timepicker/bootstrap-material-datetimepicker.css" rel="stylesheet">
 	<link href="plugins/bootstrap-touchspin/css/jquery.bootstrap-touchspin.min.css" rel="stylesheet" />
-
 	<!-- App css -->
 	<link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 	<link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
 	<link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
-
 	<link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
 	<script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-
 </head>
 
 <body class="dark-sidenav">
 	<!-- Left Sidenav -->
 	<?php include("menu_izquierda.php"); ?>
-
 	<!-- end left-sidenav-->
-
-
 	<div class="page-wrapper">
 		<!-- Top Bar Start -->
 
@@ -77,16 +68,11 @@ $op = $_GET["op"];
 
 							<div class="card-body">
 								<form method="post" action="cargas_sisrec_guardar.php" class="form-horizontal " id="validate" role="form" id="formulario" name="formulario" class="needs-validation" autocomplete="on" onsubmit="return valida_envia();return false;" enctype="multipart/form-data">
-
-
-
 									<div class="row">
-
 										<div class="col-md-6">
 											<div class="form-group row">
 												<label for="apellido" class="col-lg-3 col-form-label">ARCHIVO</label>
 												<div class="col-lg-9">
-
 													<input type="file" name="archivo" id="archivo" class="dropify" />
 												</div>
 											</div><!--end form-group-->
@@ -101,9 +87,7 @@ $op = $_GET["op"];
 					</div> <!-- end col -->
 				</div> <!-- end row -->
 			</div> <!-- end row -->
-
 		</div><!-- container -->
-
 		<?php include('footer.php'); ?>
 	</div>
 	<!-- end page content -->
@@ -117,20 +101,14 @@ $op = $_GET["op"];
 	<script src="assets/js/feather.min.js"></script>
 	<script src="assets/js/simplebar.min.js"></script>
 	<script src="assets/js/moment.js"></script>
-
-
 	<!-- Plugins js -->
-
 	<script src="plugins/select2/select2.min.js"></script>
 	<script src="plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
 	<script src="plugins/timepicker/bootstrap-material-datetimepicker.js"></script>
 	<script src="plugins/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
 	<script src="plugins/bootstrap-touchspin/js/jquery.bootstrap-touchspin.min.js"></script>
-
-
 	<!-- App js -->
 	<script src="assets/js/app.js"></script>
-
 	<script src="plugins/dropify/js/dropify.min.js"></script>
 	<script src="assets/pages/jquery.form-upload.init.js"></script>
 
@@ -184,10 +162,6 @@ $op = $_GET["op"];
 				return false;
 			} else return true;
 		}
-
-
-
-
 
 		$("#btnvalida").click(function() {
 			if (Fn.validaRut($("#txt_rut").val())) {
