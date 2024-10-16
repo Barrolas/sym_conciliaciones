@@ -30,14 +30,15 @@ if (isset($_POST['ch_checkbox'])) {
     $deud_dvs        = array();
     $pago_docs       = array();
     $tipos_canal     = array();
+    $benef_ctas      = array();  // Nuevo arreglo para almacenar $benef_cta
 
     // Recorremos cada valor del arreglo de checkboxes
     foreach ($_POST['ch_checkbox'] as $checkbox_value) {
         // Dividimos el valor usando la coma como delimitador
         $valores = explode(',', $checkbox_value);
 
-        // Verificamos que $valores tenga al menos 9 elementos (según la nueva estructura)
-        if (count($valores) >= 9) {
+        // Verificamos que $valores tenga al menos 10 elementos (según la nueva estructura)
+        if (count($valores) >= 10) {
             $id_pareos_sis[]   = $valores[0];
             $id_documentos[]   = $valores[1];
             $operaciones[]     = $valores[2];
@@ -47,6 +48,7 @@ if (isset($_POST['ch_checkbox'])) {
             $deud_dvs[]        = $valores[6];
             $pago_docs[]       = $valores[7];
             $tipos_canal[]     = $valores[8];
+            $benef_ctas[]      = $valores[9];  // Guardamos $benef_cta
         }
     }
 
@@ -62,16 +64,14 @@ if (isset($_POST['ch_checkbox'])) {
             'deud_rut'        => $deud_ruts[$index],
             'deud_dv'         => $deud_dvs[$index],
             'pago_doc'        => $pago_docs[$index],
-            'tipo_canal'      => $tipos_canal[$index]
+            'tipo_canal'      => $tipos_canal[$index],
+            'benef_cta'       => $benef_ctas[$index]  // Nuevo valor añadido al arreglo combinado
         ];
     }
 
-    // Ejemplo: Imprimir los valores combinados para depuración
-    //print_r($docs_combined);
-
     // Ejemplo: acceder a los valores individuales
     foreach ($docs_combined as $doc) {
-        echo "ID Pareo Sis: " . $doc['id_pareo_sis'] . ", ID Documento: " . $doc['id_documento'] . ", Operación: " . $doc['operacion'] . ", Nombre Deudor: " . $doc['deud_nom'] . "<br>";
+        echo "ID Pareo Sis: " . $doc['id_pareo_sis'] . ", ID Documento: " . $doc['id_documento'] . ", Operación: " . $doc['operacion'] . ", Beneficiario Cuenta: " . $doc['benef_cta'] . "<br>";
     }
 }
 
@@ -100,6 +100,8 @@ foreach ($docs_combined as $index => $conciliacion) {
     $deud_dv        = $conciliacion['deud_dv'];
     $pago_doc       = $conciliacion['pago_doc'];
     $tipo_canal     = $conciliacion['tipo_canal'];
+    $benef_cta      = $conciliacion['benef_cta'];
+
     $diferencia_doc = 0;
 
     $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_VALIDA](?, ?)}";
@@ -107,16 +109,11 @@ foreach ($docs_combined as $index => $conciliacion) {
         array($id_documento,        SQLSRV_PARAM_IN),
         array(&$diferencia_doc,     SQLSRV_PARAM_OUT)
     );
-
     $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
-
     if ($stmt_diferencia === false) {
         echo "Error in executing statement diferencia.\n";
         die(print_r(sqlsrv_errors(), true));
     }
-    //print_r($diferencia_doc);
-
-    // Procesar resultados de la consulta de detalles
     $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
 
     if ($diferencia_doc == 0) {
@@ -134,12 +131,13 @@ foreach ($docs_combined as $index => $conciliacion) {
         $monto_doc  = $montos['MONTO_DOCUMENTO'];
         $f_venc     = $montos['F_VENC'];
 
-        $sql_asignacion = "{call [_SP_CONCILIACIONES_ASIGNACION_INSERTAR](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $sql_asignacion = "{call [_SP_CONCILIACIONES_ASIGNACION_INSERTAR](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         $params_asignacion = array(
             array($id_pareo_sis,    SQLSRV_PARAM_IN),
             array($id_documento,    SQLSRV_PARAM_IN),
             array($operacion,       SQLSRV_PARAM_IN),
             array($transaccion,     SQLSRV_PARAM_IN),
+            array($benef_cta,       SQLSRV_PARAM_IN),
             array($deud_nom,        SQLSRV_PARAM_IN),
             array($deud_rut,        SQLSRV_PARAM_IN),
             array($deud_dv,         SQLSRV_PARAM_IN),
@@ -188,7 +186,7 @@ foreach ($docs_combined as $index => $conciliacion) {
 
             $iddoc_asociado = $asociados['ID_DOCDEUDORES'];
 
-            $sql_detalles = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_DETALLES_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+            $sql_detalles = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_DETALLES_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
             $params_detalles = array(
                 array($idproceso,       SQLSRV_PARAM_IN),
                 array($id_asignacion,   SQLSRV_PARAM_IN),
@@ -196,6 +194,7 @@ foreach ($docs_combined as $index => $conciliacion) {
                 array($id_documento,    SQLSRV_PARAM_IN),
                 array($operacion,       SQLSRV_PARAM_IN),
                 array($transaccion,     SQLSRV_PARAM_IN),
+                array($benef_cta,       SQLSRV_PARAM_IN),
                 array($deud_nom,        SQLSRV_PARAM_IN),
                 array($deud_rut,        SQLSRV_PARAM_IN),
                 array($deud_dv,         SQLSRV_PARAM_IN),
@@ -239,8 +238,6 @@ foreach ($docs_combined as $index => $conciliacion) {
     }
     $total_procesados++;
 }
-
-
 
 // Finalmente, puedes mostrar el total de procesados si es necesario
 echo "Total procesados: " . $total_procesados;
