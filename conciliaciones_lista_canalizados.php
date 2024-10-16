@@ -379,7 +379,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="col-auto"><?php echo $conciliacion["UA"]; ?></td>
                                                     <td class="col-auto"><?php echo $conciliacion["TOTAL_PROCESADOS"]; ?></td>
                                                     <td class="col-1">
-                                                        <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary">
+                                                       <!-- <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary"> -->
+                                                        <a data-toggle="tooltip" title="Ver detalle" href="#" class="btn btn-icon btn-rounded btn-secondary">
                                                             <i class="feather-24" data-feather="eye"></i>
                                                         </a>
                                                     </td>
