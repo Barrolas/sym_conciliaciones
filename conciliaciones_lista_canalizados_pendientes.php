@@ -131,7 +131,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
                                         <option value="0" selected>Mostrar todos</option>
                                         <?php
-                                        $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
+                                        $sql_canal = "EXEC [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA] '1,2'";
                                         $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
                                         if ($stmt_canal === false) {
@@ -464,7 +464,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Function to apply filters based on stored values
         function applyFilters() {
             var storedCuentaValue = sessionStorage.getItem('selected_cuenta_4');
-            var storedCanalValue = sessionStorage.getItem('selected_canal');
+            var storedCanalValue = sessionStorage.getItem('selected_canal_2');
             var storedFiltroValue = sessionStorage.getItem('selected_diasmora');
 
             if (storedCanalValue && storedCanalValue !== "0") {
@@ -508,15 +508,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
             sessionStorage.setItem('selected_cuenta_4', filterValue);
 
             if (filterValue == "0") {
-                table.column(1).search('').draw(); // Clear the cuenta filter
+                table.column(2).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(1).search(filterValue).draw();
+                table.column(2).search(filterValue).draw();
             }
         });
 
         $('#canal_filtro').on('change', function() {
             var filterValue = $(this).val();
-            sessionStorage.setItem('selected_canal', filterValue);
+            sessionStorage.setItem('selected_canal_2', filterValue);
 
             if (filterValue == "0") {
                 table.column(0).search('').draw(); // Clear the cuenta filter

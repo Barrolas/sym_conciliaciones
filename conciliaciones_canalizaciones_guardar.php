@@ -2,7 +2,7 @@
 session_start();
 include("funciones.php");
 include("conexiones.php");
-// include("permisos_adm.php");
+include("permisos_adm.php");
 noCache();
 
 ini_set('display_errors', 1);
@@ -15,14 +15,14 @@ $selected_ids_docs      = isset($_POST['selected_ids_docs'])        ? $_POST['se
 $selected_ids_pareodoc  = isset($_POST['selected_ids_pareodoc'])    ? $_POST['selected_ids_pareodoc'] : [];
 $selected_types         = isset($_POST['selected_types'])           ? $_POST['selected_types'] : [];
 
-// Depuración: imprimir datos recibidos
+/* Depuración: imprimir datos recibidos
 echo "<h3>Datos recibidos:</h3>";
 echo "<pre>";
 print_r($selected_ids_docs);
 print_r($selected_ids_pareodoc);
 print_r($selected_types);
 echo "</pre>";
-
+*/
 // Verificar que $selected_ids_docs es un array con un solo elemento que es una cadena de valores separados por comas
 if (is_array($selected_ids_docs) && count($selected_ids_docs) > 0) {
     $selected_ids_docs = explode(',', $selected_ids_docs[0]);
@@ -69,23 +69,23 @@ if ($stmt1 === false) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-// Depuración: imprimir id_canalizacion
+/* Depuración: imprimir id_canalizacion 
 echo "<h3>ID Canalización:</h3>";
 echo "<pre>";
 print_r($id_canalizacion);
 echo "</pre>";
-
+*/
 
 
 // Insertar documentos
-echo "<h3>Procesando documentos:</h3>";
+//echo "<h3>Procesando documentos:</h3>";
 foreach ($selected_ids_docs as $index => $id_docdeudores) {
     // Asegurar que los índices existen en los otros arreglos
     $id_pareo_doc = isset($selected_ids_pareodoc[$index]) ? $selected_ids_pareodoc[$index] : null;
     $type = isset($selected_types[$index]) ? $selected_types[$index] : null;
 
     // Depuración: imprimir valores actuales
-    echo "Processing: Index = $index, ID DocDeudores = $id_docdeudores, ID Pareo Doc = $id_pareo_doc, Type = $type<br>";
+    //echo "Processing: Index = $index, ID DocDeudores = $id_docdeudores, ID Pareo Doc = $id_pareo_doc, Type = $type<br>";
 
     $sql_docdeudores = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_CONSULTA] (?)}";
     $params_docdeudores = array(
@@ -121,8 +121,8 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
         $estado_canal = 1;
     }
 
-    print_r("Monto diferencia: " . $monto_diferencia);
-    print_r("Estado: " . $estado_canal);
+    //print_r("Monto diferencia: " . $monto_diferencia);
+    //print_r("Estado: " . $estado_canal);
     //exit;
 
     $sql2 = "{call [_SP_CONCILIACIONES_CANALIZACION_DOCUMENTO_INSERTA] (?, ?, ?, ?, ?)}";
@@ -155,7 +155,7 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
     $cantidad_docs++;
 
     // Depuración: verificar éxito de la inserción
-    echo "Successfully inserted document at index $index.<br>";
+    //echo "Successfully inserted document at index $index.<br>";
 }
 
 // Actualizar canalización
@@ -173,10 +173,10 @@ if ($stmt3 === false) {
 }
 
 // Depuración: mostrar cantidad_docs
-echo "<h3>Cantidad de documentos:</h3>";
-echo "<pre>";
-print_r($cantidad_docs);
-echo "</pre>";
+//echo "<h3>Cantidad de documentos:</h3>";
+//echo "<pre>";
+//print_r($cantidad_docs);
+//echo "</pre>";
 
 header("Location: conciliaciones_lista_pareados.php?op=1");
 exit;

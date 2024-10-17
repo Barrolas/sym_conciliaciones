@@ -189,7 +189,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </div>
                                 </div>
                                 <div class="col-lg-2">
-                                    <label for="estado_conc" class="col-12">ESTADO</label>
+                                    <label for="estado_conc" class="col-12">CARTERA</label>
                                     <select name="estado_conc" id="estado_conc" class="form-control col-12" maxlength="50" autocomplete="off">
                                         <option value="0" selected>Mostrar todos</option>
                                         <option value="CONC">CONCILIADO</option>
@@ -217,8 +217,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </th> -->
                                             <th class="font_mini_header">ID CANAL</th>
                                             <th class="font_mini_header">ID</th>
-                                            <th class="font_mini_header">N° REMESA/CHEQUE</th>
                                             <th class="font_mini_header">CANAL</th>
+                                            <th class="font_mini_header">MORA</th>
                                             <th class="font_mini_header">MONTO</th>
                                             <th class="font_mini_header">CUENTA</th>
                                             <th class="font_mini_header">CARTERA</th>
@@ -323,6 +323,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     $cartera        = $row['CARTERA'] ?? '';
                                                     $canal          = $p_docs['CANAL'] ?? '';
 
+                                                    $dias_mora = 0;
+                                                    if (!empty($f_venc)) {
+                                                        // Crear objeto DateTime para la fecha de vencimiento
+                                                        $fecha_vencimiento = new DateTime($f_venc);
+                                                        // Obtener la fecha actual
+                                                        $fecha_actual = new DateTime();
+                                                        // Calcular la diferencia entre la fecha actual y la fecha de vencimiento
+                                                        $diferencia = $fecha_actual->diff($fecha_vencimiento);
+                                                        // Si la fecha de vencimiento ya pasó, calcular los días de mora
+                                                        if ($fecha_actual > $fecha_vencimiento) {
+                                                            $dias_mora = $diferencia->days; // Número de días de diferencia
+                                                        }
+                                                    }
                                                     $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'] ?? '';
 
                                                     if ($tipo_canal == 1) {
@@ -362,12 +375,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         </td> -->
                                                         <td class="col-auto font_mini"><?php echo $tipo_canal ?></td>
                                                         <td class="col-auto font_mini"><?php echo $id_asignacion ?></td>
-                                                        <td class="interes col-auto font_mini" id="interes">
-                                                            <input type="text" class="monto_ingresado font_mini_input form-control"
-                                                                value="<?php echo ($tipo_canal == 1) ? $n_cheque : (($tipo_canal == 2) ? $n_remesa : ''); ?>"
-                                                                disabled />
-                                                        </td>
                                                         <td class="col-auto font_mini"><?php echo mb_substr($canal, 0, 6); ?></td>
+                                                        <td class="col-auto font_mini"><?php echo $dias_mora ?></td>
                                                         <td class="col-auto font_mini">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
                                                         <td class="col-auto font_mini"><?php echo $benef_cta ?></td>
                                                         <td class="col-auto font_mini"><?php echo $cartera; ?></td>
@@ -640,7 +649,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 });
             });
         });
-
     </script>
 
 </body>

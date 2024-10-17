@@ -635,9 +635,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
         });
 
         var table = $('#datatable2').DataTable({
-            "paging": false, // Deshabilita la paginación
-            "searching": true, // Habilita la búsqueda
-            "ordering": true, // Habilita el ordenamiento
+            "paging":       false, // Deshabilita la paginación
+            "searching":    true, // Habilita la búsqueda
+            "ordering":     true, // Habilita el ordenamiento
 
             responsive: true,
             order: [

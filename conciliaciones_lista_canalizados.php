@@ -139,7 +139,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
                                             <option value="0" selected>Mostrar todos</option>
                                             <?php
-                                            $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
+                                            $sql_canal = "EXEC [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA] '1,2'";
                                             $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
                                             if ($stmt_canal === false) {
@@ -756,9 +756,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             sessionStorage.setItem('selected_cuenta_3', filterValue);
 
             if (filterValue == "0") {
-                table.column(1).search('').draw(); // Clear the cuenta filter
+                table.column(4).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(1).search(filterValue).draw();
+                table.column(4).search(filterValue).draw();
             }
         });
 
@@ -767,9 +767,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             sessionStorage.setItem('selected_canal', filterValue);
 
             if (filterValue == "0") {
-                table.column(0).search('').draw(); // Clear the cuenta filter
+                table.column(1).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(0).search(filterValue).draw();
+                table.column(1).search(filterValue).draw();
             }
         });
 
