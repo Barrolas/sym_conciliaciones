@@ -8,7 +8,7 @@ noCache();
 // Obtener y sanitizar los datos de entrada
 $id_doc         = $_GET["id_doc"];      
 $transaccion    = $_GET["transaccion"];   
-$id_usuario     = 1;
+$id_usuario     = $_SESSION['ID_USUARIO'];;
 
 print_r($id_doc . '; ');
 print_r($transaccion . '; ');
@@ -18,7 +18,7 @@ $params_seleccion = array(
     array($id_doc,      SQLSRV_PARAM_IN),
     array($transaccion, SQLSRV_PARAM_IN),
     array(1,            SQLSRV_PARAM_IN),
-    array(2,            SQLSRV_PARAM_IN)
+    array('2-3',          SQLSRV_PARAM_IN)
 );
 $stmt_seleccion = sqlsrv_query($conn, $sql_seleccion, $params_seleccion);
 if ($stmt_seleccion === false) {

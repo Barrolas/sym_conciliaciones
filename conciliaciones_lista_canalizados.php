@@ -317,7 +317,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                                 <input class="form-check-input ch_checkbox"
                                                                     name="ch_checkbox[]"
                                                                     type="checkbox"
-                                                                    value="<?php echo $idpareo_sis . ',' . $id_doc . ',' . $operacion . ',' . $transaccion . ',' . $deud_nom . ',' . $deud_rut . ',' . $deud_dv . ',' . $pago_docs . ',' . $tipo_canal . ',' . $benef_cta; ?>"
+                                                                    value="<?php echo $idpareo_sis . ',' . $id_doc . ',' . $operacion . ',' . $transaccion . ',' . $deud_nom . ',' . $deud_rut . ',' . $deud_dv . ',' . $pago_docs . ',' . $tipo_canal . ',' . $benef_cta . ',' . $monto_doc . ',' . $f_venc; ?>"
                                                                     data-column="1"
                                                                     onclick="toggleRowCheckbox(this)"
                                                                     <?php echo $disabled; ?>>

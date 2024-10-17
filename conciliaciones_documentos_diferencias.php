@@ -335,7 +335,7 @@ $monto_diferencia   = 0;
                                                 $monto_transf_sanitizado    = (int) str_replace(['$', '.'], '', $monto_transf);
 
                                                 // Comparación con $monto_transf para habilitar o deshabilitar el radio button
-                                                $isDisabled = ($prestamos_sanitizado > $monto_transf_sanitizado) ? 'disabled' : '';
+                                                $isDisabled = ($prestamos_sanitizado <> $monto_transf_sanitizado) ? 'disabled' : '';
 
                                             ?>
                                                 <tr>

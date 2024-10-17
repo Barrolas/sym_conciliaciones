@@ -2,13 +2,13 @@
 session_start();
 include("funciones.php");
 include("conexiones.php");
-// include("permisos_adm.php");
+include("permisos_adm.php");
 noCache();
 
 // Obtener y sanitizar los datos de entrada
 $id_doc         = isset($_GET["id_doc"]) ? (int)$_GET["id_doc"] : null;
 $transaccion    = isset($_GET["transaccion"]) ? $_GET["transaccion"] : null;
-$id_usuario     = 1;
+$id_usuario     = $_SESSION['ID_USUARIO'];
 
 // Comprobar que los parámetros no sean nulos
 if ($id_doc === null || $transaccion === null) {

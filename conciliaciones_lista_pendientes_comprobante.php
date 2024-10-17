@@ -21,11 +21,9 @@ $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
     die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
 }
-
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
 $fecha_proceso = $row["FECHAPROCESO"];
-
 
 ?>
 
@@ -211,12 +209,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <div class="card-body card_width">
                                 <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                     <thead>
-                                        <tr>
+                                        <tr><!--
                                             <th class="font_mini_header">
                                                 <div class="d-flex flex-column align-items-center">
                                                     <input class="mb-2" type="checkbox" id="select_all_checkbox1" onclick="handleMasterCheckbox(1)">
                                                 </div>
-                                            </th>
+                                            </th> -->
                                             <th class="font_mini_header">ID CANAL</th>
                                             <th class="font_mini_header">ID</th>
                                             <th class="font_mini_header">N° REMESA/CHEQUE</th>
@@ -356,12 +354,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     }
                                         ?>
                                                     <tr>
-                                                        <td>
+                                                        <!--<td>
                                                             <div class="form-check d-flex justify-content-center align-items-center">
                                                                 <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $asignados["ID_DOCDEUDORES"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
                                                                 <input type="hidden" class="checkbox_type" value="ch">
                                                             </div>
-                                                        </td>
+                                                        </td> -->
                                                         <td class="col-auto font_mini"><?php echo $tipo_canal ?></td>
                                                         <td class="col-auto font_mini"><?php echo $id_asignacion ?></td>
                                                         <td class="interes col-auto font_mini" id="interes">
@@ -383,7 +381,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         </td>
 
                                                         <td class="font_mini">
-                                                            <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles_pd["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles_pd["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles_pd["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                            <!-- Este botón puede estar en cualquier parte de tu HTML y activará el popup -->
+                                                            <a data-toggle="tooltip" title="Eliminar" href="#" class="btn btn-icon btn-rounded btn-danger eliminar-btn" data-iddoc="<?php echo $iddoc; ?>" data-idasig="<?php echo $id_asignacion; ?>" data-transaccion="<?php echo $transaccion; ?>">
                                                                 <i class="feather-24" data-feather="x"></i>
                                                             </a>
                                                         </td>
@@ -560,6 +559,88 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
             return true; // Asegúrate de que el formulario se envíe
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Añade un event listener a todos los enlaces de eliminación
+            const deleteLinks = document.querySelectorAll('.eliminar-btn');
+
+            deleteLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Evita que el enlace se siga inmediatamente
+
+                    // Obtiene los datos de eliminación desde el enlace
+                    const iddoc = this.getAttribute('data-iddoc');
+                    const idasig = this.getAttribute('data-idasig');
+                    const transaccion = this.getAttribute('data-transaccion');
+
+                    // Llama a SweetAlert para el popup
+                    Swal.fire({
+                        title: 'Motivo de eliminación',
+                        html: `
+                    <p>Proporcione un motivo para la desasignación del caso seleccionado. Este campo es obligatorio y debe contener al menos 2 palabras y un máximo de 2000 caracteres.</p>
+                    <textarea id="motivo" class="swal2-input" placeholder="Escriba el motivo..." rows="4" style="width: 100%; height: 25vh; padding: 10px;"></textarea>
+                    <div id="mensaje" style="color: red; display: none;">Debes escribir al menos 2 palabras y no más de 2000 caracteres.</div>
+                `,
+                        icon: 'info', // Agrega el ícono de información
+                        focusConfirm: false,
+                        confirmButtonText: 'Confirmar',
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonText: 'Cancelar', // Cambia el texto del botón a "Cancelar"
+                        showCancelButton: true,
+                        preConfirm: () => {
+                            const motivo = document.getElementById('motivo').value; // Captura el valor del textarea
+                            // Comprobación de la longitud del motivo
+                            const palabrasValidas = motivo.split(' ').filter(word => word.length > 0);
+                            if (palabrasValidas.length < 2 || motivo.length > 2000) {
+                                document.getElementById('mensaje').style.display = 'block';
+                                return false; // Impide el cierre del popup
+                            } else {
+                                return {
+                                    iddoc,
+                                    idasig,
+                                    transaccion,
+                                    motivo
+                                }; // Devuelve los datos necesarios
+                            }
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const {
+                                iddoc,
+                                idasig,
+                                transaccion,
+                                motivo
+                            } = result.value;
+
+                            // Redirige a la URL de eliminación
+                            window.location.href = `conciliaciones_asignaciones_eliminar.php?iddoc=${iddoc}&idasig=${idasig}&transaccion=${transaccion}&motivo=${encodeURIComponent(motivo)}`;
+                        }
+                    });
+
+                    // Habilita o deshabilita el botón de confirmación
+                    const motivoInput = document.getElementById('motivo');
+                    const mensaje = document.getElementById('mensaje');
+
+                    motivoInput.addEventListener('input', function() {
+                        const palabrasValidas = this.value.split(' ').filter(word => word.length > 0);
+                        if (this.value.trim() === "") {
+                            Swal.getConfirmButton().disabled = true; // Deshabilita el botón de confirmar si está vacío
+                            mensaje.style.display = 'none'; // Oculta el mensaje
+                        } else if (palabrasValidas.length < 2 || this.value.length > 2000) {
+                            Swal.getConfirmButton().disabled = true; // Deshabilita si hay menos de dos palabras o más de 2000 caracteres
+                            mensaje.style.display = 'block'; // Muestra el mensaje
+                        } else {
+                            Swal.getConfirmButton().disabled = false; // Habilita el botón si tiene al menos dos palabras y no supera 2000 caracteres
+                            mensaje.style.display = 'none'; // Oculta el mensaje
+                        }
+                    });
+
+                    // Inicialmente deshabilitar el botón de confirmación
+                    Swal.getConfirmButton().disabled = true; // Deshabilitado hasta que el usuario escriba algo
+                });
+            });
+        });
+
     </script>
 
 </body>
@@ -630,11 +711,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 [9, 'asc']
             ],
             columnDefs: [{
-                    targets: [0, 3, 14],
+                    targets: [0, 2, 13],
                     orderable: false
                 },
                 {
-                    targets: [1],
+                    targets: [0],
                     visible: false
                 },
                 {
@@ -770,7 +851,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Estado actualizado.',
+            title: 'Asignación eliminada.',
             showConfirmButton: false,
             timer: 3000,
         });

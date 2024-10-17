@@ -47,7 +47,7 @@
         //$resultado_r($_FILES);
         //exit;
 
-        $idusuario = 1;
+        $idusuario = $_SESSION['ID_USUARIO'];;
 
         if ($_FILES['archivo']['name'] != '') {
             //datos del arhivo
