@@ -17,7 +17,7 @@ $monto_diferencia   = 0;
 $rut_cliente        = '';
 $rut_deudor         = '';
 $estado_pareo       = 1;
-$idusuario          = 1;
+$idusuario          = $_SESSION['ID_USUARIO'];;
 $es_entrecuentas    = 0;
 $tipo_pareosistema  = 4;
 

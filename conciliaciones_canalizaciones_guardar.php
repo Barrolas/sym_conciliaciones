@@ -50,7 +50,7 @@ if (count($selected_ids_docs) !== count($selected_ids_pareodoc) || count($select
 }
 
 // Inicialización de variables
-$id_usuario = 1;
+$id_usuario = $_SESSION['ID_USUARIO'];;
 $id_canalizacion = 0;
 $cantidad_docs = 0;
 $cantidad_cheques = 0;

@@ -2,14 +2,14 @@
 session_start();
 include("funciones.php");
 include("conexiones.php");
-// include("permisos_adm.php");
+include("permisos_adm.php");
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$idusuario              = 1;
+$idusuario              = $_SESSION['ID_USUARIO'];;
 $idproceso              = 0;
 $estado_canalizacion    = 2;
 $total_procesados       = 0;
@@ -17,7 +17,6 @@ $id_asignacion          = 0;
 
 //print_r($_POST);
 
-// Verificar si se ha enviado la matriz ch_checkbox
 if (isset($_POST['ch_checkbox'])) {
 
     // Inicializar los arreglos para almacenar los valores separados
@@ -30,15 +29,17 @@ if (isset($_POST['ch_checkbox'])) {
     $deud_dvs        = array();
     $pago_docs       = array();
     $tipos_canal     = array();
-    $benef_ctas      = array();  // Nuevo arreglo para almacenar $benef_cta
+    $benef_ctas      = array();  // Arreglo para almacenar $benef_cta
+    $monto_docs      = array();  // Arreglo para almacenar $monto_doc
+    $f_vencs         = array();  // Nuevo arreglo para almacenar $f_venc
 
     // Recorremos cada valor del arreglo de checkboxes
     foreach ($_POST['ch_checkbox'] as $checkbox_value) {
         // Dividimos el valor usando la coma como delimitador
         $valores = explode(',', $checkbox_value);
 
-        // Verificamos que $valores tenga al menos 10 elementos (según la nueva estructura)
-        if (count($valores) >= 10) {
+        // Verificamos que $valores tenga al menos 12 elementos (según la nueva estructura)
+        if (count($valores) >= 12) {
             $id_pareos_sis[]   = $valores[0];
             $id_documentos[]   = $valores[1];
             $operaciones[]     = $valores[2];
@@ -49,6 +50,8 @@ if (isset($_POST['ch_checkbox'])) {
             $pago_docs[]       = $valores[7];
             $tipos_canal[]     = $valores[8];
             $benef_ctas[]      = $valores[9];  // Guardamos $benef_cta
+            $monto_docs[]      = $valores[10]; // Guardamos $monto_doc
+            $f_vencs[]         = $valores[11]; // Guardamos $f_venc
         }
     }
 
@@ -65,13 +68,15 @@ if (isset($_POST['ch_checkbox'])) {
             'deud_dv'         => $deud_dvs[$index],
             'pago_doc'        => $pago_docs[$index],
             'tipo_canal'      => $tipos_canal[$index],
-            'benef_cta'       => $benef_ctas[$index]  // Nuevo valor añadido al arreglo combinado
+            'benef_cta'       => $benef_ctas[$index],  // Añadimos $benef_cta
+            'monto_doc'       => $monto_docs[$index],  // Añadimos $monto_doc
+            'f_venc'          => $f_vencs[$index]      // Añadimos $f_venc
         ];
     }
 
     // Ejemplo: acceder a los valores individuales
     foreach ($docs_combined as $doc) {
-        echo "ID Pareo Sis: " . $doc['id_pareo_sis'] . ", ID Documento: " . $doc['id_documento'] . ", Operación: " . $doc['operacion'] . ", Beneficiario Cuenta: " . $doc['benef_cta'] . "<br>";
+        echo "ID Pareo Sis: " . $doc['id_pareo_sis'] . ", ID Documento: " . $doc['id_documento'] . ", Operación: " . $doc['operacion'] . ", Monto Documento: " . $doc['monto_doc'] . ", Fecha Vencimiento: " . $doc['f_venc'] . "<br>";
     }
 }
 
@@ -101,6 +106,8 @@ foreach ($docs_combined as $index => $conciliacion) {
     $pago_doc       = $conciliacion['pago_doc'];
     $tipo_canal     = $conciliacion['tipo_canal'];
     $benef_cta      = $conciliacion['benef_cta'];
+    $monto_doc      = $conciliacion['monto_doc'];
+    $f_venc         = $conciliacion['f_venc'];
 
     $diferencia_doc = 0;
 
@@ -118,19 +125,6 @@ foreach ($docs_combined as $index => $conciliacion) {
 
     if ($diferencia_doc == 0) {
 
-        $sql_montos = "{call [_SP_CONCILIACIONES_CONSULTA_MONTO_DOC_ID](?)}";
-        $params_montos = array(
-            array($id_documento,     SQLSRV_PARAM_IN),
-        );
-        $stmt_montos = sqlsrv_query($conn, $sql_montos, $params_montos);
-        if ($stmt_montos === false) {
-            die(print_r(sqlsrv_errors(), true));
-        }
-        $montos = sqlsrv_fetch_array($stmt_montos, SQLSRV_FETCH_ASSOC);
-
-        $monto_doc  = $montos['MONTO_DOCUMENTO'];
-        $f_venc     = $montos['F_VENC'];
-
         $sql_asignacion = "{call [_SP_CONCILIACIONES_ASIGNACION_INSERTAR](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         $params_asignacion = array(
             array($id_pareo_sis,    SQLSRV_PARAM_IN),
@@ -146,8 +140,8 @@ foreach ($docs_combined as $index => $conciliacion) {
             array($pago_doc,        SQLSRV_PARAM_IN),
             array($tipo_canal,      SQLSRV_PARAM_IN),
             array($idusuario,       SQLSRV_PARAM_IN)
-        );
 
+        );
         $stmt_asignacion = sqlsrv_prepare($conn, $sql_asignacion, $params_asignacion);
         if ($stmt_asignacion === false) {
             echo "Error in preparing statement asignacion.\n";
@@ -164,16 +158,27 @@ foreach ($docs_combined as $index => $conciliacion) {
             die(print_r(sqlsrv_errors(), true));
         }
         $row = sqlsrv_fetch_array($stmt_row, SQLSRV_FETCH_ASSOC);
-
         $id_asignacion = $row['ID_ASIGNACION'];
 
         print_r('Id asignacion: ' . $id_asignacion . '; ');
         //exit;
 
+        $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_CONSULTA](?)}";
+        $params_operacion = array(
+            array($id_pareo_sis,    SQLSRV_PARAM_IN),
+        );
+        $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
+        if ($stmt_operacion === false) {
+            die(print_r(sqlsrv_errors(), true));
+        }
+        $operaciones = sqlsrv_fetch_array($stmt_operacion, SQLSRV_FETCH_ASSOC);
+
+        $transaccion_op = $operaciones['TRANSACCION'];
+
         $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
         $params_asociados = array(
             array($id_documento,    SQLSRV_PARAM_IN),
-            array($transaccion,     SQLSRV_PARAM_IN),
+            array($transaccion_op,  SQLSRV_PARAM_IN),
             array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
             array(2,                SQLSRV_PARAM_IN)  // ID_ETAPA       
         );
@@ -203,9 +208,7 @@ foreach ($docs_combined as $index => $conciliacion) {
                 array($pago_doc,        SQLSRV_PARAM_IN),
                 array($tipo_canal,      SQLSRV_PARAM_IN),
             );
-
             $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
-
             if ($stmt_detalles === false) {
                 echo "Error in executing statement detalles.\n";
                 die(print_r(sqlsrv_errors(), true));
