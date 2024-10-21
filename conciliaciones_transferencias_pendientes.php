@@ -115,16 +115,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <b>Transferencias recibidas</b>
                         </h3>
                     </div>
-                    <div class="row mr-2">
-                        <div class="col-12 mx-2">
-                            <p>
-                                Esta herramienta permite visualizar las transferencias que aún no han sido pareadas en el sistema. Las transferencias se identifican según el estado de su coincidencia a través de botones con distintos colores:
-                            </p>
-                            <ul>
-                                <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b> Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
-                                <li><span class="text-success"><i class="feather-24 mr-2" data-feather="plus"></i></span><b>Sin coincidencia:</b> Corresponde a transferencias donde el RUT del deudor no está determinado. Estas transferencias están disponibles para ser asignadas manualmente.</li>
-                            </ul>
-                        </div>
+                </div>
+                <div class="row mr-2">
+                    <div class="col-12 mx-2">
+                        <p>
+                            Esta herramienta permite visualizar las transferencias que aún no han sido pareadas en el sistema. Las transferencias se identifican según el estado de su coincidencia a través de botones con distintos colores:
+                        </p>
+                        <ul>
+                            <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b> Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
+                            <li><span class="text-success"><i class="feather-24 mr-2" data-feather="plus"></i></span><b>Sin coincidencia:</b> Corresponde a transferencias donde el RUT del deudor no está determinado. Estas transferencias están disponibles para ser asignadas manualmente.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -240,16 +240,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
             </div> <!-- end row -->
         </div><!-- container -->
         <?php include('footer.php'); ?>
-    </div>
-    <!-- end page content -->
+        <!-- end page content -->
 
-    <script>
-        window.onload = function() {
-            // Oculta la pantalla de carga y muestra el contenido principal
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-        };
-    </script>
+        <script>
+            window.onload = function() {
+                // Oculta la pantalla de carga y muestra el contenido principal
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            };
+        </script>
 
 </body>
 
