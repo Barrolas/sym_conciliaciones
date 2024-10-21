@@ -300,17 +300,26 @@ $fecha_proceso = $row["FECHAPROCESO"];
     });
 
     $(document).ready(function() {
+        // Comprobar si hay un orden guardado en sessionStorage
+        var savedOrder = JSON.parse(sessionStorage.getItem('datatable_order'));
+
         var table = $('#datatable2').DataTable({
             "paging": false,
             "searching": true,
             "ordering": true,
-            "order": [
+            "order": savedOrder ? savedOrder : [
                 [0, 'asc']
-            ],
+            ], // Cargar orden desde sessionStorage o usar el por defecto
             "columnDefs": [{
                 "orderable": false,
                 "targets": [6, 7]
             }]
+        });
+
+        // Guardar el orden en sessionStorage cada vez que se ordena la tabla
+        table.on('order.dt', function() {
+            var order = table.order();
+            sessionStorage.setItem('datatable_order', JSON.stringify(order));
         });
 
         function applyFilters() {
