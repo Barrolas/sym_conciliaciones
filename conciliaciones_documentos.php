@@ -467,7 +467,6 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                         $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
                                                                         $params3 = array($rut_deudor);
                                                                         $stmt3 = sqlsrv_query($conn, $sql3, $params3);
-
                                                                         if ($stmt3 === false) {
                                                                             die(print_r(sqlsrv_errors(), true));
                                                                         }

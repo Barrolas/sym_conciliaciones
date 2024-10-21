@@ -121,7 +121,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 Esta herramienta permite visualizar las transferencias que aún no han sido pareadas en el sistema. Las transferencias se identifican según el estado de su coincidencia a través de botones con distintos colores:
                             </p>
                             <ul>
-                                <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b> Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
+                                <li><span class="text-info"><i class="feather-24 mr-2" data-feather="folder"></i></span><b>Rut coincidente:</b>  Indica que la transferencia tiene coincidencia, ya que el RUT del ordenante coincide con el RUT del deudor.</li>
                                 <li><span class="text-success"><i class="feather-24 mr-2" data-feather="plus"></i></span><b>Sin coincidencia:</b> Corresponde a transferencias donde el RUT del deudor no está determinado. Estas transferencias están disponibles para ser asignadas manualmente.</li>
                             </ul>
                         </div>
@@ -173,7 +173,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 <button id="clear-filters-btn" class="btn btn-secondary">
                                     <i class="fa fa-times pr-2"></i>LIMPIAR
                                 </button>
-                                <!-- <button id="testSave">Guardar preferencias manualmente</button> -->
                             </div>
 
                         </div><!--end form-group-->
@@ -251,6 +250,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         };
     </script>
 
+
 </body>
 
 <!-- jQuery  -->
@@ -300,17 +300,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
     });
 
     $(document).ready(function() {
+
         var table = $('#datatable2').DataTable({
-            "paging": false,
-            "searching": true,
-            "ordering": true,
+            "paging": false, // Deshabilita la paginación
+            "searching": true, // Habilita la búsqueda
+            "ordering": true, // Habilita el ordenamiento
             "order": [
                 [0, 'asc']
-            ],
+            ], // Ordenar por la columna de índice 0 en orden ascendente
             "columnDefs": [{
-                "orderable": false,
-                "targets": [6, 7]
-            }]
+                    "orderable": false,
+                    "targets": [6, 7]
+                } // Deshabilitar el ordenamiento para las columnas de índice 6 y 7
+            ]
         });
 
         function applyFilters() {
@@ -392,7 +394,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             saveTagStates();
             updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
             filterTable();
-            savePreferences(); // Guarda las preferencias después de seleccionar/deseleccionar etiquetas
         });
 
         $('#filter-icons').on('click', '.icon-filter-filter', function() {
@@ -406,7 +407,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             saveSelectedTags();
             updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
             filterTable();
-            savePreferences(); // Guarda las preferencias después de seleccionar/deseleccionar filtros
         });
 
         function saveSelectedTags() {
@@ -415,63 +415,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 selectedTags.push($(this).data('tag'));
             });
             localStorage.setItem('selected_tags', JSON.stringify(selectedTags));
-
-            // Guardar estado del checkbox "excluir"
-            var excludeChecked = $('#excluir_tags').is(':checked');
-            localStorage.setItem('exclude_tags', excludeChecked);
         }
-
-        function savePreferences() {
-            var etiquetasSeleccionadas = JSON.parse(localStorage.getItem('tag_states')) || {};
-            var etiquetasFiltroSeleccionadas = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            var excludeEstado = $('#excluir_tags').is(':checked') ? 1 : 0;
-
-            // Filtrar etiquetasSeleccionadas para incluir solo las que tienen al menos una etiqueta
-            var filteredEtiquetasSeleccionadas = {};
-            Object.keys(etiquetasSeleccionadas).forEach(function(key) {
-                if (etiquetasSeleccionadas[key].length > 0) {
-                    // Convertir el array de etiquetas a una cadena separada por comas
-                    filteredEtiquetasSeleccionadas[key] = etiquetasSeleccionadas[key].join(',');
-                }
-            });
-
-            // Convertir el objeto a una cadena separada por punto y coma
-            var etiquetasSeleccionadasTexto = Object.keys(filteredEtiquetasSeleccionadas)
-                .map(function(key) {
-                    return key + ':' + filteredEtiquetasSeleccionadas[key];
-                })
-                .join(';');
-
-            // Convertir el array de etiquetas de filtro a una cadena separada por comas
-            var etiquetasFiltroSeleccionadasTexto = etiquetasFiltroSeleccionadas.join(',');
-
-            console.log("Guardando preferencias...", {
-                etiquetasSeleccionadas: etiquetasSeleccionadasTexto,
-                etiquetasFiltroSeleccionadas: etiquetasFiltroSeleccionadasTexto,
-                excludeEstado
-            });
-
-            $.ajax({
-                url: 'save_preferences.php',
-                type: 'POST',
-                data: {
-                    etiquetas_seleccionadas: etiquetasSeleccionadasTexto,
-                    etiquetas_filtro_seleccionadas: etiquetasFiltroSeleccionadasTexto,
-                    excluir_estado: excludeEstado
-                },
-                dataType: 'json',
-                success: function(response) {
-                    console.log(response.message || 'Preferencias guardadas correctamente.');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al guardar preferencias:', error);
-                }
-            });
-        }
-        /*$('#testSave').on('click', function() {
-            console.log("Intentando guardar preferencias manualmente...");
-            savePreferences(); // Prueba la función manualmente
-        });*/
 
         $('#cuenta_filter').on('change', function() {
             var filterValue = $(this).val();
@@ -489,7 +433,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             var isChecked = $(this).is(':checked');
             localStorage.setItem('exclude_tags', isChecked);
             filterTable();
-            savePreferences(); // Guarda preferencias al cambiar el estado del checkbox
         });
 
         function filterTable() {
@@ -563,21 +506,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             });
         });
 
-        $(window).on('beforeunload', function() {
-            console.log("Guardando preferencias antes de salir...");
-            savePreferences(); // Guarda preferencias al salir
-        });
-
-        // Cargar las preferencias al inicio
         applyFilters();
     });
-</script>
 
-<script>
-</script>
-
-
-<script>
     <?php if ($op == 1) { ?>
         Swal.fire({
             width: 600,
