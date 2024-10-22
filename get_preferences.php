@@ -5,10 +5,6 @@ include("conexiones.php");
 include("permisos_adm.php");
 noCache();
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 header('Content-Type: application/json');
 
 $response = [];
@@ -36,16 +32,32 @@ if (isset($_SESSION['ID_USUARIO'])) {
 
             // Verificar y convertir las etiquetas seleccionadas
             if (!empty($etiquetasSeleccionadas)) {
-                $decodedEtiquetasSeleccionadas = json_decode($etiquetasSeleccionadas, true);
-                $response['etiquetas_seleccionadas'] = is_array($decodedEtiquetasSeleccionadas) ? $decodedEtiquetasSeleccionadas : [];
+                $etiquetasArray = explode(';', $etiquetasSeleccionadas);
+                $decodedEtiquetasSeleccionadas = [];
+
+                foreach ($etiquetasArray as $etiqueta) {
+                    list($id, $tags) = explode(':', $etiqueta);
+                    $tagArray = explode(',', $tags);
+                    $decodedEtiquetasSeleccionadas[$id] = $tagArray; // ID mapeado a sus etiquetas
+                }
+
+                $response['etiquetas_seleccionadas'] = $decodedEtiquetasSeleccionadas;
             } else {
                 $response['etiquetas_seleccionadas'] = [];
             }
 
             // Verificar y convertir las etiquetas de filtro seleccionadas
             if (!empty($etiquetasFiltroSeleccionadas)) {
-                $decodedEtiquetasFiltroSeleccionadas = json_decode($etiquetasFiltroSeleccionadas, true);
-                $response['etiquetas_filtro_seleccionadas'] = is_array($decodedEtiquetasFiltroSeleccionadas) ? $decodedEtiquetasFiltroSeleccionadas : [];
+                $etiquetasFiltroArray = explode(';', $etiquetasFiltroSeleccionadas);
+                $decodedEtiquetasFiltroSeleccionadas = [];
+
+                foreach ($etiquetasFiltroArray as $etiqueta) {
+                    list($id, $tags) = explode(':', $etiqueta);
+                    $tagArray = explode(',', $tags);
+                    $decodedEtiquetasFiltroSeleccionadas[$id] = $tagArray; // ID mapeado a sus etiquetas
+                }
+
+                $response['etiquetas_filtro_seleccionadas'] = $decodedEtiquetasFiltroSeleccionadas;
             } else {
                 $response['etiquetas_filtro_seleccionadas'] = [];
             }

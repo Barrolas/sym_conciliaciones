@@ -13,12 +13,29 @@ $id_usuario     = $_SESSION['ID_USUARIO'];;
 print_r($id_doc . '; ');
 print_r($transaccion . '; ');
 
+$sql_entrecta = "{call [_SP_CONCILIACIONES_ENTRECUENTAS_TRANSACCION_VALIDA](?)}";
+$params_entrecta = array(
+    array($transaccion,    SQLSRV_PARAM_IN),
+);
+$stmt_entrecta = sqlsrv_query($conn, $sql_entrecta, $params_entrecta);
+if ($stmt_entrecta === false) {
+    die(print_r(sqlsrv_errors(), true));
+}
+$entrecta = sqlsrv_fetch_array($stmt_entrecta, SQLSRV_FETCH_ASSOC);
+$transaccion_entrecta = $entrecta['TRANSACCION'];
+
+if($transaccion_entrecta <> 0){
+//Si es entrecuenta, busca la TRANSACCION original asociada a las operaciones. 
+    $transaccion = $entrecta['TRANSACCION'];
+}
+
+
 $sql_seleccion = "EXEC [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR] ?, ?, ?, ?";
 $params_seleccion = array(
     array($id_doc,      SQLSRV_PARAM_IN),
     array($transaccion, SQLSRV_PARAM_IN),
     array(1,            SQLSRV_PARAM_IN),
-    array('2-3',          SQLSRV_PARAM_IN)
+    array('2-3',        SQLSRV_PARAM_IN)
 );
 $stmt_seleccion = sqlsrv_query($conn, $sql_seleccion, $params_seleccion);
 if ($stmt_seleccion === false) {

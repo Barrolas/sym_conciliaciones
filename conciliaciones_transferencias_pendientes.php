@@ -291,14 +291,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
     $(document).ready(function() {
         $('#idcliente').select2();
-    });
 
-    // Inicializar Tooltip de Bootstrap
-    $(function() {
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-
-    $(document).ready(function() {
         // Comprobar si hay un orden guardado en sessionStorage
         var savedOrder = JSON.parse(sessionStorage.getItem('datatable_order'));
 
@@ -308,7 +301,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             "ordering": true,
             "order": savedOrder ? savedOrder : [
                 [0, 'asc']
-            ], // Cargar orden desde sessionStorage o usar el por defecto
+            ],
             "columnDefs": [{
                 "orderable": false,
                 "targets": [6, 7]
@@ -320,6 +313,25 @@ $fecha_proceso = $row["FECHAPROCESO"];
             var order = table.order();
             sessionStorage.setItem('datatable_order', JSON.stringify(order));
         });
+
+        // Función para obtener preferencias del servidor y guardar en localStorage
+        function obtenerPreferencias() {
+            fetch('get_preferences.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.error) {
+                        // Guardar en localStorage
+                        localStorage.setItem('tag_states', JSON.stringify(data.etiquetas_seleccionadas));
+                        localStorage.setItem('selected_tags', JSON.stringify(data.etiquetas_filtro_seleccionadas));
+                        localStorage.setItem('exclude_tags', data.excluir_estado === 1);
+                        applyFilters(); // Aplicar filtros después de cargar preferencias
+                    }
+                })
+                .catch(error => console.error('Error al obtener preferencias:', error));
+        }
+
+        // Llamar a la función para obtener preferencias al cargar la página
+        obtenerPreferencias();
 
         function applyFilters() {
             // Cargar valor de cuenta
@@ -476,10 +488,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 }
             });
         }
-        /*$('#testSave').on('click', function() {
-            console.log("Intentando guardar preferencias manualmente...");
-            savePreferences(); // Prueba la función manualmente
-        });*/
 
         $('#cuenta_filter').on('change', function() {
             var filterValue = $(this).val();
@@ -536,17 +544,30 @@ $fecha_proceso = $row["FECHAPROCESO"];
         }
 
         function clearFilters() {
-            localStorage.removeItem('selected_cuenta');
-            localStorage.removeItem('page_length');
-            localStorage.removeItem('exclude_tags');
-            localStorage.removeItem('selected_tags');
-            localStorage.removeItem('tag_states');
+            // Limpiar solo las preferencias necesarias
+            localStorage.removeItem('etiquetas_seleccionadas');
+            localStorage.removeItem('etiquetas_filtro_seleccionadas');
+            localStorage.removeItem('excluir_estado');
 
             $('#cuenta_filter').val("0").change(); // Restablecer filtro de cuenta
             $('#excluir_tags').prop('checked', false); // Restablecer checkbox de exclusión
             $('#filter-icons .icon-filter-filter').removeClass('selected fas').addClass('far'); // Restablecer los íconos de filtro
 
+            // Limpiar la búsqueda y las columnas de la tabla
             table.search('').columns().search('').draw();
+
+            // Llamar a clear_preferences.php para limpiar las preferencias en la base de datos
+            $.ajax({
+                url: 'clear_preferences.php',
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response.message || 'Preferencias limpiadas correctamente en la base de datos.');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al limpiar preferencias:', error);
+                }
+            });
         }
 
         $('#clear-filters-btn').on('click', function() {
@@ -565,7 +586,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         'Todos los filtros y etiquetas se han eliminado.',
                         'success'
                     ).then(() => {
-                        location.reload();
+                        location.reload(); // Recargar la página después de limpiar
                     });
                 }
             });
@@ -583,7 +604,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <script>
 </script>
-
 
 <script>
     <?php if ($op == 1) { ?>

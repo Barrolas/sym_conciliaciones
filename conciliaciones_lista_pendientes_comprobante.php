@@ -391,7 +391,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                                         <td class="font_mini">
                                                             <!-- Este botón puede estar en cualquier parte de tu HTML y activará el popup -->
-                                                            <a data-toggle="tooltip" title="Eliminar" href="#" class="btn btn-icon btn-rounded btn-danger eliminar-btn" data-iddoc="<?php echo $iddoc; ?>" data-idasig="<?php echo $id_asignacion; ?>" data-transaccion="<?php echo $transaccion; ?>">
+                                                            <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_asignaciones_eliminar.php" class="btn btn-icon btn-rounded btn-danger eliminar-btn" data-iddoc="<?php echo $iddoc; ?>" data-idasig="<?php echo $id_asignacion; ?>" data-transaccion="<?php echo $transaccion; ?>">
                                                                 <i class="feather-24" data-feather="x"></i>
                                                             </a>
                                                         </td>

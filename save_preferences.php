@@ -21,15 +21,14 @@ if (isset($_SESSION['ID_USUARIO'])) {
     // Imprimir los datos para depuración
     error_log("Datos recibidos: " . print_r($data, true));
 
-    // Convertir etiquetas seleccionadas a texto plano (ya hemos hecho esto en el frontend)
-    $etiquetasSeleccionadas = isset($_POST['etiquetas_seleccionadas']) ? $_POST['etiquetas_seleccionadas'] : '';
-    $etiquetasFiltroSeleccionadas = isset($_POST['etiquetas_filtro_seleccionadas']) ? $_POST['etiquetas_filtro_seleccionadas'] : '';
-    $excluirEstado = isset($_POST['excluir_estado']) ? (int)$_POST['excluir_estado'] : 0;
+    // Convertir etiquetas seleccionadas a texto plano (antes era tag_states)
+    $etiquetasSeleccionadas = isset($data['etiquetas_seleccionadas']) ? $data['etiquetas_seleccionadas'] : '';
+    $etiquetasFiltroSeleccionadas = isset($data['etiquetas_filtro_seleccionadas']) ? $data['etiquetas_filtro_seleccionadas'] : '';
+    $excluirEstado = isset($data['excluir_estado']) ? (int)$data['excluir_estado'] : 0;
 
-    // Tu consulta y ejecución seguirán igual
     // Imprimir las etiquetas para depuración
-    error_log("Etiquetas Seleccionadas (plain text): " . $etiquetasSeleccionadas);
-    error_log("Etiquetas Filtro Seleccionadas (plain text): " . $etiquetasFiltroSeleccionadas);
+    error_log("Etiquetas Seleccionadas (antes tag_states): " . $etiquetasSeleccionadas);
+    error_log("Etiquetas Filtro Seleccionadas: " . $etiquetasFiltroSeleccionadas);
 
     // Preparar la consulta SQL para el procedimiento almacenado
     $sql = "{CALL _SP_CONCILIACIONES_USUARIOS_PREFERENCIAS_GUARDAR(?, ?, ?, ?)}";
@@ -37,7 +36,7 @@ if (isset($_SESSION['ID_USUARIO'])) {
     // Preparar los parámetros para la consulta
     $params = [
         $idUsuario,
-        $etiquetasSeleccionadas,
+        $etiquetasSeleccionadas, // Ahora etiquetas_seleccionadas contiene lo que antes era tag_states
         $etiquetasFiltroSeleccionadas,
         $excluirEstado
     ];
@@ -70,4 +69,4 @@ if (isset($_SESSION['ID_USUARIO'])) {
 
 // Devolver la respuesta JSON
 echo json_encode($response);
-exit; // Asegúrate de no tener salida después de esto
+exit;

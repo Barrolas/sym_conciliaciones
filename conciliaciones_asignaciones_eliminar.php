@@ -18,12 +18,12 @@ $id_doc         = intval($id_doc);
 $transaccion    = htmlspecialchars($transaccion,    ENT_QUOTES, 'UTF-8');
 $motivo         = htmlspecialchars($motivo,         ENT_QUOTES, 'UTF-8');
 
-//print_r($_GET);
-//exit;
-
+/*
+print_r($_GET);
 print_r($id_asignacion . '; ');
 print_r($id_doc . '; ');
 print_r($transaccion . '; ');
+*/
 
 $estado1 = 1;
 $estado2 = 1;
@@ -40,6 +40,21 @@ $asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC);
 
 $id_pareo_sis = $asignados['ID_PAREO_SISTEMA'];
 
+$sql_entrecta = "{call [_SP_CONCILIACIONES_ENTRECUENTAS_TRANSACCION_VALIDA](?)}";
+$params_entrecta = array(
+    array($transaccion,    SQLSRV_PARAM_IN),
+);
+$stmt_entrecta = sqlsrv_query($conn, $sql_entrecta, $params_entrecta);
+if ($stmt_entrecta === false) {
+    die(print_r(sqlsrv_errors(), true));
+}
+$entrecta = sqlsrv_fetch_array($stmt_entrecta, SQLSRV_FETCH_ASSOC);
+$transaccion_entrecta = $entrecta['TRANSACCION'];
+
+if($transaccion_entrecta <> 0){
+//Si es entrecuenta, busca el ID_PAREO_SISTEMA de la TRANSACCION original asociada a las operaciones. 
+    $id_pareo_sis = $entrecta['ID_PAREO_SISTEMA'];
+}
 
 $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_CONSULTA](?)}";
 $params_operacion = array(
@@ -51,12 +66,12 @@ if ($stmt_operacion === false) {
 }
 $operaciones = sqlsrv_fetch_array($stmt_operacion, SQLSRV_FETCH_ASSOC);
 
-$transaccion_op = $operaciones['TRANSACCION'];
+$transaccion = $operaciones['TRANSACCION'];
 
 $sql_seleccion = "EXEC [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR] ?, ?, ?, ?";
 $params_seleccion = array(
     array($id_doc,          SQLSRV_PARAM_IN),
-    array($transaccion_op,  SQLSRV_PARAM_IN),
+    array($transaccion,     SQLSRV_PARAM_IN),
     array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
     array('3-4',            SQLSRV_PARAM_IN)  // ID_ETAPA
 );
@@ -80,6 +95,14 @@ while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
     if ($stmt_operacion === false) {
         die(print_r(sqlsrv_errors(), true));
     }
+
+/*
+print_r($id_documento);
+print_r($id_pareodoc);
+print_r($id_asignacion);
+print_r($id_usuario);
+exit;
+*/
 
     // Procedimiento de eliminación si necesitas continuar
     $sql_opeliminar = "EXEC [_SP_CONCILIACIONES_OPERACION_ASIGNACION_ELIMINA] ?, ?, ?, ?";
@@ -111,6 +134,19 @@ $stmt_desasig = sqlsrv_query($conn, $sql_desasig, $params_desasig);
 if ($stmt_desasig === false) {
     die(print_r(sqlsrv_errors(), true));
 }
+
+$estado_asig = 0;
+$sql_desasig = "{call [_SP_CONCILIACIONES_ASIGNACION_CAMBIA_ESTADO](?, ?, ?)}";
+$params_desasig = array(
+    array($id_asignacion,   SQLSRV_PARAM_IN),
+    array($estado_asig,     SQLSRV_PARAM_IN),
+    array($id_usuario,      SQLSRV_PARAM_IN),
+);
+$stmt_desasig = sqlsrv_query($conn, $sql_desasig, $params_desasig);
+if ($stmt_desasig === false) {
+    die(print_r(sqlsrv_errors(), true));
+}
+
 
 header("Location: conciliaciones_lista_pendientes_comprobante.php?op=2");
 exit;
