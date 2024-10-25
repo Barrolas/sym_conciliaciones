@@ -214,12 +214,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                     <thead>
                                         <tr>
-                                            <th class="font_mini_header">ID CANAL</th>
-                                            <th class="font_mini_header">ID</th>
-                                            <th class="font_mini_header">N° DOCUMENTO</th>
-                                            <th class="font_mini_header">CUENTA</th>
-                                            <th class="font_mini_header">FECHA</th>
                                             <th class="font_mini_header">CODIGO</th>
+                                            <th class="font_mini_header">CUENTA</th>
+                                            <th class="font_mini_header">N°DOC CARTOLA</th>
+                                            <th class="font_mini_header">FECHA</th>
+                                            <th class="font_mini_header">CANAL</th>
                                             <th class="font_mini_header">MONTO</th>
                                         </tr>
                                     </thead>
@@ -227,7 +226,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <?php
                                         $estado1 = 3;
                                         $estado2 = 3;
-                                        $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+                                        $sql_asign    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_LISTA]";
                                         $params_asign = array(
                                             array($estado1,     SQLSRV_PARAM_IN),
                                             array($estado2,     SQLSRV_PARAM_IN),
@@ -239,39 +238,36 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                         while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 
+                                            $codigo     = $asignados['CODIGO'] ?? '';
+                                            $cuenta     = $asignados['CARTOLA_CUENTA'] ?? '';
+                                            $ndoc       = $asignados['CARTOLA_NDOCUMENTO'];
+                                            $fecha      = date_format($asignados['CARTOLA_FECHA'], 'Y-m-d') ?? '';
+                                            $canal      = $asignados['CANAL'] ?? '';
+                                            $monto      = $asignados['MONTO_CONCILIACION'] ?? '';
+
+
 
                                         ?>
                                             <tr>
-                                                <td>
+                                                <!--<td>
                                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $asignados["ID_DOCDEUDORES"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
+                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $asignados["ID_DOCDEUDORES"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php //echo $disabled; ?>>
                                                         <input type="hidden" class="checkbox_type" value="ch">
-                                                    </div>
+                                                    </div> -->
                                                 </td>
-                                                <td class="col-auto font_mini"><?php echo $tipo_canal ?></td>
-                                                <td class="col-auto font_mini"><?php echo $id_asignacion ?></td>
-                                                <td class="interes col-auto font_mini" id="interes">
-                                                    <input type="text" class="monto_ingresado font_mini_input form-control"
-                                                        value="<?php echo ($tipo_canal == 1) ? $n_cheque : (($tipo_canal == 2) ? $num_remesa : ''); ?>"
-                                                        disabled />
-                                                </td>
-                                                <td class="col-auto font_mini"><?php echo mb_substr($canal, 0, 6); ?></td>
-                                                <td class="col-auto font_mini">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
-                                                <td class="col-auto font_mini"><?php echo $benef_cta ?></td>
-                                                <td class="col-auto font_mini"><?php echo $cartera; ?></td>
-                                                <td class="col-auto font_mini"><?php echo $deud_rut ?></td>
-                                                <td class="col-auto font_mini"><?php echo $operacion ?></td>
-                                                <td class="col-auto font_mini"><?php echo $f_venc ?></td>
-                                                <td class="col-auto font_mini"><?php echo substr($producto, 0, 7) ?></td>
-                                                <td class="col-auto font_mini"><?php echo $cant_docs ?></td>
-                                                <td class="col-auto font_mini">$<?php echo number_format($monto_doc, 0, ',', '.'); ?></td>
+                                                <td class="col-auto font_mini"><?php echo $codigo ?></td>
+                                                <td class="col-auto font_mini"><?php echo $cuenta ?></td>
+                                                <td class="col-auto font_mini"><?php echo $ndoc ?></td>
+                                                <td class="col-auto font_mini"><?php echo $fecha ?></td>
+                                                <td class="col-auto font_mini"><?php echo $canal ?></td>
+                                                <td class="col-auto font_mini">$<?php echo number_format($monto, 0, '', '.'); ?></td>
 
-                                                <td class="font_mini"><!--
-                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_asignaciones_eliminar.php?id_asig=<?php echo $id_asignacion; ?>&iddoc=<?php echo $iddoc ?>&transaccion=<?php echo $transaccion ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                <!--<td class="font_mini">
+                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_asignaciones_eliminar.php?id_asig=<?php //echo $id_asignacion; ?>&iddoc=<?php// echo $iddoc ?>&transaccion=<?php //echo $transaccion ?>" class="btn btn-icon btn-rounded btn-danger">
                                                             <i class="feather-24" data-feather="x"></i>
                                                         </a>
-                                                        -->
-                                                </td>
+                                                        
+                                                </td>-->
 
                                             </tr> <?php
                                                 } ?>
@@ -510,46 +506,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
             "ordering": true, // Habilita el ordenamiento
             responsive: true,
             order: [
-                [9, 'asc']
+                [5, 'desc']
             ],
-            columnDefs: [{
-                    targets: [0, 3, 14],
-                    orderable: false
-                },
-                {
-                    targets: [1],
-                    visible: false
-                },
-                {
-                    targets: 3,
-                    render: function(data, type, row, meta) {
-                        // Verificar si el valor de la columna 17 es 1
-                        if (row[16] == 1) {
-                            // Aplicar estilo rojo al valor de la columna 3
-                            return '<span class="text-danger"><b>' + data + '</b></span>';
-                        }
-                        return data;
-                    }
-                },
-                {
-                    targets: 10,
-                    render: function(data, type, row, meta) {
-                        if (data > 169) {
-                            return '<span class="text-danger"><b>' + data + '</b></span>';
-                        }
-                        return data;
-                    }
-                }
-            ],
-            createdRow: function(row, data, dataIndex) {
-                var value = data[10];
-
-                if (value > 169) {
-                    $(row).css('background-color', 'rgba(255, 0, 0, 0.06)');
-                } else if (value < 0) {
-                    $(row).css('background-color', 'rgba(255, 255, 0, 0.15)');
-                }
-            }
         });
 
         // Function to apply filters based on stored values

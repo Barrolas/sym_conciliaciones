@@ -48,6 +48,47 @@
 	<div id="content" style="display: none;">
 		<?php
 		session_start();
+
+		$inactive = 10; // 10 segundos para pruebas
+
+		// Verificar si existe la variable 'timeout'
+		if (isset($_SESSION['timeout'])) {
+			// Calcular el tiempo de vida de la sesión
+			$session_life = time() - $_SESSION['timeout'];
+
+			echo "Tiempo de vida de la sesión: " . $session_life . " segundos.<br>";
+
+			// Si la vida de la sesión excede el tiempo de inactividad permitido
+			if ($session_life > $inactive) {
+				session_unset();     // Borrar todas las variables de la sesión
+
+				// Eliminar cookies de sesión manualmente
+				if (ini_get("session.use_cookies")) {
+					$params = session_get_cookie_params();
+					setcookie(
+						session_name(),
+						'',
+						time() - 42000,
+						$params["path"],
+						$params["domain"],
+						$params["secure"],
+						$params["httponly"]
+					);
+				}
+
+				session_destroy();   // Destruir la sesión actual
+				header("Location: login.php?timeout=1");  // Redirigir al usuario (opcional)
+				exit;
+			}
+		} else {
+			echo "Iniciando sesión por primera vez.<br>";
+		}
+
+		// Actualizar el tiempo de timeout
+		$_SESSION['timeout'] = time();
+
+		echo "Sesión actualizada a: " . $_SESSION['timeout'] . "<br>";
+
 		include("funciones.php");
 		include("conexiones.php");
 		noCache();
@@ -61,11 +102,9 @@
 
 		$sql = "EXEC [_SP_CONCILIACIONES_VALIDA_USUARIO] '$usuario','$pass'";
 		$stmt = sqlsrv_query($conn, $sql);
-
 		if ($stmt === false) {
 			die(print_r(sqlsrv_errors(), true));
 		}
-
 		$elusuario = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
 		if (!$elusuario) {
@@ -88,21 +127,16 @@
 		$_SESSION["NOMBRES"] 	= $elusuario["NOMBRES"] . ' ' . $elusuario["APELLIDOS"];
 
 		print_r($_SESSION["ID_USUARIO"]);
-
-
-		$sql_deudores = "EXEC [_SP_CONCILIACIONES_DEUDORES_ACTUALIZA]";
+		/*$sql_deudores = "EXEC [_SP_CONCILIACIONES_DEUDORES_ACTUALIZA]";
 		$stmt_deudores = sqlsrv_query($conn, $sql_deudores);
-
 		if ($stmt_deudores === false) {
 			die(print_r(sqlsrv_errors(), true));
-		}
+		}*/
 
 		header("Location: menu_principal.php");
 		exit;
 		?>
 	</div>
-
-
 </body>
 
 </html>

@@ -2,7 +2,7 @@
 session_start();
 include("funciones.php");
 include("conexiones.php");
-// include("permisos_adm.php");
+include("permisos_adm.php");
 noCache();
 
 // Obtener y sanitizar los datos de entrada

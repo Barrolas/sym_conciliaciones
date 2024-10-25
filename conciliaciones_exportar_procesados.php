@@ -209,7 +209,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     /* ====================================================TRANSFERENCIAS======================================================*/
 
     // Bloque CMR TRANSFERENCIA
-    if ($tipo_canal == 2 && $benef_cta == '61682381' && $producto != 'HIPOTECARIO' && in_array($id_estado_asign, [1, 2])) {        // Escribir encabezado de los productos para CMR
+    if ($tipo_canal == 2 && $benef_cta == '61682381' && $producto != 'HIPOTECARIO' && $producto != 'AUTOMOTRIZ' && in_array($id_estado_asign, [1, 2])) {        // Escribir encabezado de los productos para CMR
         $encabezadoCMR_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Cartera", "Cuenta Beneficiario"];
         $hojaCMR_tr->fromArray($encabezadoCMR_tr, null, 'A1');
 
@@ -230,7 +230,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     }
 
     // Bloque Banco Vigente TRANSFERENCIA
-    if ($tipo_canal == 2 && $benef_cta == '29743125' && $producto != 'HIPOTECARIO' && in_array($id_estado_asign, [1, 2])) {        // Escribir encabezado de los productos para Banco Vigente
+    if ($tipo_canal == 2 && $benef_cta == '29743125' && $producto != 'HIPOTECARIO'  && $producto != 'AUTOMOTRIZ' && in_array($id_estado_asign, [1, 2])) {        // Escribir encabezado de los productos para Banco Vigente
         $encabezadoBancoVigente_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Nombre Producto", "Cartera", "N° Cuotas a pagar", "Cuenta Beneficiario"];
         $hojaBancoVigente_tr->fromArray($encabezadoBancoVigente_tr, null, 'A1');
 
@@ -253,9 +253,9 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     }
 
     // Bloque Banco Castigo TRANSFERENCIA
-    if ($tipo_canal == 2 && $benef_cta == '61682420' && $producto != 'HIPOTECARIO' && in_array($id_estado_asign, [1, 2])) {
+    if ($tipo_canal == 2 && $benef_cta == '61682420' && $producto != 'HIPOTECARIO' && $producto != 'AUTOMOTRIZ' && in_array($id_estado_asign, [1, 2])) {
         // Escribir encabezado de los productos para Banco Vigente
-        $encabezadoBancoCastigo_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "N° Cuotas", "Cartera", "N° Cuotas a pagar", "Nombre Deudor", "Cuenta Beneficiario"];
+        $encabezadoBancoCastigo_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "N° Cuotas", "Cartera", "Nombre Deudor", "Cuenta Beneficiario"];
         $hojaBancoCastigo_tr->fromArray($encabezadoBancoCastigo_tr, null, 'A1');
 
         $hojaBancoCastigo_tr->setCellValueByColumnAndRow(1, $numeroDeFilaBancoCastigo_tr, $id_asignacion);
@@ -268,11 +268,10 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaBancoCastigo_tr, $deud_dv,    DataType::TYPE_STRING);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaBancoCastigo_tr, $operacion,  DataType::TYPE_STRING);
         $hojaBancoCastigo_tr->setCellValueByColumnAndRow(10, $numeroDeFilaBancoCastigo_tr, $monto_doc);
-        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(11, $numeroDeFilaBancoCastigo_tr, $cant_docs);
+        $hojaBancoCastigo_tr->setCellValueByColumnAndRow(11, $numeroDeFilaBancoCastigo_tr, $pago_docs);
         $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(12, $numeroDeFilaBancoCastigo_tr, $cartera . " BANCO", DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(13, $numeroDeFilaBancoCastigo_tr, $pago_docs,  DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaBancoCastigo_tr, $deud_nom,   DataType::TYPE_STRING);
-        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(15, $numeroDeFilaBancoCastigo_tr, $benef_cta,  DataType::TYPE_STRING);
+        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(13, $numeroDeFilaBancoCastigo_tr, $deud_nom,   DataType::TYPE_STRING);
+        $hojaBancoCastigo_tr->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaBancoCastigo_tr, $benef_cta,  DataType::TYPE_STRING);
 
         $numeroDeFilaBancoCastigo_tr++;
     }
@@ -307,10 +306,23 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
         $tipo_canal_hipotecario     = $hipotecario['CANAL'];
         $canalizacion_hipotecario   = substr($hipotecario['CANALIZACION'], 0, 2);
 
+        $sql_cuotas = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO] ?";
+        $params_cuotas = array(
+            array($id_ps_hipotecario,    SQLSRV_PARAM_IN),
+        );    
+        $stmt_cuotas = sqlsrv_query($conn, $sql_cuotas, $params_cuotas);
+        if ($stmt_cuotas === false) {
+            die(print_r(sqlsrv_errors(), true));
+        }    
+        $cuotas = sqlsrv_fetch_array($stmt_cuotas, SQLSRV_FETCH_ASSOC);
+
+        $pago_docs_hipotecario = $cuotas['DESCRIPCION_PAGOS'];
+
+
         /* ======================================================HIPOTECARIOS=====================================================*/
         if ($tipo_canal_hipotecario == 2 && in_array($id_estado_asign, [1, 2])) {
 
-            $encabezadoHipotecario_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "Valor Cuota", "Subproducto", "Cartera", "Cuenta Beneficiario"];
+            $encabezadoHipotecario_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "N° Cuotas" , "Valor Cuota", "Subproducto", "Cartera", "Cuenta Beneficiario"];
             $hojaHipotecario_tr->fromArray($encabezadoHipotecario_tr, null, 'A1');
 
             $hojaHipotecario_tr->setCellValueByColumnAndRow(1, $numeroDeFilaHipotecario_tr, $id_asign_hipotecario);
@@ -322,10 +334,11 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
             $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(7, $numeroDeFilaHipotecario_tr, $deud_rut_hipotecario,   DataType::TYPE_STRING);
             $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(8, $numeroDeFilaHipotecario_tr, $deud_dv_hipotecario,    DataType::TYPE_STRING);
             $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(9, $numeroDeFilaHipotecario_tr, $operacion_hipotecario,  DataType::TYPE_STRING);
-            $hojaHipotecario_tr->setCellValueByColumnAndRow(10, $numeroDeFilaHipotecario_tr, $monto_doc_hipotecario);
-            $hojaHipotecario_tr->setCellValueByColumnAndRow(11, $numeroDeFilaHipotecario_tr, $producto_hipotecario);
-            $hojaHipotecario_tr->setCellValueByColumnAndRow(12, $numeroDeFilaHipotecario_tr, $cartera_hipotecario);
-            $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(13, $numeroDeFilaHipotecario_tr, $benef_cta_hipotecario,  DataType::TYPE_STRING);
+            $hojaHipotecario_tr->setCellValueByColumnAndRow(10, $numeroDeFilaHipotecario_tr, $pago_docs_hipotecario);
+            $hojaHipotecario_tr->setCellValueByColumnAndRow(11, $numeroDeFilaHipotecario_tr, $monto_doc_hipotecario);
+            $hojaHipotecario_tr->setCellValueByColumnAndRow(12, $numeroDeFilaHipotecario_tr, $producto_hipotecario);
+            $hojaHipotecario_tr->setCellValueByColumnAndRow(13, $numeroDeFilaHipotecario_tr, $cartera_hipotecario);
+            $hojaHipotecario_tr->setCellValueExplicitByColumnAndRow(14, $numeroDeFilaHipotecario_tr, $benef_cta_hipotecario,  DataType::TYPE_STRING);
 
             $numeroDeFilaHipotecario_tr++;
         }

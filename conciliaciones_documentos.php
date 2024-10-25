@@ -157,7 +157,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         }
 
         .scrollable-div {
-            max-height: 72px;
+            max-height: 100px;
             overflow-y: auto;
             scroll-behavior: smooth;
         }
@@ -430,9 +430,12 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                             die(print_r(sqlsrv_errors(), true));
                                                                                         }
                                                                                         while ($gestiones = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
-                                                                                            echo "<strong>" . $gestiones['FECHA_GESTION']->format('d-m-Y') . ": </strong>" . $gestiones['OBSERVACION'] . "<br><hr>";
-                                                                                        }; ?>
-                                                                                    </div>
+                                                                                            echo "<strong>Cliente:</strong> " . $gestiones['NOMBRE_CLIENTE'] . "<br>";
+                                                                                            echo "<strong>Monto:</strong> $" . number_format($gestiones['MONTO'], 0, '', '.') . "<br>";
+                                                                                            echo "<strong>Fecha:</strong> " . $gestiones['FECHA_COMPROMISO']->format('Y-m-d') . "<br>";
+                                                                                            echo "<strong>Observación:</strong> " . $gestiones['Gestion'] . ' - ' . $gestiones['Observacion'] . "<br><br>";
+                                                                                        } ?>
+                                                                                                                                                                            </div>
                                                                                 </div>
                                                                             </div>
 
@@ -897,7 +900,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
             });
 
             if (isChecked) {
-                $inputInteres.prop('disabled', false);
+                $inputInteres.prop('disabled', false); // Para perfiles de administracion debe ir en false
                 if ($inputInteres.val().trim() === '') {
                     $inputInteres.val('0');
                 }

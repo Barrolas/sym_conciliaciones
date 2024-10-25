@@ -16,6 +16,7 @@ $total_procesados       = 0;
 $id_asignacion          = 0;
 
 //print_r($_POST);
+//exit;
 
 if (isset($_POST['ch_checkbox'])) {
 
@@ -39,7 +40,7 @@ if (isset($_POST['ch_checkbox'])) {
         $valores = explode(',', $checkbox_value);
 
         // Verificamos que $valores tenga al menos 12 elementos (según la nueva estructura)
-        if (count($valores) >= 12) {
+        if (count($valores) === 12) {
             $id_pareos_sis[]   = $valores[0];
             $id_documentos[]   = $valores[1];
             $operaciones[]     = $valores[2];
@@ -75,9 +76,9 @@ if (isset($_POST['ch_checkbox'])) {
     }
 
     // Ejemplo: acceder a los valores individuales
-    foreach ($docs_combined as $doc) {
+    /*foreach ($docs_combined as $doc) {
         echo "ID Pareo Sis: " . $doc['id_pareo_sis'] . ", ID Documento: " . $doc['id_documento'] . ", Operación: " . $doc['operacion'] . ", Monto Documento: " . $doc['monto_doc'] . ", Fecha Vencimiento: " . $doc['f_venc'] . "<br>";
-    }
+    }*/
 }
 
 $sql_proceso = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_INSERTA](?, ?)}";
@@ -111,6 +112,7 @@ foreach ($docs_combined as $index => $conciliacion) {
 
     $diferencia_doc = 0;
 
+
     $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_VALIDA](?, ?)}";
     $params_diferencia = array(
         array($id_documento,        SQLSRV_PARAM_IN),
@@ -124,6 +126,23 @@ foreach ($docs_combined as $index => $conciliacion) {
     $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
 
     if ($diferencia_doc == 0) {
+/*
+        print_r('PRINT PREVIO AL SP: ');
+        var_dump('id_pareo_sis: ' .  $id_pareo_sis . '; ');
+        var_dump('id_documento: ' .  $id_documento . '; ');
+        var_dump('operacion: ' .     $operacion . '; ');
+        var_dump('transaccion: ' .   $transaccion . '; ');
+        var_dump('benef_cta: ' .     $benef_cta . '; ');
+        var_dump('deud_nom: ' .      $deud_nom . '; ');
+        var_dump('deud_rut: ' .      $deud_rut . '; ');
+        var_dump('deud_dv: ' .       $deud_dv . '; ');
+        var_dump('monto_doc: ' .     $monto_doc . '; ');
+        var_dump('f_venc: ' .        $f_venc . '; ');
+        var_dump('pago_doc: ' .      $pago_doc . '; ');
+        var_dump('tipo_canal: ' .    $tipo_canal . '; ');
+        var_dump('idusuario: ' .     $idusuario . '; ');
+        exit;*/
+    
 
         $sql_asignacion = "{call [_SP_CONCILIACIONES_ASIGNACION_INSERTAR](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         $params_asignacion = array(
@@ -140,8 +159,10 @@ foreach ($docs_combined as $index => $conciliacion) {
             array($pago_doc,        SQLSRV_PARAM_IN),
             array($tipo_canal,      SQLSRV_PARAM_IN),
             array($idusuario,       SQLSRV_PARAM_IN)
-
         );
+       /* print_r('PARAMS: ');
+        var_dump($params_asignacion);
+        exit;*/
         $stmt_asignacion = sqlsrv_prepare($conn, $sql_asignacion, $params_asignacion);
         if ($stmt_asignacion === false) {
             echo "Error in preparing statement asignacion.\n";
@@ -243,7 +264,7 @@ foreach ($docs_combined as $index => $conciliacion) {
 }
 
 // Finalmente, puedes mostrar el total de procesados si es necesario
-echo "Total procesados: " . $total_procesados;
+//echo "Total procesados: " . $total_procesados;
 
 $sql_actualiza = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_ACTUALIZA](?, ?, ?)}";
 $params_actualiza = array(

@@ -213,32 +213,32 @@ $monto_diferencia   = 0;
                                                         <div class="col-auto mr-0">
                                                             <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
                                                         </div>
-                                                        <td align="right">
-                                                            <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
-                                                        </td>
-                                                        <!--
+                                                <td align="right">
+                                                    <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
+                                                </td>
+                                                <!--
                                                         <div class="col-auto">
                                                             <button type="button" class="btn btn-md btn-secondary" onclick="limpiarFormulario();"><i class="fa fa-times"></i> LIMPIAR</button>
                                                         </div>
                                                         -->
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div><!--end card-header-->
-                                <div class="card-body ">
-                                    <div class="row text-start">
-                                        <div class="col-md-12">
+                                </div>
+                                </td>
+                                </tr>
+                                </tbody>
+                                </table>
+                            </div><!--end card-header-->
+                            <div class="card-body ">
+                                <div class="row text-start">
+                                    <div class="col-md-12">
 
-                                            <div class="form-group row text-center justify-content-between">
-                                                <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                    <label for="monto" class="col-lg-4 col-form-label">MONTO</label>
-                                                    <div class="col-lg-8">
-                                                        <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $monto_total ?>" disabled />
-                                                    </div>
+                                        <div class="form-group row text-center justify-content-between">
+                                            <div class="col-lg-4 d-flex align-items-center justify-content-end">
+                                                <label for="monto" class="col-lg-4 col-form-label">MONTO</label>
+                                                <div class="col-lg-8">
+                                                    <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $monto_total ?>" disabled />
                                                 </div>
-                                                <!--<div class="col-lg-4 d-flex align-items-start">
+                                            </div>
+                                            <!--<div class="col-lg-4 d-flex align-items-start">
                                                     <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
                                                     <div class="col-lg-8">
                                                         <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
@@ -246,81 +246,81 @@ $monto_diferencia   = 0;
                                                         <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
                                                     </div>
                                                 </div> -->
-                                            </div>
-
-                                            <hr>
-
                                         </div>
+
+                                        <hr>
+
                                     </div>
+                                </div>
 
-                                    <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                        <thead>
-                                            <tr>
-                                                <th class="col-1 font_mini_header"></th>
-                                                <th class="font_mini_header">N° REMESA/DEVOLUCION</th>
-                                                <th class="font_mini_header">CANAL</th>
-                                                <th class="font_mini_header">MONTO</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $sql_conc    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_ENTRADA_LISTA]";
-                                            $stmt_conc = sqlsrv_query($conn, $sql_conc);
-                                            if ($stmt_conc === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-1 font_mini_header"></th>
+                                            <th class="font_mini_header">N° REMESA/DEVOLUCION</th>
+                                            <th class="font_mini_header">CANAL</th>
+                                            <th class="font_mini_header">MONTO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $sql_conc    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_ENTRADA_LISTA]";
+                                        $stmt_conc = sqlsrv_query($conn, $sql_conc);
+                                        if ($stmt_conc === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+                                        while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
+
+                                            $id_saldo       = $conciliados['ID_CONCILIACION_SALDO'];
+                                            $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
+                                            $canal          = $conciliados['CANAL'];
+                                            $n_remesa       = $conciliados['N_REMESA'];
+                                            $monto_entrada  = $conciliados['MONTO_TR'];
+                                            $monto_entrada_sanitizado = preg_replace('/[^0-9]/', '', $conciliados['MONTO_TR']);
+                                            $monto_saldo    = $conciliados['MONTO_SALDO'];
+
+                                            $codigo = '';
+                                            if ($tipo_canal == 1) {
+                                                $codigo = !empty($n_cheque) ? $n_cheque : ''; // Si es tipo 1, asigna el número de cheque si existe, de lo contrario, deja vacío
+                                            } elseif ($tipo_canal == 2) {
+                                                $codigo = !empty($n_remesa) ? $n_remesa : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
+                                            } elseif ($tipo_canal == 3) {
+                                                $codigo = !empty($id_saldo) ? $id_saldo : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
                                             }
-                                            while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
+                                            // Condición para deshabilitar dependiendo del tipo de canalización
+                                            if ($tipo_canal == 2) {
+                                                // Comparar monto_entrada_sanitizado con monto_total_sanitizado
+                                                $isDisabled = ($monto_entrada_sanitizado <> $monto_total_sanitizado) ? 'disabled' : '';
+                                            } elseif ($tipo_canal == 3) {
+                                                // Comparar monto_saldo_sanitizado con monto_total_sanitizado
+                                                $isDisabled = ($monto_saldo <> $monto_total_sanitizado) ? 'disabled' : '';
+                                            }
 
-                                                $id_saldo       = $conciliados['ID_CONCILIACION_SALDO'];
-                                                $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
-                                                $canal          = $conciliados['CANAL'];
-                                                $n_remesa       = $conciliados['N_REMESA'];
-                                                $monto_entrada  = $conciliados['MONTO_TR'];
-                                                $monto_entrada_sanitizado = preg_replace('/[^0-9]/', '', $conciliados['MONTO_TR']);
-                                                $monto_saldo    = $conciliados['MONTO_SALDO'];
-
-                                                $codigo = '';
-                                                if ($tipo_canal == 1) {
-                                                    $codigo = !empty($n_cheque) ? $n_cheque : ''; // Si es tipo 1, asigna el número de cheque si existe, de lo contrario, deja vacío
-                                                } elseif ($tipo_canal == 2) {
-                                                    $codigo = !empty($n_remesa) ? $n_remesa : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
-                                                } elseif ($tipo_canal == 3) {
-                                                    $codigo = !empty($id_saldo) ? $id_saldo : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
-                                                }
-                                                // Condición para deshabilitar dependiendo del tipo de canalización
-                                                if ($tipo_canal == 2) {
-                                                    // Comparar monto_entrada_sanitizado con monto_total_sanitizado
-                                                    $isDisabled = ($monto_entrada_sanitizado <> $monto_total_sanitizado) ? 'disabled' : '';
-                                                } elseif ($tipo_canal == 3) {
-                                                    // Comparar monto_saldo_sanitizado con monto_total_sanitizado
-                                                    $isDisabled = ($monto_saldo <> $monto_total_sanitizado) ? 'disabled' : '';
-                                                }
-
-                                            ?>
-                                                <tr>
-                                                    <td class="col-1" style="text-align: center;">
-                                                        <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo. ',' . $tipo_canal ?>" <?php echo $isDisabled; ?>>
-                                                    </td>
-                                                    <td class="col-auto font_mini interes" id="interes">
-                                                        <?php echo $codigo; ?>
-                                                    </td>
-                                                    <td class="col-auto font_mini"><?php echo $canal ?></td>
-                                                    <td class="col-auto font_mini">
-                                                        $<?php echo number_format($monto_entrada == 0 ? $monto_saldo : $monto_entrada, 0, ',', '.'); ?>
-                                                    </td>
-                                                </tr> <?php
-                                                    } ?>
-                                        </tbody>
-                                    </table>
-                                </div><!-- end card-body -->
-                            </div><!-- end card -->
-                        </form>
-                    </div><!-- end col -->
-                </div><!-- end row -->
-            </div><!-- container-fluid -->
-        </div><!-- page-content -->
-        <?php include('footer.php'); ?>
-        <!-- page-wrapper -->
+                                        ?>
+                                            <tr>
+                                                <td class="col-1" style="text-align: center;">
+                                                    <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo . ',' . $tipo_canal ?>" <?php echo $isDisabled; ?>>
+                                                </td>
+                                                <td class="col-auto font_mini interes" id="interes">
+                                                    <?php echo $codigo; ?>
+                                                </td>
+                                                <td class="col-auto font_mini"><?php echo $canal ?></td>
+                                                <td class="col-auto font_mini">
+                                                    $<?php echo number_format($monto_entrada == 0 ? $monto_saldo : $monto_entrada, 0, ',', '.'); ?>
+                                                </td>
+                                            </tr> <?php
+                                                } ?>
+                                    </tbody>
+                                </table>
+                            </div><!-- end card-body -->
+                    </div><!-- end card -->
+                    </form>
+                </div><!-- end col -->
+            </div><!-- end row -->
+        </div><!-- container-fluid -->
+    </div><!-- page-content -->
+    <?php include('footer.php'); ?>
+    <!-- page-wrapper -->
     </div>
     <?php /* print_r($detalles);
 exit; */ ?>
@@ -376,10 +376,13 @@ exit; */ ?>
         // Inicializar DataTable
         var table = $('#datatable2').DataTable({
             responsive: true,
+            paging: false, // Desactivar el paginado
+            info: false, // Ocultar el contador de información ("Mostrando X de Y registros")
+            lengthChange: false, // Ocultar el selector de número de registros a mostrar
             columnDefs: [{
                 targets: [0],
                 orderable: false
-            }, ],
+            }],
             order: [
                 [3, 'desc']
             ],

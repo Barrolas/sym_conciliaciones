@@ -23,6 +23,7 @@ print_r($selected_ids_pareodoc);
 print_r($selected_types);
 echo "</pre>";
 */
+
 // Verificar que $selected_ids_docs es un array con un solo elemento que es una cadena de valores separados por comas
 if (is_array($selected_ids_docs) && count($selected_ids_docs) > 0) {
     $selected_ids_docs = explode(',', $selected_ids_docs[0]);
@@ -50,11 +51,11 @@ if (count($selected_ids_docs) !== count($selected_ids_pareodoc) || count($select
 }
 
 // Inicialización de variables
-$id_usuario = $_SESSION['ID_USUARIO'];;
-$id_canalizacion = 0;
-$cantidad_docs = 0;
-$cantidad_cheques = 0;
-$cantidad_transferencias = 0;
+$id_usuario                 = $_SESSION['ID_USUARIO'];;
+$id_canalizacion            = 0;
+$cantidad_docs              = 0;
+$cantidad_cheques           = 0;
+$cantidad_transferencias    = 0;
 
 // Consultar e insertar en la base de datos
 $sql1 = "{call [_SP_CONCILIACIONES_CANALIZACION_INSERTA] (?, ?)}";
@@ -133,7 +134,6 @@ foreach ($selected_ids_docs as $index => $id_docdeudores) {
         array((int)$estado_canal,       SQLSRV_PARAM_IN),
         array((int)$id_usuario,         SQLSRV_PARAM_IN)
     );
-
     $stmt2 = sqlsrv_query($conn, $sql2, $params2);
     if ($stmt2 === false) {
         echo "Error en la ejecución de la declaración 2 en el índice $index.\n";
@@ -165,7 +165,6 @@ $params3 = array(
     array((int)$cantidad_docs,      SQLSRV_PARAM_IN),
     array((int)$id_usuario,         SQLSRV_PARAM_IN)
 );
-
 $stmt3 = sqlsrv_query($conn, $sql3, $params3);
 if ($stmt3 === false) {
     echo "Error en la ejecución de la declaración 3.\n";

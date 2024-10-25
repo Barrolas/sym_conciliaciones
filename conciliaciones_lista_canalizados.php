@@ -237,26 +237,37 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                $sql = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_LISTA]";
+                                                $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_OPERACIONES_LISTA]";
                                                 $stmt = sqlsrv_query($conn, $sql);
                                                 if ($stmt === false) {
                                                     die(print_r(sqlsrv_errors(), true));
                                                 }
                                                 while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
-                                                    $idpareo_sis        = $p_sistema['ID_PAREO_SISTEMA'];
-                                                    $id_doc             = $p_sistema['ID_DOCDEUDORES'];
-                                                    $entrecuenta        = $p_sistema['ENTRE_CUENTAS'];
+                                                    
+                                                    $n_doc              = $p_sistema['N_DOC'];
+                                                    $monto_doc          = $p_sistema['MONTO_DOC'];
+                                                    
+                                                    //print_r('n_doc: ' . $n_doc . '; ' . 'monto_doc: ' . $monto_doc . '; ');
+                                                    //exit;
 
-                                                    $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
+                                                    $sql_pd = "{call [_SP_CONCILIACIONES_CANALIZADOS_OPERACIONES_CONSULTA](?, ?)}";
                                                     $params_pd = array(
-                                                        array($id_doc,     SQLSRV_PARAM_IN),
+                                                        array($n_doc,     SQLSRV_PARAM_IN),
+                                                        array($monto_doc, SQLSRV_PARAM_IN),
                                                     );
                                                     $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
                                                     if ($stmt_pd === false) {
                                                         die(print_r(sqlsrv_errors(), true));
                                                     }
                                                     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
+                                                    
+                                                    $idpareo_sis        = $p_docs['ID_PAREO_SISTEMA'];
+                                                    $id_doc             = $p_docs['ID_DOCDEUDORES'];
+                                                    $entrecuenta        = $p_docs['ENTRE_CUENTAS'];
+
+                                                    //print_r($idpareo_sis);
+                                                    //exit;
 
                                                     $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO](?)}";
                                                     $params_pagodocs = array(
@@ -281,34 +292,34 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     $disabled           =  '';
 
                                                     if ($entrecuenta == 2) {
-                                                        $benef_cta      = $p_sistema['CUENTA_CORRESPONDIENTE'];
-                                                        $transaccion    = $p_sistema['ENTRE_CUENTAS_TRANSACCION'];
+                                                        $benef_cta      = $p_docs['CUENTA_CORRESPONDIENTE'];
+                                                        $transaccion    = $p_docs['ENTRE_CUENTAS_TRANSACCION'];
                                                     } else {
-                                                        $benef_cta      = $p_sistema['CUENTA_BENEFICIARIO'];
-                                                        $transaccion    = $p_sistema['TRANSACCION'];
+                                                        $benef_cta      = $p_docs['CUENTA_BENEFICIARIO'];
+                                                        $transaccion    = $p_docs['TRANSACCION'];
+                                                    }
+                                                    if($p_docs['MONTO_TRANSACCION_INGRESADO'] <> 0){                                                      
+                                                        $monto_tr       = $p_docs['MONTO_TRANSACCION_INGRESADO'];
+                                                    } else {
+                                                        $monto_tr       = $p_docs['MONTO_TRANSACCION_ORIGINAL'];
                                                     }
                                                     
                                                     //Variables pareo sistema
-                                                    $f_recepcion    = $p_sistema['FECHA_RECEPCION'];
-                                                    $monto_tr       = $p_sistema['MONTO_TRANSACCION'];
-                                                    $ord_rut        = $p_sistema['ORDENANTE_RUT'];
-                                                    $ord_dv         = $p_sistema['ORDENANTE_DV'];
-                                                    $ord_banco      = $p_sistema['ORDENANTE_BANCO'];
-                                                    $ord_cta        = $p_sistema['ORDENANTE_CUENTA'];
-                                                    $deud_rut       = $p_sistema['DEUDOR_RUT'];
-                                                    $deud_dv        = $p_sistema['DEUDOR_DV'];
-                                                    $cte_rut        = $p_sistema['RUT_CLIENTE'];
-                                                    $deud_nom       = $p_sistema['NOMBRE_COMPLETO'];
-                                                    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+                                                    $operacion      = $p_sistema['N_DOC'];
+                                                    $monto_doc      = $p_sistema['MONTO_DOC'];
                                                     //Variables pareo docs
-                                                    $operacion      = $p_docs['N_DOC'];
-                                                    $monto_doc      = $p_docs['MONTO'];
+                                                    $f_recepcion    = $p_docs['FECHA_RECEPCION'];
+                                                    $deud_rut       = $p_docs['RUT_DEUDOR'];
+                                                    $deud_dv        = $p_docs['DEUDOR_DV'];
+                                                    $cte_rut        = $p_docs['RUT_CLIENTE'];
+                                                    $deud_nom       = $p_docs['ORDENANTE_NOMBRE'];
                                                     $producto       = $p_docs['SUBPRODUCTO'];
                                                     $cartera        = $p_docs['CARTERA'];
                                                     $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
                                                     $canal          = $p_docs['CANAL'];
-                                                    $monto_cubierto = $contable['MONTO_CUBIERTO'];
                                                     $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
+                                                    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+                                                    $monto_cubierto = $contable['MONTO_CUBIERTO'];
                                                 ?>
 
                                                     <tr>

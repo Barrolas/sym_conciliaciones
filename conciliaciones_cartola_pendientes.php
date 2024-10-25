@@ -290,22 +290,79 @@ $fecha_proceso = $row["FECHAPROCESO"];
         });
 
         function applyFilters() {
-            // Cargar valor de cuenta
-            var storedCuentaValue = localStorage.getItem('selected_cuenta');
-            if (storedCuentaValue) {
-                $('#cuenta_filter').val(storedCuentaValue).change();
+            var storedCuentaValue = sessionStorage.getItem('selected_cuenta_3');
+            var storedCanalValue = sessionStorage.getItem('selected_canal');
+            var storedFiltroValue = sessionStorage.getItem('selected_diasmora');
+
+            if (storedCanalValue && storedCanalValue !== "0") {
+                $('#canal_filtro').val(storedCanalValue).change();
+            } else {
+                $('#canal_filtro').val("0").change(); // Reset to default
             }
 
-            // Cargar longitud de la página
-            var storedPageLength = localStorage.getItem('page_length');
-            if (storedPageLength) {
-                table.page.len(parseInt(storedPageLength)).draw();
+            // Apply cuenta filter
+            if (storedCuentaValue && storedCuentaValue !== "0") {
+                $('#cuenta_filter').val(storedCuentaValue).change();
+            } else {
+                $('#cuenta_filter').val("0").change(); // Reset to default
+            }
+
+
+            // Apply dias_mora filter
+            if (storedFiltroValue && storedFiltroValue !== "0") {
+                $('#dias_mora').val(storedFiltroValue).change();
+            } else {
+                $('#dias_mora').val("0").change(); // Reset to default
             }
         }
 
-        // Llamar a la función para aplicar los filtros al cargar
-        applyFilters();
+        // Custom filter function for values >= 170
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                var filterValue = $('#dias_mora').val();
+                var columnValue = parseFloat(data[7]) || 0; // Convert the value to a number
 
+                if (filterValue === "1") {
+                    return columnValue >= 100; // Rango para dias de mora
+                }
+                return true; // Otherwise, show all rows
+            }
+        );
+
+        // Add event listener to the cuenta select element
+        $('#cuenta_filter').on('change', function() {
+            var filterValue = $(this).val();
+            sessionStorage.setItem('selected_cuenta_3', filterValue);
+
+            if (filterValue == "0") {
+                table.column(0).search('').draw(); // Clear the cuenta filter
+            } else {
+                table.column(0).search(filterValue).draw();
+            }
+        });
+
+        $('#canal_filtro').on('change', function() {
+            var filterValue = $(this).val();
+            sessionStorage.setItem('selected_canal', filterValue);
+
+            if (filterValue == "0") {
+                table.column(1).search('').draw(); // Clear the cuenta filter
+            } else {
+                table.column(1).search(filterValue).draw();
+            }
+        });
+
+        // Add event listener to the dias_mora select element
+        $('#dias_mora').on('change', function() {
+            var filterValue = $(this).val();
+            sessionStorage.setItem('selected_diasmora', filterValue);
+
+            // Redraw table to apply the dias_mora filter
+            table.draw();
+        });
+
+        // Apply filters on page load
+        applyFilters();
     });
 
     <?php if ($op == 1) { ?>

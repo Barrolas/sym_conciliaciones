@@ -791,7 +791,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
             function(settings, data, dataIndex) {
                 var diasMoraFilter = $('#dias_mora').val();
                 var estadoFilter = $('#estado_conc').val();
-                var diasMoraValue = parseFloat(data[9]) || 0; // Convert the value to a number
+                var diasMoraValue = parseFloat(data[3]) || 0; // Convert the value to a number
                 var estadoValue = data[11]; // Assuming column 9 is the ESTADO column
 
                 // Filter by dias_mora
@@ -816,9 +816,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             sessionStorage.setItem('selected_cuenta_2', filterValue);
 
             if (filterValue == "0") {
-                table.column(3).search('').draw(); // Clear the cuenta filter
+                table.column(5).search('').draw(); // Clear the cuenta filter
             } else {
-                table.column(3).search(filterValue).draw();
+                table.column(5).search(filterValue).draw();
             }
         });
 
