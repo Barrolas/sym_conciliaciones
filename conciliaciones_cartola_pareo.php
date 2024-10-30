@@ -82,6 +82,22 @@ $fecha_proceso = $row["FECHAPROCESO"];
             /* Asegura que esté sobre otros elementos */
         }
 
+        #loading-indicator {
+            position: absolute;
+            /* Puedes ajustar la posición */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+            /* Asegúrate de que esté encima de otros elementos */
+        }
+
+
+
+        
         @media (min-width: 1000px) and (max-width: 1299px) {
             .font_mini {
                 font-size: 12px !important;
@@ -282,6 +298,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 <div class="card card_content sticky-container">
                                     <div class="card-body card_width">
                                         <h5 class="card-title pb-3">Remesas</h5>
+                                        <!-- Indicador de carga -->
+                                        <div id="loading-indicator" style="display: none;">Cargando...</div>
                                         <div class="table-responsive sticky-table" id="remesas-container">
                                             <table id="datatable_remesas" class="table table-striped table-bordered dt-responsive nowrap" style="width: 100%;">
                                                 <thead>
@@ -301,13 +319,21 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         </div>
                                         <div class="row mt-3">
                                             <div class="col-md-6">
-                                                <h4> <strong>Total Cartola: $<span id="suma-cartola">0</span></strong></h4>
+                                                <h4><strong>Total Cartola: $<span id="suma-cartola">0</span></strong></h4>
                                             </div>
                                             <div class="col-md-6 text-end">
                                                 <h4><strong>Total Remesas: $<span id="suma-remesas">0</span></strong></h4>
                                             </div>
                                         </div>
-                                        <button class="btn btn-primary mt-3" id="btn-conciliar">Conciliar</button>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <h4><strong>Cantidad: <span id="cantidad_seleccionados_cartola">0</span></strong></h4>
+                                            </div>
+                                            <div class="col-md-6 text-end">
+                                                <h4><strong>Cantidad: <span id="cantidad_seleccionados_remesas">0</span></strong></h4>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary mt-3" id="btn-conciliar" disabled>Conciliar</button>
                                     </div>
                                 </div>
                             </div>
@@ -365,15 +391,21 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <script>
     $(document).ready(function() {
-
         // Variables para almacenar los totales seleccionados
         let totalCartola = 0;
         let totalRemesas = 0;
+        let cantidadSeleccionadosCartola = 0;
+        let cantidadSeleccionadosRemesas = 0;
 
-        // Función para actualizar el resumen en la tabla de Remesas
+        // Función para actualizar el resumen
         function actualizarResumen() {
             $('#suma-cartola').text(totalCartola.toLocaleString('es-CL'));
             $('#suma-remesas').text(totalRemesas.toLocaleString('es-CL'));
+            $('#cantidad_seleccionados_cartola').text(cantidadSeleccionadosCartola);
+            $('#cantidad_seleccionados_remesas').text(cantidadSeleccionadosRemesas);
+
+            // Habilitar o deshabilitar el botón "Conciliar"
+            $('#btn-conciliar').prop('disabled', totalCartola !== totalRemesas);
         }
 
         // Manejo de checkboxes en los detalles de la tabla de Cartola
@@ -382,8 +414,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
             if ($(this).is(':checked')) {
                 totalCartola += monto; // Sumar monto si está seleccionado
+                cantidadSeleccionadosCartola++; // Incrementar contador
             } else {
                 totalCartola -= monto; // Restar monto si se deselecciona
+                cantidadSeleccionadosCartola--; // Decrementar contador
             }
             actualizarResumen();
         });
@@ -394,13 +428,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
             if ($(this).is(':checked')) {
                 totalRemesas += monto; // Sumar monto si está seleccionado
+                cantidadSeleccionadosRemesas++; // Incrementar contador
             } else {
                 totalRemesas -= monto; // Restar monto si se deselecciona
+                cantidadSeleccionadosRemesas--; // Decrementar contador
             }
             actualizarResumen();
         });
 
-        // Manejo de clic en las filas individuales
+        // Manejo de clic en las filas individuales de la tabla de Cartola
         $('.clickable-row').click(function() {
             const targetId = $(this).data('target');
             const isRowCollapsed = $(targetId).hasClass('show');
@@ -412,6 +448,17 @@ $fecha_proceso = $row["FECHAPROCESO"];
             // Colapsar todas las filas antes de expandir la actual
             $('tr.collapse').collapse('hide'); // Colapsar todas las filas colapsadas
             $('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar íconos a más
+
+            // Reiniciar las sumas y contadores al seleccionar una nueva fila
+            totalCartola = 0;
+            totalRemesas = 0;
+            cantidadSeleccionadosCartola = 0;
+            cantidadSeleccionadosRemesas = 0;
+            $('#datatable_remesas input[type=checkbox]').prop('checked', false); // Deseleccionar checkboxes de Remesas
+            $('#datatable_salidas input[type=checkbox]').prop('checked', false); // Deseleccionar checkboxes de Cartola
+
+            // Actualizar el resumen
+            actualizarResumen();
 
             if (isRowCollapsed) {
                 $(targetId).collapse('hide');
@@ -432,6 +479,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         cuenta: currentCuenta
                     },
                     dataType: 'json',
+                    beforeSend: function() {
+                        // Mostrar el indicador de carga antes de iniciar la solicitud
+                        $('#loading-indicator').show();
+                    },
                     success: function(response) {
                         console.log("Respuesta del servidor:", response); // Log de la respuesta
 
@@ -444,43 +495,36 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                             // Ordenar los datos por fecha (descendente) y luego por monto (descendente)
                             response.sort(function(a, b) {
-                                // Convertir las fechas a objetos Date para la comparación
-                                const dateA = new Date(a.fecha.split("/").reverse().join("-")); // Convierte dd/mm/yyyy a yyyy-mm-dd
-                                const dateB = new Date(b.fecha.split("/").reverse().join("-"));
-
                                 // Comparar fechas primero
-                                if (dateA < dateB) return 1; // Ordenar descendente
-                                if (dateA > dateB) return -1;
-
-                                // Si las fechas son iguales, ordenar por monto (convertir a número)
-                                const montoA = parseFloat(a.monto.replace(/\$/g, '').replace(/\./g, '').trim());
-                                const montoB = parseFloat(b.monto.replace(/\$/g, '').replace(/\./g, '').trim());
-                                return montoB - montoA; // Ordenar monto en orden descendente
+                                const dateA = new Date(a.fecha.split("/").reverse().join("-"));
+                                const dateB = new Date(b.fecha.split("/").reverse().join("-"));
+                                return dateB - dateA; // Ordenar descendente
                             });
 
                             // Agregar las filas ordenadas a la tabla
                             response.forEach(function(remesa) {
                                 remesasContainer.append(`
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" class="select-remesa-checkbox" name="selected_remesas[]" value="${remesa.n_remesa}" data-monto="${parseInt(remesa.monto.replace(/\D/g, ''))}">
-                                        </td>
-                                        <td>${remesa.fecha}</td>
-                                        <td>${remesa.n_remesa}</td>
-                                        <td>${remesa.cant_tr}</td>
-                                        <td>${remesa.producto}</td>
-                                        <td>${remesa.monto}</td>
-                                    </tr>
-                                `);
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="select-detail-checkbox" name="selected_remesas[]" value="${remesa.n_remesa}">
+                        </td>
+                        <td>${remesa.fecha}</td>
+                        <td>${remesa.n_remesa}</td>
+                        <td>${remesa.cant_tr}</td>
+                        <td>${remesa.producto}</td>
+                        <td>${remesa.monto}</td>
+                    </tr>
+                `);
                             });
-
-                            // Actualizar resumen después de cargar nuevas remesas
-                            actualizarResumen();
                         }
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         console.error("Error al cargar remesas:", textStatus, errorThrown);
-                        console.error("Detalles de la respuesta:", jqXHR.responseText); // Log de la respuesta completa
+                        console.error("Detalles de la respuesta:", jqXHR.responseText);
+                    },
+                    complete: function() {
+                        // Ocultar el indicador de carga una vez que se complete la solicitud
+                        $('#loading-indicator').hide();
                     }
                 });
             }
