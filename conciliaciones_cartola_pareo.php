@@ -2,10 +2,21 @@
 session_start();
 include("funciones.php");
 include("conexiones.php");
+// include("permisos_adm.php");
 noCache();
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+$op = 0;
+if (isset($_GET["op"])) {
+    $op = $_GET["op"];
+};
 
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
     die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
@@ -14,37 +25,6 @@ if ($stmt === false) {
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
 $fecha_proceso = $row["FECHAPROCESO"];
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-$ndoc    = $_GET["n_doc"];
-
-$sql_detalles   = "{call [_SP_CONCILIACIONES_CARTOLA_SALIDAS_CONSULTA](?)}";
-$params_detalles = array(
-    array($ndoc,     SQLSRV_PARAM_IN)
-);
-$stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
-if ($stmt_detalles === false) {
-    echo "Error in executing statement detalles.\n";
-    die(print_r(sqlsrv_errors(), true));
-}
-$detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
-
-$cuenta         = $detalles['CUENTA'];
-$fecha          = $detalles['FECHA'];
-$descripcion    = $detalles['DESCRIPCION'];
-$n_documento    = $detalles['N_DOCUMENTO'];
-$monto_total    = $detalles['MONTO'];
-$monto_total_sanitizado   = preg_replace('/[^0-9]/', '', $detalles['MONTO']);
-
-$existe             = 0;
-$idestado           = 0;
-$estado             = '';
-$rut_deudor         = 0;
-$monto_ingresado    = 0;
-$monto_diferencia   = 0;
 
 ?>
 
@@ -71,54 +51,68 @@ $monto_diferencia   = 0;
     <link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
     <link href="plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+    <link href="plugins/dropify/css/dropify.min.css" rel="stylesheet">
     <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
-        .custom-size {
-            font-size: 15px;
-            /* search button */
+        .sticky-container {
+            position: sticky;
+            top: 0;
+            /* Se ajusta la distancia desde la parte superior */
+            z-index: 10;
+            /* Asegura que esté sobre otros elementos */
         }
 
-        .scrollable-div {
-            max-height: 72px;
+        .table-responsive {
             overflow-y: auto;
-            scroll-behavior: smooth;
+            /* Habilita el desplazamiento vertical */
+            max-height: 50vh;
+            /* Altura máxima del contenedor */
         }
 
-        .form-control {
-            height: 28px;
-            /* Ajusta la altura según sea necesario */
+        .sticky-table {
+            position: sticky;
+            top: 0;
+            /* Se ajusta la distancia desde la parte superior */
+            background-color: white;
+            /* Fondo blanco para la cabecera sticky */
+            z-index: 10;
+            /* Asegura que esté sobre otros elementos */
         }
-    </style>
-    <style>
+
         @media (min-width: 1000px) and (max-width: 1299px) {
             .font_mini {
                 font-size: 12px !important;
             }
 
-            .font_mini_input {
-                font-size: 12px !important;
+            .font_mini_header {
+                font-size: 11px !important;
+            }
 
+            .card_width {
+                width: 90% !important;
+                overflow-x: scroll;
+            }
+
+            .card_content {
+                width: 100% !important;
+                overflow-x: visible;
+            }
+        }
+
+        @media (min-width: 1300px) {
+            .font_mini {
+                font-size: 15px !important;
             }
 
             .font_mini_header {
-                font-size: 12px !important;
+                font-size: 15px !important;
             }
 
-
-            @media (min-width: 1300px) {
-                .font_mini {
-                    font-size: 15px !important;
-                }
-
-                .font_mini_input {
-                    font-size: 15px !important;
-                }
-
-                .font_mini_header {
-                    font-size: 15px !important;
-                }
+            .card_width {
+                width: 100% !important;
             }
         }
     </style>
@@ -128,7 +122,8 @@ $monto_diferencia   = 0;
     <!-- Left Sidenav -->
     <?php include("menu_izquierda.php"); ?>
     <!-- end left-sidenav-->
-    <div class="page-wrapper w-75">
+
+    <div class="page-wrapper">
         <!-- Top Bar Start -->
         <?php include("menu_top.php"); ?>
         <!-- Top Bar End -->
@@ -139,191 +134,184 @@ $monto_diferencia   = 0;
             <p>Cargando...</p>
         </div>
 
-
         <!-- Page Content-->
         <div class="page-content" id="content">
-            <div class="container-fluid">
-                <!-- Page-Title -->
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="page-title-box">
-                            <div class="row">
-                                <div class="col">
-                                    <ol class="breadcrumb">
-
-                                        <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
-                                        <li class="breadcrumb-item active">Pareo Cartola</li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="container-fluid px-3 mb-2">
+            <form id="form_concilia" method="post" class="mr-0" action="#" onsubmit="return valida_envia(); return false;">
+                <div class="container-fluid">
+                    <!-- Page-Title -->
                     <div class="row">
-                        <div class="col">
-                            <h3>
-                                <b>Pareo Cartola</b>
-                            </h3>
-                        </div>
+                        <div class="col-sm-12">
+                            <div class="page-title-box">
+                                <div class="row">
+                                    <div class="col">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
+                                            <li class="breadcrumb-item active">Canalización</li>
+                                        </ol>
+                                    </div><!--end col-->
+                                </div><!--end row-->
+                            </div><!--end page-title-box-->
+                        </div><!--end col-->
+                    </div><!--end row-->
+                    <!-- end page title end breadcrumb -->
+
+                    <div class="container-fluid mx-3">
                         <div class="row">
-                            <div class="col-12 mx-2">
-                                <p>
-                                    Este módulo presenta de manera organizada todos los registros cargados exitosamente mediante el proceso de carga masiva. Cada fila de la tabla muestra información sobre cada registro, facilitando una vista rápida y clara de los datos importados.
-                                    Al presionar el icono <i class="fa fa-plus-circle text-primary p-1" aria-hidden="true"></i> en cualquier fila, se expande un panel que revela detalles adicionales del registro seleccionado. Esta funcionalidad permite explorar información más detallada sin perder la estructura visual intuitiva de la tabla principal.
-                                </p>
+                            <div class="col">
+                                <h3><b>Conciliar</b></h3>
+                            </div>
+                            <div class="row mr-2">
+                                <div class="col-12 mx-2">
+                                    <p>
+                                        En este módulo se permite visualizar tanto los saldos por diferencias como
+                                        las devoluciones completas de transferencias. Además, brinda la opción de
+                                        reincorporar las devoluciones a la lista de Transferencias recibidas,
+                                        permitiendo su procesamiento nuevamente. Este módulo facilita también el
+                                        manejo de saldos pendientes y devoluciones, asegurando su correcta gestión
+                                        para su posterior seguimiento y tratamiento.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="container-fluid px-2">
-                    <div class="col-12 px-3">
+                    <div class="container-fluid px-3">
                         <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
-                                    <div class="col-lg-4">
-                                        <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                        <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                                    </div>
-                                    <div class="col-lg-3">
-                                        <label class="col-4" for="fecha_ultima_cartola">CUENTA</label>
-                                        <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label class="col-4" for="fecha_ultima_cartola">N° DOCUMENTO</label>
-                                        <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $ndoc . ' - ' . $fecha ?>" disabled />
-                                    </div>
-                                </div><!--end form-group-->
-                            </div><!--end col-->
-                        </div>
+                            <!-- Tabla de Salidas (50% del ancho) -->
+                            <div class="col-md-5">
+                                <div class="card card_content">
+                                    <div class="card-body card_width">
+                                        <h5 class="card-title pb-3">Salidas de Cartola Bancaria</h5>
+                                        <table id="datatable_salidas" class="table table-striped table-bordered dt-responsive nowrap" style="width: 100%;">
+                                            <thead>
+                                                <tr>
+                                                    <th></th> <!-- Encabezado vacío para el icono de colapso -->
+                                                    <th>FECHA</th>
+                                                    <th>CUENTA</th>
+                                                    <th>SALIDAS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                // Consulta al procedimiento almacenado para obtener las filas de salida
+                                                $sql_salidas = "EXEC [_SP_CONCILIACIONES_CARTOLA_SALIDAS_DIARIAS_LISTA]";
+                                                $stmt_salidas = sqlsrv_query($conn, $sql_salidas);
 
+                                                if ($stmt_salidas === false) {
+                                                    die(print_r(sqlsrv_errors(), true));
+                                                }
 
-                        <form id="form_concilia" method="post" class="mr-0" action="conciliaciones_cartola_pareo_guardar.php?rut_ordenante=<?php  ?>">
-                            <div class="card ">
-                                <div class="card-header" style="background-color: #0055a6">
-                                    <table width="100%" border="0" cellspacing="2" cellpadding="0">
-                                        <tbody>
-                                            <tr style="background-color:#0055a6">
-                                                <td align="left">
-                                                    <!-- Formulario de búsqueda -->
+                                                // Generamos las filas principales
+                                                while ($salida = sqlsrv_fetch_array($stmt_salidas, SQLSRV_FETCH_ASSOC)) {
+                                                    $cuenta = $salida["CUENTA"];
+                                                    $fecha = $salida["FECHA"];
+                                                    $monto_salidas = $salida["SALIDAS"];
 
-                                                    <div class="form-group row align-items-center mb-0">
-                                                        <div class="col-auto mr-0">
-                                                            <button type="submit" id="conciliarButton" class="btn btn-md btn-info mr-0" disabled><i class="fa fa-plus"></i> PAREAR</button>
-                                                        </div>
-                                                <td align="right">
-                                                    <a align="right" href="conciliaciones_cartola_pendientes.php?"><button type="button" class="btn btn-md btn-danger"><i class="fa fa-plus"></i> VOLVER</button></a>
-                                                </td>
-                                                <!--
-                                                        <div class="col-auto">
-                                                            <button type="button" class="btn btn-md btn-secondary" onclick="limpiarFormulario();"><i class="fa fa-times"></i> LIMPIAR</button>
-                                                        </div>
-                                                        -->
+                                                    // Sanitizamos y formateamos el ID único para cada fila
+                                                    $transaccionId = preg_replace('/[^\w]/', '', $cuenta . '_' . $fecha); // Sanitiza el ID
+
+                                                    // Convertimos el monto a entero y lo formateamos
+                                                    $monto_salidas_int = (int) str_replace('.', '', $monto_salidas); // Valor sanitizado como entero
+                                                    $monto_salidas_formatted = number_format($monto_salidas_int, 0, ',', '.'); // Valor con separadores de miles
+                                                ?>
+                                                    <tr class="clickable-row" data-toggle="collapse" data-target="#details-<?php echo $transaccionId; ?>" aria-expanded="false" aria-controls="details-<?php echo $transaccionId; ?>">
+                                                        <td style="display: flex; justify-content: center; align-items: center;"> <!-- Centrado del icono -->
+                                                            <span class="toggle-icon" style="cursor:pointer;">
+                                                                <i class="fas fa-plus"></i>
+                                                            </span>
+                                                        </td>
+                                                        <td><?php echo $fecha; ?></td>
+                                                        <td><?php echo $cuenta; ?></td>
+                                                        <td>
+                                                            $<?php echo $monto_salidas_formatted; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="collapse" id="details-<?php echo $transaccionId; ?>">
+                                                        <td colspan="4">
+                                                            <div id="details-content-<?php echo $transaccionId; ?>">
+                                                                <table class="table table-striped">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th></th> <!-- Columna para el checkbox -->
+                                                                            <th>N° Documento</th> <!-- Columna para N° Documento -->
+                                                                            <th>DETALLE</th>
+                                                                            <th>MONTO</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php
+                                                                        // Llamar al procedimiento almacenado para obtener detalles
+                                                                        $sql_detalles = "EXEC [_SP_CONCILIACIONES_CARTOLA_SALIDAS_DETALLES_CONSULTA] '$cuenta', '$fecha'";
+                                                                        $stmt_detalles = sqlsrv_query($conn, $sql_detalles);
+
+                                                                        if ($stmt_detalles === false) {
+                                                                            die(print_r(sqlsrv_errors(), true));
+                                                                        }
+
+                                                                        while ($detalle = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC)) {
+                                                                            $n_documento = $detalle["N_DOCUMENTO"]; // Obtener N° Documento
+                                                                            $monto_detalle = $detalle["MONTO"];
+                                                                            $monto_detalle_int = (int) str_replace('.', '', $monto_detalle); // Valor sanitizado como entero
+                                                                            $monto_detalle_formatted = number_format($monto_detalle_int, 0, ',', '.'); // Valor con separadores de miles
+                                                                        ?>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <input type="checkbox" class="select-detail-checkbox" name="selected_details[]" value="DETAIL<?php echo $transaccionId . '-' . $n_documento; ?>">
+                                                                                </td> <!-- Checkbox a la izquierda -->
+                                                                                <td><?php echo $n_documento; ?></td> <!-- Mostrar N° Documento -->
+                                                                                <td><?php echo $detalle["DESCRIPCION"]; ?></td>
+                                                                                <td>$<?php echo $monto_detalle_formatted; ?></td>
+                                                                            </tr>
+                                                                        <?php } ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php
+                                                }
+                                                ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                                </td>
-                                </tr>
-                                </tbody>
-                                </table>
-                            </div><!--end card-header-->
-                            <div class="card-body ">
-                                <div class="row text-start">
-                                    <div class="col-md-12">
+                            </div>
 
-                                        <div class="form-group row text-center justify-content-between">
-                                            <div class="col-lg-4 d-flex align-items-center justify-content-end">
-                                                <label for="monto" class="col-lg-4 col-form-label">MONTO</label>
-                                                <div class="col-lg-8">
-                                                    <input type="text" name="monto" id="monto" class="form-control" maxlength="50" autocomplete="off" value="$<?= $monto_total ?>" disabled />
-                                                </div>
-                                            </div>
-                                            <!--<div class="col-lg-4 d-flex align-items-start">
-                                                    <label for="total" class="col-lg-3 col-form-label">TOTAL</label>
-                                                    <div class="col-lg-8">
-                                                        <input type="text" name="total" id="total" class="form-control" maxlength="50" autocomplete="off" value=" " disabled style="display: none;" />
-                                                        <input type="text" name="total2" id="total2" class="form-control" maxlength="50" autocomplete="off" value="$ " disabled />
-                                                        <input type="hidden" name="es_entrecuentas" id="es_entrecuentas">
-                                                    </div>
-                                                </div> -->
+                            <!-- Tabla de Remesas (50% del ancho) -->
+                            <div class="col-md-7">
+                                <div class="card card_content sticky-container">
+                                    <div class="card-body card_width">
+                                        <h5 class="card-title pb-3">Remesas</h5>
+                                        <div class="table-responsive sticky-table" id="remesas-container">
+                                            <table id="datatable_remesas" class="table table-striped table-bordered dt-responsive nowrap" style="width: 100%;">
+                                                <thead>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th>FECHA</th>
+                                                        <th>REMESA</th>
+                                                        <th>CANT TR</th>
+                                                        <th>PRODUCTO</th>
+                                                        <th>MONTO</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Aquí se actualizarán los datos -->
+                                                </tbody>
+                                            </table>
                                         </div>
-
-                                        <hr>
-
+                                        <button class="btn btn-primary mt-3" id="btn-conciliar">Conciliar</button>
                                     </div>
                                 </div>
-
-                                <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="col-1 font_mini_header"></th>
-                                            <th class="font_mini_header">N° REMESA/DEVOLUCION</th>
-                                            <th class="font_mini_header">CANAL</th>
-                                            <th class="font_mini_header">MONTO</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $sql_conc    = "EXEC [_SP_CONCILIACIONES_CONCILIADOS_ENTRADA_LISTA]";
-                                        $stmt_conc = sqlsrv_query($conn, $sql_conc);
-                                        if ($stmt_conc === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($conciliados = sqlsrv_fetch_array($stmt_conc, SQLSRV_FETCH_ASSOC)) {
-
-                                            $id_saldo       = $conciliados['ID_CONCILIACION_SALDO'];
-                                            $tipo_canal     = $conciliados['ID_TIPO_CANALIZACION'];
-                                            $canal          = $conciliados['CANAL'];
-                                            $n_remesa       = $conciliados['N_REMESA'];
-                                            $monto_entrada  = $conciliados['MONTO_TR'];
-                                            $monto_entrada_sanitizado = preg_replace('/[^0-9]/', '', $conciliados['MONTO_TR']);
-                                            $monto_saldo    = $conciliados['MONTO_SALDO'];
-
-                                            $codigo = '';
-                                            if ($tipo_canal == 1) {
-                                                $codigo = !empty($n_cheque) ? $n_cheque : ''; // Si es tipo 1, asigna el número de cheque si existe, de lo contrario, deja vacío
-                                            } elseif ($tipo_canal == 2) {
-                                                $codigo = !empty($n_remesa) ? $n_remesa : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
-                                            } elseif ($tipo_canal == 3) {
-                                                $codigo = !empty($id_saldo) ? $id_saldo : ''; // Si es tipo 2, asigna el número de remesa si existe, de lo contrario, deja vacío
-                                            }
-                                            // Condición para deshabilitar dependiendo del tipo de canalización
-                                            if ($tipo_canal == 2) {
-                                                // Comparar monto_entrada_sanitizado con monto_total_sanitizado
-                                                $isDisabled = ($monto_entrada_sanitizado <> $monto_total_sanitizado) ? 'disabled' : '';
-                                            } elseif ($tipo_canal == 3) {
-                                                // Comparar monto_saldo_sanitizado con monto_total_sanitizado
-                                                $isDisabled = ($monto_saldo <> $monto_total_sanitizado) ? 'disabled' : '';
-                                            }
-
-                                        ?>
-                                            <tr>
-                                                <td class="col-1" style="text-align: center;">
-                                                    <input type="radio" class="iddocumento_radio" name="iddocumento_radio[]" value="<?php echo $n_documento . ',' . $fecha . ',' . $cuenta . ',' . $monto_total_sanitizado . ',' . $codigo . ',' . $tipo_canal ?>" <?php echo $isDisabled; ?>>
-                                                </td>
-                                                <td class="col-auto font_mini interes" id="interes">
-                                                    <?php echo $codigo; ?>
-                                                </td>
-                                                <td class="col-auto font_mini"><?php echo $canal ?></td>
-                                                <td class="col-auto font_mini">
-                                                    $<?php echo number_format($monto_entrada == 0 ? $monto_saldo : $monto_entrada, 0, ',', '.'); ?>
-                                                </td>
-                                            </tr> <?php
-                                                } ?>
-                                    </tbody>
-                                </table>
-                            </div><!-- end card-body -->
-                    </div><!-- end card -->
-                    </form>
-                </div><!-- end col -->
-            </div><!-- end row -->
-        </div><!-- container-fluid -->
-    </div><!-- page-content -->
-    <?php include('footer.php'); ?>
-    <!-- page-wrapper -->
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- end container -->
+            </form>
+        </div><!-- container -->
+        <?php include('footer.php'); ?>
     </div>
-    <?php /* print_r($detalles);
-exit; */ ?>
+    <!-- end page content -->
+
     <script>
         window.onload = function() {
             // Oculta la pantalla de carga y muestra el contenido principal
@@ -331,10 +319,12 @@ exit; */ ?>
             document.getElementById('content').style.display = 'block';
         };
     </script>
+
 </body>
 
-<!-- jQuery  -->
+<!-- jQuery -->
 <script src="assets/js/jquery.min.js"></script>
+<!-- Bootstrap Bundle (includes Popper) -->
 <script src="assets/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/metismenu.min.js"></script>
 <script src="assets/js/waves.js"></script>
@@ -362,116 +352,148 @@ exit; */ ?>
 <script src="assets/js/app.js"></script>
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
-
-<script>
-    function valida_envia() {
-        // Función vacía, sin validaciones activas aun.
-        alert('paso')
-        return true;
-    }
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Asegúrate de tener Font Awesome -->
 
 <script>
     $(document).ready(function() {
-        // Inicializar DataTable
-        var table = $('#datatable2').DataTable({
-            responsive: true,
-            paging: false, // Desactivar el paginado
-            info: false, // Ocultar el contador de información ("Mostrando X de Y registros")
-            lengthChange: false, // Ocultar el selector de número de registros a mostrar
-            columnDefs: [{
-                targets: [0],
-                orderable: false
-            }],
-            order: [
-                [3, 'desc']
-            ],
-            createdRow: function(row, data, dataIndex) {
-                $(row).attr('id', 'row-' + dataIndex);
-            }
-        });
+        // Variables para almacenar la fecha y cuenta
+        let currentFecha = '';
+        let currentCuenta = '';
 
-        // Actualizar Total basado en la columna 2 de la fila seleccionada
-        function actualizarTotal(valor) {
-            $('#total2').val('$' + (valor || 0));
-        }
+        // Manejo de clic en la columna de SALIDAS para colapsar/expandir todo
+        $('th .toggle-icon').click(function() {
+            const isCollapsed = $(this).find('i').hasClass('fa-plus');
+            const targetRows = $('tr.collapse');
 
-        // Manejar la selección/deselección de radios
-        $('#datatable2').on('change', '.iddocumento_radio', function() {
-            var isChecked = $(this).is(':checked');
-            var rowId = $(this).closest('tr').attr('id');
-            var rowData = table.row('#' + rowId).data();
-            var valor = isChecked ? parseFloat(rowData[2]) || 0 : 0;
-
-            actualizarTotal(valor);
-            updateConciliarButton();
-        });
-
-        // Permitir deselección de radios
-        $('#datatable2').on('click', '.iddocumento_radio', function() {
-            if ($(this).data('waschecked') === true) {
-                $(this).prop('checked', false).data('waschecked', false);
-                actualizarTotal(0);
-                updateConciliarButton();
+            if (isCollapsed) {
+                // Expandir todas las filas colapsadas
+                targetRows.collapse('show');
+                $(this).html('<i class="fas fa-minus"></i>'); // Cambiar a menos
+                targetRows.find('.toggle-icon').html('<i class="fas fa-minus"></i>'); // Cambiar íconos a menos
+                console.log("Todas las filas han sido expandidas.");
             } else {
-                $('input[name="' + $(this).attr('name') + '"]').data('waschecked', false);
-                $(this).data('waschecked', true);
+                // Colapsar todas las filas
+                targetRows.collapse('hide');
+                $(this).html('<i class="fas fa-plus"></i>'); // Cambiar a más
+                targetRows.find('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar íconos a más
+                console.log("Todas las filas han sido colapsadas.");
             }
         });
 
-        // Habilitar/deshabilitar el botón de conciliar basado en la selección
-        function updateConciliarButton() {
-            var isRadioSelected = $('#datatable2 .iddocumento_radio:checked').length > 0;
-            $('#conciliarButton').prop('disabled', !isRadioSelected);
-        }
+        // Manejo de clic en las filas individuales
+        $('.clickable-row').click(function() {
+            const targetId = $(this).data('target');
+            const isRowCollapsed = $(targetId).hasClass('show');
 
-        updateConciliarButton();
+            // Obtener la fecha y cuenta de la fila clicada
+            currentFecha = $(this).find('td:nth-child(2)').text(); // Asumiendo que la fecha es la segunda columna
+            currentCuenta = $(this).find('td:nth-child(3)').text(); // Asumiendo que la cuenta es la tercera columna
+
+            // Colapsar todas las filas antes de expandir la actual
+            $('tr.collapse').collapse('hide'); // Colapsar todas las filas colapsadas
+            $('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar íconos a más
+
+            if (isRowCollapsed) {
+                $(targetId).collapse('hide');
+                $(this).find('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar a más
+            } else {
+                // Expandir la fila y cargar datos de remesas
+                $(targetId).collapse('show');
+                $(this).find('.toggle-icon').html('<i class="fas fa-minus"></i>'); // Cambiar a menos
+
+                // Aquí se cargan las remesas dinámicamente
+                console.log("Cargando remesas para fecha:", currentFecha, "y cuenta:", currentCuenta); // Log para depuración
+
+                $.ajax({
+                    url: 'get_remesas.php',
+                    type: 'POST',
+                    data: {
+                        fecha: currentFecha,
+                        cuenta: currentCuenta
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log("Respuesta del servidor:", response); // Log de la respuesta
+
+                        if (response.error) {
+                            console.error("Error en la consulta de remesas:", response.error);
+                        } else {
+                            // Actualizar la tabla de remesas
+                            const remesasContainer = $('#datatable_remesas tbody');
+                            remesasContainer.empty(); // Limpiar la tabla existente
+
+                            response.forEach(function(remesa) {
+                                remesasContainer.append(`
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="select-detail-checkbox" name="selected_remesas[]" value="${remesa.n_remesa}">
+                                        </td>
+                                        <td>${remesa.fecha}</td>
+                                        <td>${remesa.n_remesa}</td>
+                                        <td>${remesa.cant_tr}</td>
+                                        <td>${remesa.producto}</td>
+                                        <td>$${remesa.monto}</td>
+                                    </tr>
+                                `);
+                            });
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error al cargar remesas:", textStatus, errorThrown);
+                        console.error("Detalles de la respuesta:", jqXHR.responseText); // Log de la respuesta completa
+                    }
+                });
+            }
+        });
     });
 </script>
 
 <script>
-    function limpiarFormulario() {
-        // Redireccionar para limpiar
-        window.location.href = 'conciliaciones_documentos.php?rut_ordenante=<?php echo $rut_ordenante ?>&transaccion=<?php echo $transaccion ?>&cuenta=<?php echo $cuenta ?>&matched=3';
-    }
-</script>
-
-<script>
-    // Initialize Feather Icons
-    feather.replace();
-    // Initialize Bootstrap Tooltip
-    $(function() {
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>
-
-<script>
-    document.getElementById('gestion').addEventListener('wheel', function(e) {
-        e.preventDefault(); // Previene el desplazamiento predeterminado
-
-        var scrollSpeed = 1; // Ajusta este valor para cambiar la velocidad
-
-        this.scrollTop += e.deltaY / scrollSpeed;
-    });
-</script>
-
-<script>
-    // Manejo de alertas
     <?php if ($op == 1) { ?>
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Conciliación realizada con éxito.',
-            showConfirmButton: false,
-            timer: 3000,
+            title: 'Canalizacion realizada con éxito.',
+            showConfirmButton: true
         });
     <?php } ?>
 
     <?php if ($op == 2) { ?>
         Swal.fire({
             width: 600,
+            icon: 'success',
+            title: 'Estado actualizado.',
+            showConfirmButton: false,
+            timer: 3000,
+        });
+    <?php } ?>
+
+    <?php if ($op == 3) { ?>
+        Swal.fire({
+            width: 600,
             icon: 'error',
-            title: 'Ya existe una conciliación para la transacción.',
+            title: 'Error: Ya existe una conciliación para esta transacción.',
+            showConfirmButton: false,
+            timer: 3000,
+        });
+    <?php } ?>
+
+    <?php if ($op == 4) { ?>
+        Swal.fire({
+            width: 600,
+            icon: 'error',
+            title: 'Error: Los documentos seleccionados, ya están conciliados.',
+            showConfirmButton: false,
+            timer: 2000,
+        });
+    <?php } ?>
+
+    <?php if ($op == 5) { ?>
+        Swal.fire({
+            width: 600,
+            icon: 'success',
+            title: 'Pareo eliminado.',
             showConfirmButton: false,
             timer: 3000,
         });

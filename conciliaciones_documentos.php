@@ -435,7 +435,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                                             echo "<strong>Fecha:</strong> " . $gestiones['FECHA_COMPROMISO']->format('Y-m-d') . "<br>";
                                                                                             echo "<strong>Observación:</strong> " . $gestiones['Gestion'] . ' - ' . $gestiones['Observacion'] . "<br><br>";
                                                                                         } ?>
-                                                                                                                                                                            </div>
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
 

@@ -15,8 +15,8 @@ $estado_canalizacion    = 2;
 $total_procesados       = 0;
 $id_asignacion          = 0;
 
-//print_r($_POST);
-//exit;
+/*print_r($_POST['ch_checkbox']);
+exit;*/
 
 if (isset($_POST['ch_checkbox'])) {
 
@@ -78,7 +78,8 @@ if (isset($_POST['ch_checkbox'])) {
     // Ejemplo: acceder a los valores individuales
     /*foreach ($docs_combined as $doc) {
         echo "ID Pareo Sis: " . $doc['id_pareo_sis'] . ", ID Documento: " . $doc['id_documento'] . ", Operación: " . $doc['operacion'] . ", Monto Documento: " . $doc['monto_doc'] . ", Fecha Vencimiento: " . $doc['f_venc'] . "<br>";
-    }*/
+    }
+    exit;*/
 }
 
 $sql_proceso = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_INSERTA](?, ?)}";
@@ -110,8 +111,10 @@ foreach ($docs_combined as $index => $conciliacion) {
     $monto_doc      = $conciliacion['monto_doc'];
     $f_venc         = $conciliacion['f_venc'];
 
-    $diferencia_doc = 0;
+    /* var_dump('id_documento: ' .  $id_documento . '; ');
+    exit;*/
 
+    $diferencia_doc = 0;
 
     $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_VALIDA](?, ?)}";
     $params_diferencia = array(
@@ -125,6 +128,8 @@ foreach ($docs_combined as $index => $conciliacion) {
     }
     $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
 
+/*print_r($diferencia_doc);
+exit;*/
     if ($diferencia_doc == 0) {
 /*
         print_r('PRINT PREVIO AL SP: ');
@@ -160,7 +165,7 @@ foreach ($docs_combined as $index => $conciliacion) {
             array($tipo_canal,      SQLSRV_PARAM_IN),
             array($idusuario,       SQLSRV_PARAM_IN)
         );
-       /* print_r('PARAMS: ');
+        /* print_r('PARAMS: ');
         var_dump($params_asignacion);
         exit;*/
         $stmt_asignacion = sqlsrv_prepare($conn, $sql_asignacion, $params_asignacion);
@@ -180,9 +185,22 @@ foreach ($docs_combined as $index => $conciliacion) {
         }
         $row = sqlsrv_fetch_array($stmt_row, SQLSRV_FETCH_ASSOC);
         $id_asignacion = $row['ID_ASIGNACION'];
+        
+        //print_r('Transaccion print: ' . $transaccion . '; ');
 
-        print_r('Id asignacion: ' . $id_asignacion . '; ');
-        //exit;
+        $sql_ps = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION_CONSULTA](?)}";
+        $params_ps = array(
+            array($transaccion,    SQLSRV_PARAM_IN),
+        );
+        $stmt_ps = sqlsrv_query($conn, $sql_ps, $params_ps);
+        if ($stmt_ps === false) {
+            die(print_r(sqlsrv_errors(), true));
+        }
+        $ps = sqlsrv_fetch_array($stmt_ps, SQLSRV_FETCH_ASSOC);
+        
+        $id_pareo_sis = $ps['ID_PAREO_SISTEMA'];
+        
+        //print_r(' ' .$id_pareo_sis. '; ');
 
         $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_CONSULTA](?)}";
         $params_operacion = array(
@@ -194,6 +212,8 @@ foreach ($docs_combined as $index => $conciliacion) {
         }
         $operaciones = sqlsrv_fetch_array($stmt_operacion, SQLSRV_FETCH_ASSOC);
 
+        //print_r($operaciones);
+
         $transaccion_op = $operaciones['TRANSACCION'];
 
         $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
@@ -201,7 +221,7 @@ foreach ($docs_combined as $index => $conciliacion) {
             array($id_documento,    SQLSRV_PARAM_IN),
             array($transaccion_op,  SQLSRV_PARAM_IN),
             array(1,                SQLSRV_PARAM_IN), // ID_ESTADO
-            array(2,                SQLSRV_PARAM_IN)  // ID_ETAPA       
+            array('2-3',            SQLSRV_PARAM_IN)  // ID_ETAPA       
         );
         $stmt_asociados = sqlsrv_query($conn, $sql_asociados, $params_asociados);
         if ($stmt_asociados === false) {

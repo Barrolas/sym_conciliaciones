@@ -36,7 +36,8 @@ if ($stmt1 === false) {
 	echo "Error en la ejecución de la declaración 1.\n";
 	die(print_r(sqlsrv_errors(), true));
 }
-
+/* print_r(sqlsrv_errors());
+exit; */
 $estado1 = 2;
 $estado2 = 2;
 $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";

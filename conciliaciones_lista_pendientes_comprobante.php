@@ -163,10 +163,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                 </div>
                                 <div class="col-lg-2">
-                                    <label for="dias_mora" class="col-12">DIAS MORA</label>
-                                    <select name="dias_mora" id="dias_mora" class="form-control col-12" maxlength="50" autocomplete="off">
+                                    <label for="canal_filtro" class="col-4">CANAL</label>
+                                    <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
                                         <option value="0" selected>Mostrar todos</option>
-                                        <option value="1">170 días o más</option>
+                                        <?php
+                                        $sql_canal = "EXEC [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA] '1,2'";
+                                        $stmt_canal = sqlsrv_query($conn, $sql_canal);
+
+                                        if ($stmt_canal === false) {
+                                            die(print_r(sqlsrv_errors(), true));
+                                        }
+                                        while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
+                                        ?>
+                                            <option value="<?php echo substr($canal['DESCRIPCION'], 0, 6); ?>"><?php echo $canal["DESCRIPCION"] ?></option>
+                                        <?php }; ?>
                                     </select>
                                 </div>
                                 <div class="col-lg-2">
@@ -377,7 +387,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         <td class="col-auto font_mini"><?php echo $id_asignacion ?></td>
                                                         <td class="col-auto font_mini"><?php echo mb_substr($canal, 0, 6); ?></td>
                                                         <td class="col-auto font_mini"><?php echo $dias_mora ?></td>
-                                                        <td class="col-auto font_mini">$<?php echo number_format($monto_tr, 0, ',', '.'); ?></td>
+                                                        <td class="col-auto font_mini">$<?php echo number_format((float)$monto_tr, 0, ',', '.'); ?></td>
                                                         <td class="col-auto font_mini"><?php echo $benef_cta ?></td>
                                                         <td class="col-auto font_mini"><?php echo $cartera; ?></td>
                                                         <td class="col-auto font_mini"><?php echo $deud_rut ?></td>
@@ -761,7 +771,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         // Function to apply filters based on stored values
         function applyFilters() {
             var storedCuentaValue = sessionStorage.getItem('selected_cuenta_2');
-            var storedFiltroValue = sessionStorage.getItem('selected_diasmora');
+            var storedFiltroValue = sessionStorage.getItem('selected_canal');
             var storedEstadoValue = sessionStorage.getItem('selected_estado_2');
 
             // Apply cuenta filter
@@ -773,9 +783,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
             // Apply dias_mora filter
             if (storedFiltroValue && storedFiltroValue !== "0") {
-                $('#dias_mora').val(storedFiltroValue).change();
+                $('#canal_filtro').val(storedFiltroValue).change();
             } else {
-                $('#dias_mora').val("0").change(); // Reset to default
+                $('#canal_filtro').val("0").change(); // Reset to default
             }
 
             // Apply estado filter
@@ -821,6 +831,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 table.column(5).search(filterValue).draw();
             }
         });
+
+        $('#canal_filtro').on('change', function() {
+            var filterValue = $(this).val();
+            sessionStorage.setItem('selected_canal', filterValue);
+
+            if (filterValue == "0") {
+                table.column(2).search('').draw(); // Clear the cuenta filter
+            } else {
+                table.column(2).search(filterValue).draw();
+            }
+        });
+
+
 
         // Add event listener to the dias_mora select element
         $('#dias_mora').on('change', function() {

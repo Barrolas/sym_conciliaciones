@@ -244,10 +244,10 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 }
                                                 while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
-                                                    
+
                                                     $n_doc              = $p_sistema['N_DOC'];
                                                     $monto_doc          = $p_sistema['MONTO_DOC'];
-                                                    
+
                                                     //print_r('n_doc: ' . $n_doc . '; ' . 'monto_doc: ' . $monto_doc . '; ');
                                                     //exit;
 
@@ -261,23 +261,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         die(print_r(sqlsrv_errors(), true));
                                                     }
                                                     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
-                                                    
+
                                                     $idpareo_sis        = $p_docs['ID_PAREO_SISTEMA'];
                                                     $id_doc             = $p_docs['ID_DOCDEUDORES'];
                                                     $entrecuenta        = $p_docs['ENTRE_CUENTAS'];
 
                                                     //print_r($idpareo_sis);
                                                     //exit;
-
-                                                    $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO](?)}";
-                                                    $params_pagodocs = array(
-                                                        array($idpareo_sis,    SQLSRV_PARAM_IN),
-                                                    );
-                                                    $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
-                                                    if ($stmt_pagodocs === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
-                                                    }
-                                                    $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
                                                     $sql_contable = "{call [_SP_CONCILIACIONES_CANALIZADOS_CONTABLE](?)}";
                                                     $params_contable = array(
@@ -289,6 +279,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     }
                                                     $contable = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
 
+                                                    $sql_contable = "{call [_SP_CONCILIACIONES_OPERACION_CANALIZACION_CONSULTA](?)}";
+                                                    $params_contable = array(
+                                                        array($id_doc,    SQLSRV_PARAM_IN),
+                                                    );
+                                                    $stmt_contable = sqlsrv_query($conn, $sql_contable, $params_contable);
+                                                    if ($stmt_contable === false) {
+                                                        die(print_r(sqlsrv_errors(), true));
+                                                    }
+                                                    $canalizacion = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
+
                                                     $disabled           =  '';
 
                                                     if ($entrecuenta == 2) {
@@ -298,12 +298,37 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         $benef_cta      = $p_docs['CUENTA_BENEFICIARIO'];
                                                         $transaccion    = $p_docs['TRANSACCION'];
                                                     }
-                                                    if($p_docs['MONTO_TRANSACCION_INGRESADO'] <> 0){                                                      
+                                                    if ($p_docs['MONTO_TRANSACCION_INGRESADO'] <> 0) {
                                                         $monto_tr       = $p_docs['MONTO_TRANSACCION_INGRESADO'];
                                                     } else {
                                                         $monto_tr       = $p_docs['MONTO_TRANSACCION_ORIGINAL'];
                                                     }
-                                                    
+
+
+
+                                                    $sql_ps = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION_CONSULTA](?)}";
+                                                    $params_ps = array(
+                                                        array($transaccion,    SQLSRV_PARAM_IN),
+                                                    );
+                                                    $stmt_ps = sqlsrv_query($conn, $sql_ps, $params_ps);
+                                                    if ($stmt_ps === false) {
+                                                        die(print_r(sqlsrv_errors(), true));
+                                                    }
+                                                    $ps = sqlsrv_fetch_array($stmt_ps, SQLSRV_FETCH_ASSOC);
+
+                                                    $idpareo_sis = $ps['ID_PAREO_SISTEMA'];
+
+                                                    $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO](?)}";
+                                                    $params_pagodocs = array(
+                                                        array($idpareo_sis,    SQLSRV_PARAM_IN),
+                                                    );
+                                                    $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
+                                                    if ($stmt_pagodocs === false) {
+                                                        die(print_r(sqlsrv_errors(), true));
+                                                    }
+                                                    $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
+
+
                                                     //Variables pareo sistema
                                                     $operacion      = $p_sistema['N_DOC'];
                                                     $monto_doc      = $p_sistema['MONTO_DOC'];
@@ -313,13 +338,17 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     $deud_dv        = $p_docs['DEUDOR_DV'];
                                                     $cte_rut        = $p_docs['RUT_CLIENTE'];
                                                     $deud_nom       = $p_docs['ORDENANTE_NOMBRE'];
+                                                    $deud_nom       = strtoupper($p_docs['ORDENANTE_NOMBRE']);
+                                                    $deud_nom       = preg_replace('/[^A-Z\s]/', '', $deud_nom);
+                                                    $deud_nom       = preg_replace('/\s+/', ' ', $deud_nom);
+                                                    $deud_nom       = trim($deud_nom);
                                                     $producto       = $p_docs['SUBPRODUCTO'];
                                                     $cartera        = $p_docs['CARTERA'];
-                                                    $tipo_canal     = $p_docs['ID_TIPO_CANALIZACION'];
-                                                    $canal          = $p_docs['CANAL'];
                                                     $f_venc         = $p_docs['F_VENC'] instanceof DateTime ? $p_docs["F_VENC"]->format('Y-m-d') : $p_docs["F_VENC"];
-                                                    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'];
+                                                    $pago_docs      = $pagodocs['DESCRIPCION_PAGOS'] ?? '';
                                                     $monto_cubierto = $contable['MONTO_CUBIERTO'];
+                                                    $tipo_canal     = $canalizacion['ID_TIPO_CANALIZACION'];
+                                                    $canal          = $canalizacion['CANAL'];
                                                 ?>
 
                                                     <tr>
@@ -396,7 +425,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <td class="col-auto"><?php echo $conciliacion["UA"]; ?></td>
                                                     <td class="col-auto"><?php echo $conciliacion["TOTAL_PROCESADOS"]; ?></td>
                                                     <td class="col-1">
-                                                       <!-- <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary"> -->
+                                                        <!-- <a data-toggle="tooltip" title="Ver detalle" href="conciliaciones_lista_procesos_detalles.php?id=<?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?>" class="btn btn-icon btn-rounded btn-secondary"> -->
                                                         <a data-toggle="tooltip" title="Ver detalle" href="#" class="btn btn-icon btn-rounded btn-secondary">
                                                             <i class="feather-24" data-feather="eye"></i>
                                                         </a>
