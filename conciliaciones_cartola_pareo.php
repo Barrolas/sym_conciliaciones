@@ -299,6 +299,14 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 </tbody>
                                             </table>
                                         </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <h4> <strong>Total Cartola: $<span id="suma-cartola">0</span></strong></h4>
+                                            </div>
+                                            <div class="col-md-6 text-end">
+                                                <h4><strong>Total Remesas: $<span id="suma-remesas">0</span></strong></h4>
+                                            </div>
+                                        </div>
                                         <button class="btn btn-primary mt-3" id="btn-conciliar">Conciliar</button>
                                     </div>
                                 </div>
@@ -357,28 +365,39 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 <script>
     $(document).ready(function() {
-        // Variables para almacenar la fecha y cuenta
-        let currentFecha = '';
-        let currentCuenta = '';
 
-        // Manejo de clic en la columna de SALIDAS para colapsar/expandir todo
-        $('th .toggle-icon').click(function() {
-            const isCollapsed = $(this).find('i').hasClass('fa-plus');
-            const targetRows = $('tr.collapse');
+        // Variables para almacenar los totales seleccionados
+        let totalCartola = 0;
+        let totalRemesas = 0;
 
-            if (isCollapsed) {
-                // Expandir todas las filas colapsadas
-                targetRows.collapse('show');
-                $(this).html('<i class="fas fa-minus"></i>'); // Cambiar a menos
-                targetRows.find('.toggle-icon').html('<i class="fas fa-minus"></i>'); // Cambiar íconos a menos
-                console.log("Todas las filas han sido expandidas.");
+        // Función para actualizar el resumen en la tabla de Remesas
+        function actualizarResumen() {
+            $('#suma-cartola').text(totalCartola.toLocaleString('es-CL'));
+            $('#suma-remesas').text(totalRemesas.toLocaleString('es-CL'));
+        }
+
+        // Manejo de checkboxes en los detalles de la tabla de Cartola
+        $('#datatable_salidas').on('change', '.select-detail-checkbox', function() {
+            let monto = parseInt($(this).closest('tr').find('td:last').text().replace(/\D/g, '')) || 0;
+
+            if ($(this).is(':checked')) {
+                totalCartola += monto; // Sumar monto si está seleccionado
             } else {
-                // Colapsar todas las filas
-                targetRows.collapse('hide');
-                $(this).html('<i class="fas fa-plus"></i>'); // Cambiar a más
-                targetRows.find('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar íconos a más
-                console.log("Todas las filas han sido colapsadas.");
+                totalCartola -= monto; // Restar monto si se deselecciona
             }
+            actualizarResumen();
+        });
+
+        // Manejo de checkboxes en los detalles de la tabla de Remesas
+        $('#datatable_remesas').on('change', '.select-remesa-checkbox', function() {
+            let monto = parseInt($(this).closest('tr').find('td:last').text().replace(/\D/g, '')) || 0;
+
+            if ($(this).is(':checked')) {
+                totalRemesas += monto; // Sumar monto si está seleccionado
+            } else {
+                totalRemesas -= monto; // Restar monto si se deselecciona
+            }
+            actualizarResumen();
         });
 
         // Manejo de clic en las filas individuales
@@ -419,24 +438,44 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         if (response.error) {
                             console.error("Error en la consulta de remesas:", response.error);
                         } else {
-                            // Actualizar la tabla de remesas
+                            // Limpiar la tabla existente
                             const remesasContainer = $('#datatable_remesas tbody');
-                            remesasContainer.empty(); // Limpiar la tabla existente
+                            remesasContainer.empty();
 
+                            // Ordenar los datos por fecha (descendente) y luego por monto (descendente)
+                            response.sort(function(a, b) {
+                                // Convertir las fechas a objetos Date para la comparación
+                                const dateA = new Date(a.fecha.split("/").reverse().join("-")); // Convierte dd/mm/yyyy a yyyy-mm-dd
+                                const dateB = new Date(b.fecha.split("/").reverse().join("-"));
+
+                                // Comparar fechas primero
+                                if (dateA < dateB) return 1; // Ordenar descendente
+                                if (dateA > dateB) return -1;
+
+                                // Si las fechas son iguales, ordenar por monto (convertir a número)
+                                const montoA = parseFloat(a.monto.replace(/\$/g, '').replace(/\./g, '').trim());
+                                const montoB = parseFloat(b.monto.replace(/\$/g, '').replace(/\./g, '').trim());
+                                return montoB - montoA; // Ordenar monto en orden descendente
+                            });
+
+                            // Agregar las filas ordenadas a la tabla
                             response.forEach(function(remesa) {
                                 remesasContainer.append(`
                                     <tr>
                                         <td>
-                                            <input type="checkbox" class="select-detail-checkbox" name="selected_remesas[]" value="${remesa.n_remesa}">
+                                            <input type="checkbox" class="select-remesa-checkbox" name="selected_remesas[]" value="${remesa.n_remesa}" data-monto="${parseInt(remesa.monto.replace(/\D/g, ''))}">
                                         </td>
                                         <td>${remesa.fecha}</td>
                                         <td>${remesa.n_remesa}</td>
                                         <td>${remesa.cant_tr}</td>
                                         <td>${remesa.producto}</td>
-                                        <td>$${remesa.monto}</td>
+                                        <td>${remesa.monto}</td>
                                     </tr>
                                 `);
                             });
+
+                            // Actualizar resumen después de cargar nuevas remesas
+                            actualizarResumen();
                         }
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
