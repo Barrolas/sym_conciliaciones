@@ -83,6 +83,7 @@ while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
 }
 
 
+
 // Redireccionar a la página de lista de conciliaciones
 header("Location: conciliaciones_lista_canalizados.php?op=2");
 exit;
