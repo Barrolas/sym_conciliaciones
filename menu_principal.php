@@ -62,6 +62,11 @@ if (isset($_GET["op"])) {
         <!-- Top Bar Start -->
         <?php include("menu_top.php"); ?>
         <!-- Top Bar End -->
+        <div class="row">
+            <div class="col-12 ml-3">
+                <h4>Última actualización: 2024-05-11</h4>
+            </div>
+        </div>
 
         <!-- Page Content-->
         <div class="page-content mt-3">
@@ -80,9 +85,10 @@ if (isset($_GET["op"])) {
                     <BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
                 </div>
             </div>
-
+            
+            
             <!-- end row -->
-
+            
         </div><!-- container -->
     <?php include('footer.php'); ?>
     </div>

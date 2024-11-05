@@ -18,12 +18,17 @@ if (isset($_POST['fecha']) && isset($_POST['cuenta'])) {
     $sql_remesas = "EXEC [_SP_CONCILIACIONES_CONCILIAR_REMESAS_FECHA_CONSULTA] ?";
     $params_remesas = array(array($fecha_cartola, SQLSRV_PARAM_IN));
     $stmt_remesas = sqlsrv_query($conn, $sql_remesas, $params_remesas);
-
     if ($stmt_remesas === false) {
-        die("Error en la consulta de remesas: " . print_r(sqlsrv_errors(), true));
+        die(json_encode(["error" => "Error en la consulta de remesas: " . json_encode(sqlsrv_errors())]));
     }
     
-    $output = '';
+    $remesas = [];
+
+    if ($stmt_remesas === false) {
+        $error = sqlsrv_errors();
+        error_log("Error en la consulta de remesas: " . print_r($error, true));
+        die(json_encode(["error" => "Error en la consulta de remesas."]));
+    }
 
     while ($remesas_row = sqlsrv_fetch_array($stmt_remesas, SQLSRV_FETCH_ASSOC)) {
         $n_remesa = $remesas_row['N_REMESA'];
@@ -34,7 +39,9 @@ if (isset($_POST['fecha']) && isset($_POST['cuenta'])) {
         $stmt_remesas_det = sqlsrv_query($conn, $sql_remesas_det, $params_remesas_det);
 
         if ($stmt_remesas_det === false) {
-            die("Error en la consulta de detalles de remesas: " . print_r(sqlsrv_errors(), true));
+            $error = sqlsrv_errors();
+            error_log("Error en la consulta de detalles de remesas: " . print_r($error, true));
+            die(json_encode(["error" => "Error en la consulta de detalles de remesas."]));
         }
 
         $remesas_det_row = sqlsrv_fetch_array($stmt_remesas_det, SQLSRV_FETCH_ASSOC);
@@ -45,36 +52,32 @@ if (isset($_POST['fecha']) && isset($_POST['cuenta'])) {
         $stmt_remesas_cta = sqlsrv_query($conn, $sql_remesas_cta, $params_remesas_cta);
 
         if ($stmt_remesas_cta === false) {
-            die("Error en la consulta de cuenta beneficiario: " . print_r(sqlsrv_errors(), true));
+            $error = sqlsrv_errors();
+            error_log("Error en la consulta de cuenta beneficiario: " . print_r($error, true));
+            die(json_encode(["error" => "Error en la consulta de cuenta beneficiario."]));
         }
 
         $remesas_cta_row = sqlsrv_fetch_array($stmt_remesas_cta, SQLSRV_FETCH_ASSOC);
 
-        $fecha_remesa       = $remesas_det_row['FECHA_REMESA'];
-        $cant_tr            = $remesas_det_row['CANT_TRANSACCIONES'];
-        $producto           = $remesas_det_row['PRODUCTO'];
-        $monto_remesa       = number_format($remesas_det_row['MONTO_REMESA'], 0, ',', '.');
-        $monto_remesa_int   = (int) $remesas_det_row['MONTO_REMESA'];
-        $cuenta_remesa      = $remesas_cta_row['CUENTA_BENEFICIARIO'] ?? '';
+        $fecha_remesa   = $remesas_det_row['FECHA_REMESA'];
+        $cant_tr        = $remesas_det_row['CANT_TRANSACCIONES'];
+        $producto       = $remesas_det_row['PRODUCTO'];
+        $monto_remesa   = $remesas_det_row['MONTO_REMESA'];
+        $cuenta_remesa  = $remesas_cta_row['CUENTA_BENEFICIARIO'] ?? '';
 
-        // Generar fila HTML para cada remesa
-        $output .= "
-            <tr>
-                <td>
-                    <input type='checkbox' class='select-remesa-checkbox' name='selected_remesas[]' 
-                    value='{$n_remesa},{$fecha_remesa},{$producto},{$monto_remesa_int}'>
-                </td>
-                <td>{$fecha_remesa}     </td>
-                <td>{$n_remesa}         </td>
-                <td>{$cuenta_remesa}    </td>
-                <td>{$producto}         </td>
-                <td>{$monto_remesa}     </td>
-            </tr>";
+        $remesas[] = [
+            'fecha'     => $fecha_remesa,
+            'n_remesa'  => $n_remesa,
+            'cant_tr'   => $cant_tr,
+            'producto'  => $producto,
+            'monto'     => number_format($monto_remesa, 0, ',', '.')
+        ];
     }
 
-    // Devolver la salida en HTML para ser insertada en la tabla
-    echo $output;
+    // Devolver los datos como JSON
+    header('Content-Type: application/json');
+    echo json_encode($remesas);
 } else {
-    echo "<tr><td colspan='6'>Datos insuficientes.</td></tr>";
+    echo json_encode(["error" => "Datos insuficientes."]);
 }
 ?>

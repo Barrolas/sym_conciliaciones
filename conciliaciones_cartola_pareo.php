@@ -97,7 +97,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 
 
-        
+
         @media (min-width: 1000px) and (max-width: 1299px) {
             .font_mini {
                 font-size: 12px !important;
@@ -152,7 +152,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
         <!-- Page Content-->
         <div class="page-content" id="content">
-            <form id="form_concilia" method="post" class="mr-0" action="#" onsubmit="return valida_envia(); return false;">
+            <form id="form-conciliacion" method="post" class="mr-0" action="conciliaciones_cartola_pareo_guardar.php" onsubmit="return valida_envia(); return false;">
                 <div class="container-fluid">
                     <!-- Page-Title -->
                     <div class="row">
@@ -193,11 +193,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                     <div class="container-fluid px-3">
                         <div class="row">
-                            <!-- Tabla de Salidas (50% del ancho) -->
                             <div class="col-md-5">
                                 <div class="card card_content">
                                     <div class="card-body card_width">
-                                        <h5 class="card-title pb-3">Salidas de Cartola Bancaria</h5>
+                                        <h5 class="card-title pb-3">
+                                            Salidas de Cartola Bancaria
+                                            <button type="submit" class="btn btn-primary btn-sm ms-3" id="enviarSeleccionCartola">Conciliar</button>
+                                        </h5>
                                         <table id="datatable_salidas" class="table table-striped table-bordered dt-responsive nowrap" style="width: 100%;">
                                             <thead>
                                                 <tr>
@@ -265,17 +267,25 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                                         }
 
                                                                         while ($detalle = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC)) {
-                                                                            $n_documento = $detalle["N_DOCUMENTO"]; // Obtener N° Documento
-                                                                            $monto_detalle = $detalle["MONTO"];
-                                                                            $monto_detalle_int = (int) str_replace('.', '', $monto_detalle); // Valor sanitizado como entero
-                                                                            $monto_detalle_formatted = number_format($monto_detalle_int, 0, ',', '.'); // Valor con separadores de miles
+
+                                                                            $n_documento                = $detalle["N_DOCUMENTO"];
+                                                                            $monto_detalle              = $detalle["MONTO"];
+                                                                            $monto_detalle_int          = (int)str_replace('.', '', $monto_detalle);
+                                                                            $monto_detalle_formatted    = number_format($monto_detalle_int, 0, ',', '.');
+                                                                            $descripcion                = $detalle["DESCRIPCION"];
+
                                                                         ?>
                                                                             <tr>
                                                                                 <td>
-                                                                                    <input type="checkbox" class="select-detail-checkbox" name="selected_details[]" value="DETAIL<?php echo $transaccionId . '-' . $n_documento; ?>">
+                                                                                    <!-- Modificación en el checkbox de cada fila detallada -->
+                                                                                    <input type="checkbox" class="select-detail-checkbox"
+                                                                                        name="selected_details[]"
+                                                                                        data-value="DETAIL<?php echo $transaccionId . '-' . $n_documento; ?>"
+                                                                                        data-monto="<?php echo $monto_detalle_int; ?>"
+                                                                                        value="<?php echo $cuenta . ',' . $fecha . ',' . $n_documento . ',' . $descripcion . ',' . $monto_detalle_int ?>">
                                                                                 </td> <!-- Checkbox a la izquierda -->
                                                                                 <td><?php echo $n_documento; ?></td> <!-- Mostrar N° Documento -->
-                                                                                <td><?php echo $detalle["DESCRIPCION"]; ?></td>
+                                                                                <td><?php echo $descripcion; ?></td>
                                                                                 <td>$<?php echo $monto_detalle_formatted; ?></td>
                                                                             </tr>
                                                                         <?php } ?>
@@ -307,7 +317,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         <th></th>
                                                         <th>FECHA</th>
                                                         <th>REMESA</th>
-                                                        <th>CANT TR</th>
+                                                        <th>CUENTA</th>
                                                         <th>PRODUCTO</th>
                                                         <th>MONTO</th>
                                                     </tr>
@@ -333,15 +343,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <h4><strong>Cantidad: <span id="cantidad_seleccionados_remesas">0</span></strong></h4>
                                             </div>
                                         </div>
-                                        <button class="btn btn-primary mt-3" id="btn-conciliar" disabled>Conciliar</button>
+                                        <button class="btn btn-primary mt-3" id="btn-conciliar1" disabled>Conciliar</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div> <!-- end container -->
+                    </div> <!-- end container -->
+                </div>
             </form>
-        </div><!-- container -->
+        </div>
         <?php include('footer.php'); ?>
     </div>
     <!-- end page content -->
@@ -396,6 +406,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
         let totalRemesas = 0;
         let cantidadSeleccionadosCartola = 0;
         let cantidadSeleccionadosRemesas = 0;
+        let currentFecha = '';
+        let currentCuenta = '';
 
         // Función para actualizar el resumen
         function actualizarResumen() {
@@ -403,21 +415,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
             $('#suma-remesas').text(totalRemesas.toLocaleString('es-CL'));
             $('#cantidad_seleccionados_cartola').text(cantidadSeleccionadosCartola);
             $('#cantidad_seleccionados_remesas').text(cantidadSeleccionadosRemesas);
-
-            // Habilitar o deshabilitar el botón "Conciliar"
-            $('#btn-conciliar').prop('disabled', totalCartola !== totalRemesas);
         }
 
         // Manejo de checkboxes en los detalles de la tabla de Cartola
         $('#datatable_salidas').on('change', '.select-detail-checkbox', function() {
-            let monto = parseInt($(this).closest('tr').find('td:last').text().replace(/\D/g, '')) || 0;
+            let monto = parseInt($(this).data('monto')) || 0;
 
             if ($(this).is(':checked')) {
-                totalCartola += monto; // Sumar monto si está seleccionado
-                cantidadSeleccionadosCartola++; // Incrementar contador
+                totalCartola += monto;
+                cantidadSeleccionadosCartola++;
             } else {
-                totalCartola -= monto; // Restar monto si se deselecciona
-                cantidadSeleccionadosCartola--; // Decrementar contador
+                totalCartola -= monto;
+                cantidadSeleccionadosCartola--;
             }
             actualizarResumen();
         });
@@ -427,11 +436,11 @@ $fecha_proceso = $row["FECHAPROCESO"];
             let monto = parseInt($(this).closest('tr').find('td:last').text().replace(/\D/g, '')) || 0;
 
             if ($(this).is(':checked')) {
-                totalRemesas += monto; // Sumar monto si está seleccionado
-                cantidadSeleccionadosRemesas++; // Incrementar contador
+                totalRemesas += monto;
+                cantidadSeleccionadosRemesas++;
             } else {
-                totalRemesas -= monto; // Restar monto si se deselecciona
-                cantidadSeleccionadosRemesas--; // Decrementar contador
+                totalRemesas -= monto;
+                cantidadSeleccionadosRemesas--;
             }
             actualizarResumen();
         });
@@ -441,35 +450,26 @@ $fecha_proceso = $row["FECHAPROCESO"];
             const targetId = $(this).data('target');
             const isRowCollapsed = $(targetId).hasClass('show');
 
-            // Obtener la fecha y cuenta de la fila clicada
-            currentFecha = $(this).find('td:nth-child(2)').text(); // Asumiendo que la fecha es la segunda columna
-            currentCuenta = $(this).find('td:nth-child(3)').text(); // Asumiendo que la cuenta es la tercera columna
+            currentFecha = $(this).find('td:nth-child(2)').text();
+            currentCuenta = $(this).find('td:nth-child(3)').text();
 
-            // Colapsar todas las filas antes de expandir la actual
-            $('tr.collapse').collapse('hide'); // Colapsar todas las filas colapsadas
-            $('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar íconos a más
+            $('tr.collapse').collapse('hide');
+            $('.toggle-icon').html('<i class="fas fa-plus"></i>');
 
-            // Reiniciar las sumas y contadores al seleccionar una nueva fila
             totalCartola = 0;
             totalRemesas = 0;
             cantidadSeleccionadosCartola = 0;
             cantidadSeleccionadosRemesas = 0;
-            $('#datatable_remesas input[type=checkbox]').prop('checked', false); // Deseleccionar checkboxes de Remesas
-            $('#datatable_salidas input[type=checkbox]').prop('checked', false); // Deseleccionar checkboxes de Cartola
-
-            // Actualizar el resumen
+            $('#datatable_remesas input[type=checkbox]').prop('checked', false);
+            $('#datatable_salidas input[type=checkbox]').prop('checked', false);
             actualizarResumen();
 
             if (isRowCollapsed) {
                 $(targetId).collapse('hide');
-                $(this).find('.toggle-icon').html('<i class="fas fa-plus"></i>'); // Cambiar a más
+                $(this).find('.toggle-icon').html('<i class="fas fa-plus"></i>');
             } else {
-                // Expandir la fila y cargar datos de remesas
                 $(targetId).collapse('show');
-                $(this).find('.toggle-icon').html('<i class="fas fa-minus"></i>'); // Cambiar a menos
-
-                // Aquí se cargan las remesas dinámicamente
-                console.log("Cargando remesas para fecha:", currentFecha, "y cuenta:", currentCuenta); // Log para depuración
+                $(this).find('.toggle-icon').html('<i class="fas fa-minus"></i>');
 
                 $.ajax({
                     url: 'get_remesas.php',
@@ -478,57 +478,51 @@ $fecha_proceso = $row["FECHAPROCESO"];
                         fecha: currentFecha,
                         cuenta: currentCuenta
                     },
-                    dataType: 'json',
                     beforeSend: function() {
-                        // Mostrar el indicador de carga antes de iniciar la solicitud
                         $('#loading-indicator').show();
                     },
                     success: function(response) {
-                        console.log("Respuesta del servidor:", response); // Log de la respuesta
-
-                        if (response.error) {
-                            console.error("Error en la consulta de remesas:", response.error);
-                        } else {
-                            // Limpiar la tabla existente
-                            const remesasContainer = $('#datatable_remesas tbody');
-                            remesasContainer.empty();
-
-                            // Ordenar los datos por fecha (descendente) y luego por monto (descendente)
-                            response.sort(function(a, b) {
-                                // Comparar fechas primero
-                                const dateA = new Date(a.fecha.split("/").reverse().join("-"));
-                                const dateB = new Date(b.fecha.split("/").reverse().join("-"));
-                                return dateB - dateA; // Ordenar descendente
-                            });
-
-                            // Agregar las filas ordenadas a la tabla
-                            response.forEach(function(remesa) {
-                                remesasContainer.append(`
-                    <tr>
-                        <td>
-                            <input type="checkbox" class="select-detail-checkbox" name="selected_remesas[]" value="${remesa.n_remesa}">
-                        </td>
-                        <td>${remesa.fecha}</td>
-                        <td>${remesa.n_remesa}</td>
-                        <td>${remesa.cant_tr}</td>
-                        <td>${remesa.producto}</td>
-                        <td>${remesa.monto}</td>
-                    </tr>
-                `);
-                            });
-                        }
+                        // Insertar el HTML directamente en la tabla de remesas
+                        $('#datatable_remesas tbody').html(response);
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         console.error("Error al cargar remesas:", textStatus, errorThrown);
-                        console.error("Detalles de la respuesta:", jqXHR.responseText);
+                        $('#datatable_remesas tbody').html("<tr><td colspan='6'>Error al cargar datos de remesas.</td></tr>");
                     },
                     complete: function() {
-                        // Ocultar el indicador de carga una vez que se complete la solicitud
                         $('#loading-indicator').hide();
                     }
                 });
             }
         });
+
+        // Función para validar y enviar el formulario
+        window.valida_envia = function(event) {
+            event.preventDefault(); // Prevenir el envío del formulario
+
+            // Recopilar los detalles seleccionados
+            const selectedDetails = $('input[name="selected_details[]"]:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            // Recopilar las remesas seleccionadas
+            const selectedRemesas = $('input[name="selected_remesas[]"]:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            // Aquí puedes hacer alguna validación si es necesario
+            if (selectedDetails.length === 0) {
+                alert("Por favor, seleccione al menos un detalle.");
+                return false; // Detener el envío si no hay selección
+            }
+
+            console.log("Detalles seleccionados:", selectedDetails);
+            console.log("Remesas seleccionadas:", selectedRemesas);
+
+            // Si todo está bien, permite el envío del formulario
+            document.getElementById("form-conciliacion").submit();
+        };
+
     });
 </script>
 

@@ -114,6 +114,7 @@ error_reporting(E_ALL);
                         <li><a href="conciliaciones_lista_canalizados.php">PROCESAR</a></li>
                         <li><a href="conciliaciones_lista_canalizados_pendientes.php">CANALIZADOS PENDIENTES</a></li>
                         <li><a href="conciliaciones_exportar_procesados.php">EXPORTAR PROCESADOS</a></li>
+                        <li><a href="conciliaciones_exportar_procesados_cheques.php">EXPORTAR CHEQUES</a></li>
                     </ul>
                 </li>
 
