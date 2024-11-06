@@ -882,7 +882,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
             } else if (montoOriginal < total) {
                 estado = "ABONADO";
             } else if (montoOriginal == total) {
-                estado = "CONCILIADO";
+                estado = "MONTOS COINCIDENTES";
             } else {
                 estado = "";
             }
