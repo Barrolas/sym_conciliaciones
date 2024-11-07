@@ -245,7 +245,7 @@ $op = $_GET["op"];
 			<script>
 				Swal.fire({
 					width: 600,
-					icon: 'error',
+					icon: 'success',
 					title: 'CARGA CREADA',
 					showConfirmButton: false,
 					timer: 2000,
