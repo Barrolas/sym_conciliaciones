@@ -27,10 +27,11 @@ print_r($transaccion . '; ');
 
 $estado1 = 1;
 $estado2 = 1;
-$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_CONSULTA] ?, ?, ?";
 $params_asign = array(
-    array($estado1,     SQLSRV_PARAM_IN),
-    array($estado2,     SQLSRV_PARAM_IN),
+    array($id_asignacion,   SQLSRV_PARAM_IN),
+    array($estado1,         SQLSRV_PARAM_IN),
+    array($estado2,         SQLSRV_PARAM_IN),
 );
 $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
 if ($stmt_asign === false) {

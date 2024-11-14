@@ -198,7 +198,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <div class="card-body card_width">
                                         <h5 class="card-title pb-3">
                                             Salidas de Cartola Bancaria
-                                            <button type="submit" class="btn btn-primary btn-sm ms-3" id="enviarSeleccionCartola">Conciliar</button>
+                                            <!-- <button type="submit" class="btn btn-primary btn-sm ms-3" id="enviarSeleccionCartola">Conciliar</button> -->
                                         </h5>
                                         <table id="datatable_salidas" class="table table-striped table-bordered dt-responsive nowrap" style="width: 100%;">
                                             <thead>
@@ -307,7 +307,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                             <div class="col-md-7">
                                 <div class="card card_content sticky-container">
                                     <div class="card-body card_width">
-                                        <h5 class="card-title pb-3">Remesas</h5>
+                                        <h5 class="card-title pb-3">Respaldos</h5>
                                         <!-- Indicador de carga -->
                                         <div id="loading-indicator" style="display: none;">Cargando...</div>
                                         <div class="table-responsive sticky-table" id="remesas-container">
@@ -316,9 +316,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <tr>
                                                         <th></th>
                                                         <th>FECHA</th>
-                                                        <th>REMESA</th>
+                                                        <th>CODIGO</th>
                                                         <th>CUENTA</th>
-                                                        <th>PRODUCTO</th>
+                                                        <th>DETALLE</th>
                                                         <th>MONTO</th>
                                                     </tr>
                                                 </thead>
@@ -343,7 +343,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <h4><strong>Cantidad: <span id="cantidad_seleccionados_remesas">0</span></strong></h4>
                                             </div>
                                         </div>
-                                        <button class="btn btn-primary mt-3" id="btn-conciliar1" disabled>Conciliar</button>
+                                        <button type="submit" class="btn btn-primary" id="enviarSeleccionCartola" <?php $disabled ?> >Conciliar</button>
                                     </div>
                                 </div>
                             </div>
@@ -409,12 +409,26 @@ $fecha_proceso = $row["FECHAPROCESO"];
         let currentFecha = '';
         let currentCuenta = '';
 
-        // Función para actualizar el resumen
+        // Función para actualizar el resumen y el estado del botón
         function actualizarResumen() {
             $('#suma-cartola').text(totalCartola.toLocaleString('es-CL'));
             $('#suma-remesas').text(totalRemesas.toLocaleString('es-CL'));
             $('#cantidad_seleccionados_cartola').text(cantidadSeleccionadosCartola);
             $('#cantidad_seleccionados_remesas').text(cantidadSeleccionadosRemesas);
+            toggleButtonState();
+        }
+
+        // Función para habilitar o deshabilitar el botón "Conciliar"
+        function toggleButtonState() {
+            // Verificar si al menos un checkbox de cada tipo ha sido seleccionado
+            const hayDetallesSeleccionados = cantidadSeleccionadosCartola > 0;
+            const hayRemesasSeleccionadas = cantidadSeleccionadosRemesas > 0;
+
+            if (hayDetallesSeleccionados && hayRemesasSeleccionadas && totalCartola === totalRemesas) {
+                $('#enviarSeleccionCartola').prop('disabled', false);
+            } else {
+                $('#enviarSeleccionCartola').prop('disabled', true);
+            }
         }
 
         // Manejo de checkboxes en los detalles de la tabla de Cartola
@@ -523,6 +537,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
             document.getElementById("form-conciliacion").submit();
         };
 
+        // Inicializar el estado del botón al cargar la página
+        toggleButtonState();
     });
 </script>
 

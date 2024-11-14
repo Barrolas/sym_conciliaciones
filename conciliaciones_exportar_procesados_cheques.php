@@ -64,7 +64,7 @@ function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
 $numeroDeFilaCheques = 2;
 
 $estado1 = '1-';
-$estado2 = '3';
+$estado2 = '2';
 $sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
 $params_asign = array(
     array($estado1,     SQLSRV_PARAM_IN),

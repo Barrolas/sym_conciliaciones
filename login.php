@@ -242,11 +242,11 @@ $op = ($_GET["op"] == '') ? '' : $_GET["op"];
 	<?php
 	if ($op == 4) { ?>
 		<div class="content">
-			<script>
+		<script>
 				Swal.fire({
 					width: 600,
-					icon: 'success',
-					title: 'CUENTA DESHABILITADA',
+					icon: 'error',
+					title: 'USUARIO O CONTRASEÑA ERRONEA',
 					showConfirmButton: false,
 					timer: 2000,
 				})

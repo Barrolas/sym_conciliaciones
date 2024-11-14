@@ -74,8 +74,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Separar los valores del checkbox
             list($n_remesa, $fecha_remesa, $producto, $monto_remesa_int) = explode(',', $dato_remesa);
 
-            $tipo_canal = 2;
-
+            $sql_canalizacion = "EXEC [_SP_CONCILIACIONES_CONCILIAR_REMESAS_CUENTA_CONSULTA] ?";
+            $params_canalizacion = array(array($n_remesa, SQLSRV_PARAM_IN));
+            $stmt_canalizacion = sqlsrv_query($conn, $sql_canalizacion, $params_canalizacion);
+    
+            if ($stmt_canalizacion === false) {
+                die("Error en la consulta de cuenta beneficiario: " . print_r(sqlsrv_errors(), true));
+            }
+            $canalizacion_row = sqlsrv_fetch_array($stmt_canalizacion, SQLSRV_FETCH_ASSOC);
+    
+            if ($canalizacion_row['ID_TIPO_CANALIZACION'] == 2) {
+                $tipo_canal = 2;
+            } 
+            if ($canalizacion_row['ID_TIPO_CANALIZACION'] == 3) {
+                $tipo_canal = 3;
+            } else {
+                $tipo_canal = 2;
+            }
+            
             // Convertir la fecha de dd/mm/yyyy a yyyy-mm-dd
             $fechaRemesaConvertida = DateTime::createFromFormat('d/m/Y', $fecha_remesa);
             if ($fechaRemesaConvertida === false) {

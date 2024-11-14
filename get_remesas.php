@@ -15,8 +15,9 @@ if (isset($_POST['fecha']) && isset($_POST['cuenta'])) {
     $cuenta_cartola = $_POST['cuenta'];
 
     // Consulta a la base de datos
-    $sql_remesas = "EXEC [_SP_CONCILIACIONES_CONCILIAR_REMESAS_FECHA_CONSULTA] ?";
-    $params_remesas = array(array($fecha_cartola, SQLSRV_PARAM_IN));
+    $sql_remesas = "EXEC [_SP_CONCILIACIONES_CONCILIAR_REMESAS_FECHA_CONSULTA] ?, ?";
+    $params_remesas = array(array($fecha_cartola,   SQLSRV_PARAM_IN),
+                            array($cuenta_cartola,  SQLSRV_PARAM_IN));
     $stmt_remesas = sqlsrv_query($conn, $sql_remesas, $params_remesas);
 
     if ($stmt_remesas === false) {
@@ -26,7 +27,7 @@ if (isset($_POST['fecha']) && isset($_POST['cuenta'])) {
     $output = '';
 
     while ($remesas_row = sqlsrv_fetch_array($stmt_remesas, SQLSRV_FETCH_ASSOC)) {
-        $n_remesa = $remesas_row['N_REMESA'];
+        $n_remesa = $remesas_row['CODIGO'];
 
         // Obtener detalles de cada remesa
         $sql_remesas_det = "EXEC [_SP_CONCILIACIONES_CONCILIAR_REMESAS_CONSULTA] ?";
@@ -50,11 +51,10 @@ if (isset($_POST['fecha']) && isset($_POST['cuenta'])) {
 
         $remesas_cta_row = sqlsrv_fetch_array($stmt_remesas_cta, SQLSRV_FETCH_ASSOC);
 
-        $fecha_remesa       = $remesas_det_row['FECHA_REMESA'];
-        $cant_tr            = $remesas_det_row['CANT_TRANSACCIONES'];
+        $fecha_remesa       = $remesas_det_row['FECHA'];
         $producto           = $remesas_det_row['PRODUCTO'];
-        $monto_remesa       = number_format($remesas_det_row['MONTO_REMESA'], 0, ',', '.');
-        $monto_remesa_int   = (int) $remesas_det_row['MONTO_REMESA'];
+        $monto_remesa       = number_format($remesas_det_row['MONTO'], 0, ',', '.');
+        $monto_remesa_int   = (int) $remesas_det_row['MONTO'];
         $cuenta_remesa      = $remesas_cta_row['CUENTA_BENEFICIARIO'] ?? '';
 
         // Generar fila HTML para cada remesa

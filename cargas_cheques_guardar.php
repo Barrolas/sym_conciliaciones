@@ -124,7 +124,7 @@
             } else {
                 $f_venc = null;
             }
-
+            $n_cheque = trim($n_cheque);
             //print_r($f_venc);
             //exit;
 
@@ -181,9 +181,9 @@
                 $iddoc          = $asignacion['ID_DOCDEUDORES'];
                 $transaccion    = $asignacion['TRANSACCION'];
 
-                print_r($iddoc . '; ');
-                print_r($transaccion . '; ');
-                
+                //print_r($iddoc . '; ');
+                //print_r($transaccion . '; ');
+
 
                 $sql_asociados = "{call [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR](?, ?, ?, ?)}";
                 $params_asociados = array(
@@ -223,32 +223,104 @@
                 }
                 $cheque = sqlsrv_fetch_array($stmt_ch, SQLSRV_FETCH_ASSOC);
 
-                $n_documento = isset($cheque['N_DOCUMENTO']) ? $cheque['N_DOCUMENTO'] : null;
-                $cuenta      = isset($cheque['CUENTA']) ? $cheque['CUENTA'] : null;
-                $fecha       = isset($cheque['FECHA']) ? $cheque['FECHA'] : null;
+                $n_documento    = isset($cheque['N_DOCUMENTO']) ? $cheque['N_DOCUMENTO']    : null;
+                $cuenta         = isset($cheque['CUENTA'])      ? $cheque['CUENTA']         : null;
+                $fecha_cartola  = isset($cheque['FECHA'])       ? $cheque['FECHA']          : null;
+
+                $fecha_cartola = isset($cheque['FECHA']) 
+                ? DateTime::createFromFormat('d/m/Y', $cheque['FECHA'])->format('Y-m-d')
+                : null;
+
+                /*if (!empty($fecha_cartola)) {
+                    $dateTime1 = DateTime::createFromFormat('Y-m-d', $fecha_cartola);
+                    if ($dateTime1) {
+                        $fecha_cartola = $dateTime1->format('Y-m-d');
+                    } else {
+                        $fecha_cartola = null;
+                    }
+                } else {
+                    $fecha_cartola = null;
+                }
+
+                if (!empty($fecha)) {
+                    $dateTime2 = DateTime::createFromFormat('Y-m-d', $fecha);
+                    if ($dateTime2) {
+                        $fecha = $dateTime2->format('Y-m-d');
+                    } else {
+                        $fecha = null;
+                    }
+                } else {
+                    $fecha = null;
+                }*/
+
                 $monto       = isset($cheque['MONTO']) ? $cheque['MONTO'] : null;
 
-                print_r('n_documento: ' . $n_documento);
+                /*print_r('n_documento: ' . $n_documento);
                 print_r('cuenta: ' . $cuenta);
                 print_r('fecha: ' . $fecha);
-                print_r('monto: ' . $monto);
+                print_r('monto: ' . $monto);*/
 
                 if ($monto !== null) {
                     $monto = preg_replace('/[^\d]/', '', $monto);
                 }
-/*
+                /*
                 print_r('ncheque: ' . $n_cheque);
                 print_r('ndoc: ' . $n_documento);
                 exit;
 */
+
+                $id_conciliacion        = 0;
+                $descripcion            = 'CHEQUE COBRADO POR OTRO BANCO';
+                $descripcion_respaldo   = $titular_rut . '-' . $titular_dv . ' ' . $titular_nom;
+
                 if ($n_cheque == $n_documento) {
 
-                    // Insertar en conciliación
+                    $query = "{CALL [_SP_CONCILIACIONES_CONCILIACION_OBTENER_ID](?)}";
+                    $params = array(array(&$id_conciliacion, SQLSRV_PARAM_OUT));
+                    $stmt = sqlsrv_query($conn, $query, $params);
+                    if ($stmt === false) {
+                        die("Error al obtener ID_CONCILIACION: " . print_r(sqlsrv_errors(), true));
+                    }
+                    sqlsrv_free_stmt($stmt);
+
+                    $sql_cartola = "{CALL [_SP_CONCILIACIONES_CONCILIACION_CARTOLA_INSERTAR](?, ?, ?, ?, ?, ?, ?)}";
+                    $params_cartola = array(
+                        array($id_conciliacion,         SQLSRV_PARAM_IN),
+                        array($cuenta,                  SQLSRV_PARAM_IN),
+                        array($fecha_cartola,           SQLSRV_PARAM_IN),
+                        array($n_cheque,                SQLSRV_PARAM_IN),
+                        array($descripcion,             SQLSRV_PARAM_IN),
+                        array($monto,                   SQLSRV_PARAM_IN),
+                        array($idusuario,               SQLSRV_PARAM_IN)
+                    );
+                    $stmt_cartola = sqlsrv_query($conn, $sql_cartola, $params_cartola);
+                    if ($stmt_cartola === false) {
+                        echo "Error in executing statement cartola.\n";
+                        die(print_r(sqlsrv_errors(), true));
+                    }
+
+                    $sql_respaldos = "{CALL [_SP_CONCILIACIONES_CONCILIACION_RESPALDO_INSERTAR](?, ?, ?, ?, ?, ?, ?, ?)}";
+                    $params_respaldos = array(
+                        array($id_conciliacion,         SQLSRV_PARAM_IN),
+                        array($cuenta,                  SQLSRV_PARAM_IN),
+                        array($fecha_cartola,           SQLSRV_PARAM_IN),
+                        array($n_cheque,                SQLSRV_PARAM_IN),
+                        array($descripcion_respaldo,    SQLSRV_PARAM_IN),
+                        array($monto,                   SQLSRV_PARAM_IN),
+                        array($tipo_canal,              SQLSRV_PARAM_IN),
+                        array($idusuario,               SQLSRV_PARAM_IN)
+                    );
+                    $stmt_respaldos = sqlsrv_query($conn, $sql_respaldos, $params_respaldos);
+                    if ($stmt_respaldos === false) {
+                        echo "Error in executing statement respaldos.\n";
+                        die(print_r(sqlsrv_errors(), true));
+                    }
+
                     $sql_conciliacion = "{call [_SP_CONCILIACIONES_CONCILIACION_INSERTAR](?, ?, ?, ?, ?, ?, ?)}";
                     $params_conciliacion = array(
                         array($n_documento,             SQLSRV_PARAM_IN),
                         array($cuenta,                  SQLSRV_PARAM_IN),
-                        array($fecha,                   SQLSRV_PARAM_IN),
+                        array($fecha_cartola,           SQLSRV_PARAM_IN),
                         array($n_cheque,                SQLSRV_PARAM_IN),
                         array($tipo_canal,              SQLSRV_PARAM_IN),
                         array($monto,                   SQLSRV_PARAM_IN),
@@ -269,6 +341,7 @@
         print_r($idusuario . ';');
         exit;
         */
+
         $sql_actualiza = "{call [_SP_CONCILIACIONES_CARGA_CHEQUES_ACTUALIZA](?, ?, ?)}";
         $params_actualiza = array(
             array($idcarga,     SQLSRV_PARAM_IN),
@@ -283,10 +356,9 @@
 
         $nombre_archivo = 'ChequesRecibidos_' . $hoy_formateado . '.xlsx';
         move_uploaded_file('ChequesRecibidos.xlsx', '\archivos\\' . $nombre_archivo);
-
         header("Location: cargas_cheques.php?op=1");
-
         ?>
+
     </div>
 
     <script>

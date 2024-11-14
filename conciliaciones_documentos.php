@@ -16,6 +16,7 @@ $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
 $fecha_proceso = $row["FECHAPROCESO"];
 
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -46,6 +47,7 @@ if ($matched == 0) {
         die(print_r(sqlsrv_errors(), true));
     }
     $gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
+    
 }
 
 if ($matched == 1) {
@@ -85,11 +87,11 @@ if ($matched == 3) {
     $gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
 }
 
-$existe     = 0;
-$idestado   = 0;
-$estado     = '';
-$monto_ingresado = 0;
-$monto_diferencia = 0;
+$existe             = 0;
+$idestado           = 0;
+$estado             = '';
+$monto_ingresado    = 0;
+$monto_diferencia   = 0;
 
 $sql2     = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_EXISTE](?, ?)}";
 

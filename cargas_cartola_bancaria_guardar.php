@@ -67,13 +67,22 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 
 	$n_documento = isset($cheque['N_DOCUMENTO']) 	? $cheque['N_DOCUMENTO'] 	: null;
 	$cuenta      = isset($cheque['CUENTA']) 		? $cheque['CUENTA'] 		: null;
-	$fecha       = isset($cheque['FECHA']) 			? $cheque['FECHA'] 			: null;
+	if (!empty($fecha)) {
+		$dateTime = DateTime::createFromFormat('Y-m-d', $fecha);
+		if ($dateTime) {
+			$fecha = $dateTime->format('Y-m-d');
+		} else {
+			$fecha = null;
+		}
+	} else {
+		$fecha = null;
+	}
 	$monto       = isset($cheque['MONTO']) 			? $cheque['MONTO'] 			: null;
-	
+
 	if ($monto !== null) {
 		$monto = preg_replace('/[^\d]/', '', $monto);
 	}
-	
+
 	/* Conciliamos todos los asignados que hagan match en la cartola y esté canalizado por cheque */
 	if ($tipo_canal == 1 && $n_cheque == $n_documento) {
 
