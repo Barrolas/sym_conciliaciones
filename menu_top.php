@@ -8,7 +8,7 @@
 							
                             <a class="nav-link dropdown-toggle waves-effect waves-light nav-user" data-toggle="dropdown" href="#" role="button"
                                 aria-haspopup="false" aria-expanded="false">
-                                <span class="ml-1 nav-user-name hidden-sm"> <i class="fa fa-user-circle px-2" aria-hidden="true"></i><b></b> <?php echo $_SESSION["NOMBRES"];?> <i class="fa fa-bell px-2" aria-hidden="true"></i></span>
+                                <span class="ml-1 nav-user-name hidden-sm"> <i class="fa fa-user-circle px-2" aria-hidden="true"></i><b></b> <?php echo $_SESSION["ID_USUARIO"] . ' - ' .  $_SESSION["NOMBRES"];?> <i class="fa fa-bell px-2" aria-hidden="true"></i></span>
                                                                 
                             </a>
 							
