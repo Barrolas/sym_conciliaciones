@@ -167,7 +167,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <i class="far fa-bell icon-filter-filter bell" data-tag="bell"></i>
                                     <i class="far fa-flag icon-filter-filter flag" data-tag="flag"></i>
                                 </div>
-
                             </div>
                             <div class="col-lg-3 mt-5">
                                 <button id="clear-filters-btn" class="btn btn-secondary">
@@ -290,319 +289,313 @@ $fecha_proceso = $row["FECHAPROCESO"];
     feather.replace();
 
     $(document).ready(function() {
-        $('#idcliente').select2();
-
-        // Comprobar si hay un orden guardado en sessionStorage
-        var savedOrder = JSON.parse(sessionStorage.getItem('datatable_order'));
-
-        var table = $('#datatable2').DataTable({
-            "paging": false,
-            "searching": true,
-            "ordering": true,
-            "order": savedOrder ? savedOrder : [
-                [0, 'asc']
-            ],
-            "columnDefs": [{
-                "orderable": false,
-                "targets": [6, 7]
-            }]
+        // Inicializar DataTable
+        $('#datatable2').DataTable({
+            "paging": false, // Desactiva la paginación
+            "searching": true, // Habilita la búsqueda
+            "ordering": true, // Habilita el ordenamiento
         });
 
-        // Guardar el orden en sessionStorage cada vez que se ordena la tabla
-        table.on('order.dt', function() {
-            var order = table.order();
-            sessionStorage.setItem('datatable_order', JSON.stringify(order));
-        });
-
-        // Función para obtener preferencias del servidor y guardar en localStorage
-        function obtenerPreferencias() {
-            fetch('get_preferences.php')
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.error) {
-                        // Guardar en localStorage
-                        localStorage.setItem('tag_states', JSON.stringify(data.etiquetas_seleccionadas));
-                        localStorage.setItem('selected_tags', JSON.stringify(data.etiquetas_filtro_seleccionadas));
-                        localStorage.setItem('exclude_tags', data.excluir_estado === 1);
-                        applyFilters(); // Aplicar filtros después de cargar preferencias
-                    }
-                })
-                .catch(error => console.error('Error al obtener preferencias:', error));
+        // Cargar valor de cuenta almacenado en localStorage
+        var storedCuentaValue = localStorage.getItem('selected_cuenta');
+        if (storedCuentaValue) {
+            $('#cuenta_filter').val(storedCuentaValue); // Establecer el valor en el select
+            filterTableByCuenta(); // Aplicar el filtro
         }
 
-        // Llamar a la función para obtener preferencias al cargar la página
-        obtenerPreferencias();
+        // Evento para detectar cambios en el filtro de cuenta
+        $('#cuenta_filter').on('change', function() {
+            var selectedCuenta = $(this).val();
+            localStorage.setItem('selected_cuenta', selectedCuenta); // Guardar la selección en localStorage
+            filterTableByCuenta(); // Aplicar el filtro
+        });
 
-        function applyFilters() {
-            // Cargar valor de cuenta
-            var storedCuentaValue = localStorage.getItem('selected_cuenta');
-            if (storedCuentaValue) {
-                $('#cuenta_filter').val(storedCuentaValue).change();
-            }
+        // Función para filtrar la tabla por cuenta
+        function filterTableByCuenta() {
+            var selectedCuenta = $('#cuenta_filter').val();
 
-            // Cargar longitud de la página
-            var storedPageLength = localStorage.getItem('page_length');
-            if (storedPageLength) {
-                table.page.len(parseInt(storedPageLength)).draw();
-            }
-
-            // Cargar y aplicar el estado de las etiquetas seleccionadas en cada fila
-            loadTagStates();
-
-            // Cargar estado del checkbox de exclusión
-            var storedExcludeState = localStorage.getItem('exclude_tags');
-            $('#excluir_tags').prop('checked', storedExcludeState === 'true');
-
-            // Cargar los filtros guardados y actualizar el estado visual
-            var selectedTags = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            $('#filter-icons .icon-filter-filter').each(function() {
-                var tag = $(this).data('tag');
-                if (selectedTags.includes(tag)) {
-                    $(this).addClass('selected fas').removeClass('far');
+            $('#datatable2 tbody tr').each(function() {
+                var rowCuenta = $(this).find('td').eq(4).text().trim(); // Cambia el índice según tu tabla
+                if (selectedCuenta === "0" || rowCuenta === selectedCuenta) {
+                    $(this).show(); // Muestra la fila si coincide o si se selecciona "0"
                 } else {
-                    $(this).removeClass('selected fas').addClass('far');
+                    $(this).hide(); // Oculta la fila si no coincide
                 }
             });
+        }
+    });
 
-            // Verificar si el checkbox debe estar habilitado
-            updateExcludeCheckboxState();
 
-            // Aplicar los filtros a la tabla
-            filterTable();
+
+    // Función para manejar el checkbox de "Excluir"
+    function handleExcludeCheckbox() {
+        const exclude = document.getElementById('excluir_tags').checked;
+        const filterData = JSON.parse(localStorage.getItem('filterData')) || {
+            tags: [],
+            exclude: false
+        };
+
+        // Actualizar el estado del filtro
+        filterData.exclude = exclude;
+
+        // Guardar el filtro en LocalStorage
+        localStorage.setItem('filterData', JSON.stringify(filterData));
+
+        applyTagFilter(); // Aplicar los filtros después de actualizar
+    }
+
+    // Función para manejar los filtros de etiquetas seleccionadas
+    function handleTagFilterSelection() {
+        const filterData = JSON.parse(localStorage.getItem('filterData')) || {
+            tags: [],
+            exclude: false
+        };
+
+        // Obtener las etiquetas seleccionadas desde los íconos del filtro
+        const selectedIcons = document.querySelectorAll('.icon-filter-filter.selected');
+        const tags = [];
+
+        selectedIcons.forEach(icon => {
+            tags.push(icon.getAttribute('data-tag'));
+        });
+
+        // Actualizar el estado de los filtros
+        filterData.tags = tags;
+
+        // Guardar los filtros en LocalStorage
+        localStorage.setItem('filterData', JSON.stringify(filterData));
+
+        applyTagFilter(); // Aplicar los filtros después de guardar
+    }
+
+    // Función para manejar el clic en los íconos de filtro
+    function handleTagFilterClick(event) {
+        const icon = event.target;
+        const tag = icon.getAttribute('data-tag');
+
+        if (icon.classList.contains('selected')) {
+            icon.classList.remove('selected');
+        } else {
+            icon.classList.add('selected');
         }
 
-        function loadTagStates() {
-            var tagStates = JSON.parse(localStorage.getItem('tag_states')) || {};
-            $('#datatable2 tbody tr').each(function() {
-                var rowId = $(this).data('id');
-                if (tagStates[rowId]) {
-                    $(this).find('.icon-row-filter').each(function() {
-                        var tag = $(this).data('tag');
-                        if (tagStates[rowId].includes(tag)) {
-                            $(this).addClass('selected fas').removeClass('far');
-                        } else {
-                            $(this).removeClass('selected fas').addClass('far');
-                        }
+        handleTagFilterSelection(); // Actualiza los filtros después del clic
+    }
+
+    // Asignar eventos a los íconos de filtro y al checkbox de "Excluir"
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.icon-filter-filter').forEach(icon => {
+            icon.addEventListener('click', handleTagFilterClick);
+        });
+
+        // Asignar evento al checkbox "Excluir"
+        document.getElementById('excluir_tags').addEventListener('change', handleExcludeCheckbox);
+
+        // Cargar el estado del checkbox de "Excluir" desde LocalStorage
+        const filterData = JSON.parse(localStorage.getItem('filterData')) || {
+            exclude: false
+        };
+        document.getElementById('excluir_tags').checked = filterData.exclude;
+
+        // Cargar las selecciones de etiquetas y aplicar los filtros
+        loadTagSelection();
+        applyTagFilter(); // Aplicar los filtros al cargar
+    });
+
+    // Función para cargar los filtros visualmente desde LocalStorage
+    function loadFiltersFromLocalStorage() {
+        const filterData = JSON.parse(localStorage.getItem('filterData')) || {
+            exclude: false,
+            tags: []
+        };
+
+        // Restaurar el estado visual del checkbox "Excluir"
+        document.getElementById('excluir_tags').checked = filterData.exclude;
+
+        // Restaurar los íconos de filtro seleccionados visualmente
+        filterData.tags.forEach(tag => {
+            const icon = document.querySelector(`.icon-filter-filter[data-tag="${tag}"]`);
+            if (icon) {
+                icon.classList.add('selected'); // Añadir la clase 'selected' a los íconos seleccionados
+            }
+        });
+    }
+
+    // Asignar eventos a los íconos de filtro
+    document.addEventListener('DOMContentLoaded', () => {
+        // Cargar los filtros visualmente desde LocalStorage al cargar la página
+        loadFiltersFromLocalStorage();
+    });
+
+    // Función para aplicar los filtros de etiquetas a las filas de la tabla
+    function applyTagFilter() {
+        const selectedTags = JSON.parse(localStorage.getItem('selectedTags'));
+        const filterData = JSON.parse(localStorage.getItem('filterData'));
+
+        // Si no hay filtros o etiquetas seleccionadas, mostramos todos los registros
+        if (!filterData || !selectedTags) {
+            document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
+                row.style.display = ''; // Mostrar todas las filas si no hay filtros aplicados
+            });
+            return;
+        }
+
+        const shouldExclude = filterData.exclude;
+
+        // Si no hay etiquetas seleccionadas en el filtro de la interfaz, mostramos todos los registros
+        if (filterData.tags.length === 0) {
+            document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
+                row.style.display = ''; // Mostrar todas las filas si no hay etiquetas seleccionadas
+            });
+            return;
+        }
+
+        // Recorrer todas las filas de la tabla
+        document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
+            const transactionId = row.getAttribute('data-id'); // Usamos el data-id de cada fila
+            const rowTags = selectedTags[transactionId] || [];
+
+            const hasMatchingTag = rowTags.some(tag => filterData.tags.includes(tag));
+
+            if (shouldExclude) {
+                // Si "Excluir" está activado, ocultamos las filas que tienen etiquetas seleccionadas en el filtro
+                if (hasMatchingTag) {
+                    row.style.display = 'none'; // Ocultar la fila si tiene alguna de las etiquetas seleccionadas
+                } else {
+                    row.style.display = ''; // Mostrar la fila si no tiene ninguna de las etiquetas seleccionadas
+                }
+            } else {
+                // Si "Excluir" NO está activado, solo mostramos las filas que tienen al menos una etiqueta seleccionada
+                if (hasMatchingTag) {
+                    row.style.display = ''; // Mostrar la fila si tiene al menos una de las etiquetas seleccionadas
+                } else {
+                    row.style.display = 'none'; // Ocultar la fila si no tiene ninguna de las etiquetas seleccionadas
+                }
+            }
+        });
+    }
+
+    // Función para guardar las selecciones de etiquetas de las filas de la tabla en LocalStorage
+    function saveTagSelection() {
+        const selectedTags = {};
+
+        // Recorrer todas las filas de la tabla
+        document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
+            const transactionId = row.getAttribute('data-id');
+            const rowTags = [];
+
+            // Recoger las etiquetas seleccionadas en esta fila
+            row.querySelectorAll('.icon-row-filter.selected').forEach(icon => {
+                rowTags.push(icon.getAttribute('data-tag'));
+            });
+
+            if (rowTags.length > 0) {
+                selectedTags[transactionId] = rowTags;
+            }
+        });
+
+        // Guardar en LocalStorage
+        localStorage.setItem('selectedTags', JSON.stringify(selectedTags));
+    }
+
+    // Función para cargar las etiquetas desde LocalStorage y aplicarlas a las filas de la tabla
+    function loadTagSelection() {
+        const selectedTags = JSON.parse(localStorage.getItem('selectedTags'));
+
+        if (selectedTags) {
+            document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
+                const transactionId = row.getAttribute('data-id');
+
+                if (selectedTags[transactionId]) {
+                    selectedTags[transactionId].forEach(tag => {
+                        row.querySelector(`.icon-row-filter[data-tag="${tag}"]`).classList.add('selected');
                     });
                 }
             });
         }
+    }
 
-        function saveTagStates() {
-            var tagStates = {};
-            $('#datatable2 tbody tr').each(function() {
-                var rowId = $(this).data('id');
-                tagStates[rowId] = [];
-                $(this).find('.icon-row-filter.selected').each(function() {
-                    tagStates[rowId].push($(this).data('tag'));
-                });
-            });
-            localStorage.setItem('tag_states', JSON.stringify(tagStates));
+    // Función para manejar el clic en las etiquetas dentro de la fila
+    function handleRowTagClick(event) {
+        const icon = event.target;
+        const tag = icon.getAttribute('data-tag');
+        const row = icon.closest('tr');
+        const transactionId = row.getAttribute('data-id');
+
+        if (icon.classList.contains('selected')) {
+            icon.classList.remove('selected');
+        } else {
+            icon.classList.add('selected');
         }
 
-        $('#datatable2').on('click', '.icon-row-filter', function() {
-            var $icon = $(this);
-            var isSelected = $icon.hasClass('selected');
-            var rowId = $icon.closest('tr').data('id');
+        saveTagSelection();
+        applyTagFilter(); // Aplicar los filtros después de guardar
+    }
 
-            $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
+    // Asignar eventos de clic a las etiquetas dentro de las filas
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTagSelection(); // Cargar las selecciones guardadas al cargar la página
+        applyTagFilter(); // Aplicar los filtros al cargar
 
-            saveTagStates();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
-            filterTable();
-            savePreferences(); // Guarda las preferencias después de seleccionar/deseleccionar etiquetas
+        // Asignar eventos de clic en las etiquetas de las filas
+        document.querySelectorAll('.icon-row-filter').forEach(icon => {
+            icon.addEventListener('click', handleRowTagClick);
         });
+    });
 
-        $('#filter-icons').on('click', '.icon-filter-filter', function() {
-            var $icon = $(this);
-            var isSelected = $icon.hasClass('selected');
+    $(document).ready(function() {
 
-            $icon.toggleClass('selected', !isSelected);
-            $icon.toggleClass('fas', !isSelected);
-            $icon.toggleClass('far', isSelected);
-
-            saveSelectedTags();
-            updateExcludeCheckboxState(); // Actualiza el estado del checkbox "excluir"
-            filterTable();
-            savePreferences(); // Guarda las preferencias después de seleccionar/deseleccionar filtros
-        });
-
-        function saveSelectedTags() {
-            var selectedTags = [];
-            $('#filter-icons .icon-filter-filter.selected').each(function() {
-                selectedTags.push($(this).data('tag'));
-            });
-            localStorage.setItem('selected_tags', JSON.stringify(selectedTags));
-
-            // Guardar estado del checkbox "excluir"
-            var excludeChecked = $('#excluir_tags').is(':checked');
-            localStorage.setItem('exclude_tags', excludeChecked);
-        }
-
-        function savePreferences() {
-            var etiquetasSeleccionadas = JSON.parse(localStorage.getItem('tag_states')) || {};
-            var etiquetasFiltroSeleccionadas = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            var excludeEstado = $('#excluir_tags').is(':checked') ? 1 : 0;
-
-            // Filtrar etiquetasSeleccionadas para incluir solo las que tienen al menos una etiqueta
-            var filteredEtiquetasSeleccionadas = {};
-            Object.keys(etiquetasSeleccionadas).forEach(function(key) {
-                if (etiquetasSeleccionadas[key].length > 0) {
-                    // Convertir el array de etiquetas a una cadena separada por comas
-                    filteredEtiquetasSeleccionadas[key] = etiquetasSeleccionadas[key].join(',');
-                }
-            });
-
-            // Convertir el objeto a una cadena separada por punto y coma
-            var etiquetasSeleccionadasTexto = Object.keys(filteredEtiquetasSeleccionadas)
-                .map(function(key) {
-                    return key + ':' + filteredEtiquetasSeleccionadas[key];
-                })
-                .join(';');
-
-            // Convertir el array de etiquetas de filtro a una cadena separada por comas
-            var etiquetasFiltroSeleccionadasTexto = etiquetasFiltroSeleccionadas.join(',');
-
-            console.log("Guardando preferencias...", {
-                etiquetasSeleccionadas: etiquetasSeleccionadasTexto,
-                etiquetasFiltroSeleccionadas: etiquetasFiltroSeleccionadasTexto,
-                excludeEstado
-            });
-
-            $.ajax({
-                url: 'save_preferences.php',
-                type: 'POST',
-                data: {
-                    etiquetas_seleccionadas: etiquetasSeleccionadasTexto,
-                    etiquetas_filtro_seleccionadas: etiquetasFiltroSeleccionadasTexto,
-                    excluir_estado: excludeEstado
-                },
-                dataType: 'json',
-                success: function(response) {
-                    console.log(response.message || 'Preferencias guardadas correctamente.');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al guardar preferencias:', error);
-                }
-            });
-        }
-
-        $('#cuenta_filter').on('change', function() {
-            var filterValue = $(this).val();
-            localStorage.setItem('selected_cuenta', filterValue);
-            filterTable();
-        });
-
-        $('#datatable2_length select').on('change', function() {
-            var pageLength = $(this).val();
-            localStorage.setItem('page_length', pageLength);
-            table.page.len(parseInt(pageLength)).draw();
-        });
-
-        $('#excluir_tags').on('change', function() {
-            var isChecked = $(this).is(':checked');
-            localStorage.setItem('exclude_tags', isChecked);
-            filterTable();
-            savePreferences(); // Guarda preferencias al cambiar el estado del checkbox
-        });
-
-        function filterTable() {
-            var selectedTags = JSON.parse(localStorage.getItem('selected_tags')) || [];
-            var selectedCuenta = $('#cuenta_filter').val();
-            var excludeTags = $('#excluir_tags').is(':checked');
-
-            table.rows().every(function() {
-                var row = this.node();
-                var rowTags = [];
-                var rowCuenta = $(row).find('td').eq(4).text(); // Cambia el índice de la columna según tu tabla
-
-                $(row).find('.icon-row-filter').each(function() {
-                    if ($(this).hasClass('selected')) {
-                        rowTags.push($(this).data('tag'));
-                    }
-                });
-
-                var tagMatch = selectedTags.length === 0 || selectedTags.some(tag => rowTags.includes(tag));
-                if (excludeTags) {
-                    tagMatch = !tagMatch; // Invertir la lógica si está marcado el checkbox
-                }
-                var cuentaMatch = selectedCuenta === "0" || rowCuenta === selectedCuenta;
-
-                if (tagMatch && cuentaMatch) {
-                    $(row).show();
-                } else {
-                    $(row).hide();
-                }
-            });
-        }
-
-        function updateExcludeCheckboxState() {
-            var hasSelectedTags = $('#datatable2 tbody .icon-row-filter.selected').length > 0;
-            $('#excluir_tags').prop('disabled', !hasSelectedTags);
-        }
-
-        function clearFilters() {
-            // Limpiar solo las preferencias necesarias
-            localStorage.removeItem('etiquetas_seleccionadas');
-            localStorage.removeItem('etiquetas_filtro_seleccionadas');
-            localStorage.removeItem('excluir_estado');
-
-            $('#cuenta_filter').val("0").change(); // Restablecer filtro de cuenta
-            $('#excluir_tags').prop('checked', false); // Restablecer checkbox de exclusión
-            $('#filter-icons .icon-filter-filter').removeClass('selected fas').addClass('far'); // Restablecer los íconos de filtro
-
-            // Limpiar la búsqueda y las columnas de la tabla
-            table.search('').columns().search('').draw();
-
-            // Llamar a clear_preferences.php para limpiar las preferencias en la base de datos
-            $.ajax({
-                url: 'clear_preferences.php',
-                type: 'POST',
-                dataType: 'json',
-                success: function(response) {
-                    console.log(response.message || 'Preferencias limpiadas correctamente en la base de datos.');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al limpiar preferencias:', error);
-                }
-            });
-        }
-
+        // Evento para el botón de limpiar filtros con confirmación Swal
         $('#clear-filters-btn').on('click', function() {
             Swal.fire({
                 title: '¿Confirmas la acción?',
-                text: "Esto eliminará todos los filtros y etiquetas aplicadas",
+                text: "Esto eliminará todos los filtros y etiquetas aplicadas.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Limpiar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // Llamar a la función para limpiar filtros
                     clearFilters();
+
+                    // Mostrar mensaje de éxito y recargar la página
                     Swal.fire(
                         'Filtros limpiados',
                         'Todos los filtros y etiquetas se han eliminado.',
                         'success'
                     ).then(() => {
-                        location.reload(); // Recargar la página después de limpiar
+                        location.reload(); // Recargar la página
                     });
                 }
             });
         });
 
-        $(window).on('beforeunload', function() {
-            console.log("Guardando preferencias antes de salir...");
-            savePreferences(); // Guarda preferencias al salir
-        });
+        // Función para limpiar filtros
+        function clearFilters() {
+            // Eliminar todos los filtros del LocalStorage
+            localStorage.removeItem('selected_cuenta'); // Filtro de cuenta
+            localStorage.removeItem('filterData'); // Datos de filtros y exclusión
+            localStorage.removeItem('selectedTags'); // Selecciones de etiquetas en filas
 
-        // Cargar las preferencias al inicio
-        applyFilters();
+            // Restablecer el filtro de cuenta
+            $('#cuenta_filter').val("0").change(); // Cambiar el valor y disparar el evento de cambio
+
+            // Restablecer el checkbox de excluir etiquetas
+            $('#excluir_tags').prop('checked', false);
+
+            // Restablecer los íconos de los filtros
+            $('.icon-filter-filter').removeClass('selected fas').addClass('far'); // Íconos de la interfaz de filtros
+            $('.icon-row-filter').removeClass('selected fas').addClass('far'); // Íconos en las filas de la tabla
+
+            // Mostrar todas las filas de la DataTable
+            $('#datatable2 tbody tr').each(function() {
+                $(this).show();
+            });
+        }
+
+
     });
-</script>
-
-<script>
 </script>
 
 <script>

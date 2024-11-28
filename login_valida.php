@@ -49,7 +49,7 @@
 		<?php
 		session_start();
 
-		$inactive = 10; // 10 segundos para pruebas
+		$inactive = 3600; // 10 segundos para pruebas
 
 		// Verificar si existe la variable 'timeout'
 		if (isset($_SESSION['timeout'])) {
