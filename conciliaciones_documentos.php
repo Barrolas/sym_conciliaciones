@@ -47,7 +47,6 @@ if ($matched == 0) {
         die(print_r(sqlsrv_errors(), true));
     }
     $gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
-    
 }
 
 if ($matched == 1) {
@@ -467,9 +466,16 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                     </thead>
                                                                     <tbody>
                                                                         <?php
+
+                                                                        $fecha_transaccion = $gestion["FECHA"];
+
                                                                         // Consulta para obtener documentos asignados
-                                                                        $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
-                                                                        $params3 = array($rut_deudor);
+                                                                        $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?, ?)}";
+                                                                        $params3 = array(
+                                                                            array($rut_deudor,        SQLSRV_PARAM_IN),
+                                                                            array($fecha_transaccion, SQLSRV_PARAM_IN)
+                                                                        );
+
                                                                         $stmt3 = sqlsrv_query($conn, $sql3, $params3);
                                                                         if ($stmt3 === false) {
                                                                             die(print_r(sqlsrv_errors(), true));
