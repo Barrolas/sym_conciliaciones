@@ -295,61 +295,52 @@ $fecha_proceso = $row["FECHAPROCESO"];
     // Inicializar Feather Icons
     feather.replace();
 
-    $(document).ready(function() {
-        // Inicializar DataTable y guardar la referencia
+    document.addEventListener('DOMContentLoaded', () => {
+
         var table = $('#datatable2').DataTable({
-            "paging": false, // Desactiva la paginación
-            "searching": true, // Habilita la búsqueda
-            "ordering": true, // Habilita el ordenamiento
+            "paging": false,
+            "searching": true,
+            "ordering": true,
         });
 
         // ------------------ FILTRO POR CUENTA ------------------
-        // Cargar valor de cuenta almacenado en localStorage
         var storedCuentaValue = localStorage.getItem('selected_cuenta');
         if (storedCuentaValue) {
-            $('#cuenta_filter').val(storedCuentaValue); // Establecer el valor en el select
-            filterTableByCuenta(); // Aplicar el filtro
+            $('#cuenta_filter').val(storedCuentaValue);
+            filterTableByCuenta();
         }
 
-        // Evento para detectar cambios en el filtro de cuenta
         $('#cuenta_filter').on('change', function() {
             var selectedCuenta = $(this).val();
-            localStorage.setItem('selected_cuenta', selectedCuenta); // Guardar la selección en localStorage
-            filterTableByCuenta(); // Aplicar el filtro
-            table.draw(); // Redibujar la tabla para que se apliquen los demás filtros
+            localStorage.setItem('selected_cuenta', selectedCuenta);
+            filterTableByCuenta();
+            table.draw();
         });
 
-        // Función para filtrar la tabla por cuenta
         function filterTableByCuenta() {
             var selectedCuenta = $('#cuenta_filter').val();
             $('#datatable2 tbody tr').each(function() {
-                var rowCuenta = $(this).find('td').eq(4).text().trim(); // Cambia el índice según tu tabla
+                var rowCuenta = $(this).find('td').eq(4).text().trim();
                 if (selectedCuenta === "0" || rowCuenta === selectedCuenta) {
-                    $(this).show(); 
+                    $(this).show();
                 } else {
-                    $(this).hide(); 
+                    $(this).hide();
                 }
             });
         }
 
         // ------------------ FILTRO POR MES/AÑO ------------------
-        // Cargar el valor almacenado del filtro mes/año
         var storedMonthValue = localStorage.getItem('selected_month_year');
         if (storedMonthValue) {
             $('#month_filter').val(storedMonthValue);
         }
 
-        // Extender la búsqueda de DataTable para filtrar por mes/año
         $.fn.dataTable.ext.search.push(
             function(settings, data, dataIndex) {
                 var selectedMonthYear = $('#month_filter').val();
-                if (!selectedMonthYear) {
-                    // Si no hay filtro de mes/año seleccionado, no filtramos
-                    return true;
-                }
+                if (!selectedMonthYear) return true;
 
-                // Asumimos que la fecha está en la primera columna (índice 0) y en formato DD/MM/YYYY
-                var dateStr = data[0].trim();
+                var dateStr = data[0].trim(); // Ajustar índice si la fecha no está en la primera columna
                 var rowDate = moment(dateStr, "DD/MM/YYYY");
                 if (!rowDate.isValid()) return true;
 
@@ -361,103 +352,75 @@ $fecha_proceso = $row["FECHAPROCESO"];
             }
         );
 
-        // Evento para cambio en el filtro de mes/año
         $('#month_filter').on('change', function() {
             var selectedMonth = $(this).val();
-            localStorage.setItem('selected_month_year', selectedMonth); // Guardar la selección en localStorage
-            table.draw(); // Redibujar la tabla con el nuevo filtro
+            localStorage.setItem('selected_month_year', selectedMonth);
+            table.draw();
         });
 
-        // Si había un valor en localStorage, aplicar el filtro al cargar
         if (storedMonthValue) {
             table.draw();
         }
 
         // ------------------ LÓGICA ETIQUETAS Y EXCLUSIÓN ------------------
-        // Función para manejar el checkbox de "Excluir"
         function handleExcludeCheckbox() {
             const exclude = document.getElementById('excluir_tags').checked;
-            const filterData = JSON.parse(localStorage.getItem('filterData')) || {
-                tags: [],
-                exclude: false
-            };
+            const filterData = JSON.parse(localStorage.getItem('filterData')) || {tags: [], exclude: false};
 
             filterData.exclude = exclude;
             localStorage.setItem('filterData', JSON.stringify(filterData));
-
             applyTagFilter();
         }
 
-        // Función para manejar los filtros de etiquetas seleccionadas
         function handleTagFilterSelection() {
-            const filterData = JSON.parse(localStorage.getItem('filterData')) || {
-                tags: [],
-                exclude: false
-            };
-
+            const filterData = JSON.parse(localStorage.getItem('filterData')) || {tags: [], exclude: false};
             const selectedIcons = document.querySelectorAll('.icon-filter-filter.selected');
             const tags = [];
+
             selectedIcons.forEach(icon => {
                 tags.push(icon.getAttribute('data-tag'));
             });
 
             filterData.tags = tags;
             localStorage.setItem('filterData', JSON.stringify(filterData));
-
             applyTagFilter();
         }
 
-        // Función para manejar el clic en íconos de filtro (cabecera)
         function handleTagFilterClick(event) {
             const icon = event.target;
             icon.classList.toggle('selected');
             handleTagFilterSelection();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.icon-filter-filter').forEach(icon => {
-                icon.addEventListener('click', handleTagFilterClick);
-            });
-
-            document.getElementById('excluir_tags').addEventListener('change', handleExcludeCheckbox);
-
-            const filterData = JSON.parse(localStorage.getItem('filterData')) || {
-                exclude: false
-            };
-            document.getElementById('excluir_tags').checked = filterData.exclude;
-
-            loadTagSelection();
-            applyTagFilter(); 
+        // Asignar eventos a los iconos de filtro
+        document.querySelectorAll('.icon-filter-filter').forEach(icon => {
+            icon.addEventListener('click', handleTagFilterClick);
         });
 
-        // Función para cargar los filtros visualmente desde LocalStorage
+        document.getElementById('excluir_tags').addEventListener('change', handleExcludeCheckbox);
+
+        // Cargar estado de filtros visualmente
+        loadFiltersFromLocalStorage();
+
+        // Función para cargar estado de los filtros (checkbox excluir, iconos)
         function loadFiltersFromLocalStorage() {
-            const filterData = JSON.parse(localStorage.getItem('filterData')) || {
-                exclude: false,
-                tags: []
-            };
-
+            const filterData = JSON.parse(localStorage.getItem('filterData')) || {exclude: false, tags: []};
             document.getElementById('excluir_tags').checked = filterData.exclude;
-
             filterData.tags.forEach(tag => {
-                const icon = document.querySelector(`.icon-filter-filter[data-tag="${tag}"]`);
+                const icon = document.querySelector('.icon-filter-filter[data-tag="'+tag+'"]');
                 if (icon) {
                     icon.classList.add('selected');
                 }
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadFiltersFromLocalStorage();
-        });
-
-        // Función para aplicar los filtros de etiquetas en las filas
+        // Función para aplicar los filtros de etiquetas
         function applyTagFilter() {
             const selectedTags = JSON.parse(localStorage.getItem('selectedTags'));
             const filterData = JSON.parse(localStorage.getItem('filterData'));
 
-            // Si no hay filtros o etiquetas seleccionadas, mostrar todas las filas
             if (!filterData || !selectedTags) {
+                // No hay filtros o etiquetas, mostrar todo
                 document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
                     row.style.display = '';
                 });
@@ -466,8 +429,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
             const shouldExclude = filterData.exclude;
 
-            // Si no hay etiquetas seleccionadas en el filtro, mostrar todas las filas
             if (filterData.tags.length === 0) {
+                // Sin etiquetas seleccionadas, mostrar todo
                 document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
                     row.style.display = '';
                 });
@@ -480,16 +443,16 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 const hasMatchingTag = rowTags.some(tag => filterData.tags.includes(tag));
 
                 if (shouldExclude) {
-                    // Ocultar filas con tags seleccionadas
+                    // Excluir las que tienen las etiquetas seleccionadas
                     row.style.display = hasMatchingTag ? 'none' : '';
                 } else {
-                    // Mostrar solo filas con al menos un tag seleccionado
+                    // Mostrar solo las que tienen al menos una etiqueta seleccionada
                     row.style.display = hasMatchingTag ? '' : 'none';
                 }
             });
         }
 
-        // Función para guardar las etiquetas seleccionadas en las filas
+        // Guardar selección de etiquetas en las filas
         function saveTagSelection() {
             const selectedTags = {};
             document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
@@ -503,20 +466,18 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     selectedTags[transactionId] = rowTags;
                 }
             });
-
             localStorage.setItem('selectedTags', JSON.stringify(selectedTags));
         }
 
-        // Función para cargar las etiquetas desde LocalStorage
+        // Cargar etiquetas desde LocalStorage
         function loadTagSelection() {
             const selectedTags = JSON.parse(localStorage.getItem('selectedTags'));
-
             if (selectedTags) {
                 document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
                     const transactionId = row.getAttribute('data-id');
                     if (selectedTags[transactionId]) {
                         selectedTags[transactionId].forEach(tag => {
-                            const icon = row.querySelector(`.icon-row-filter[data-tag="${tag}"]`);
+                            const icon = row.querySelector('.icon-row-filter[data-tag="'+tag+'"]');
                             if (icon) icon.classList.add('selected');
                         });
                     }
@@ -524,7 +485,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             }
         }
 
-        // Función para manejar el clic en las etiquetas de la fila
         function handleRowTagClick(event) {
             const icon = event.target;
             icon.classList.toggle('selected');
@@ -532,13 +492,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
             applyTagFilter();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTagSelection();
-            applyTagFilter();
+        // Cargar selección de etiquetas y aplicar filtros
+        loadTagSelection();
+        applyTagFilter();
 
-            document.querySelectorAll('.icon-row-filter').forEach(icon => {
-                icon.addEventListener('click', handleRowTagClick);
-            });
+        // Asignar eventos a las etiquetas de las filas
+        document.querySelectorAll('.icon-row-filter').forEach(icon => {
+            icon.addEventListener('click', handleRowTagClick);
         });
 
         // ------------------ LIMPIAR FILTROS ------------------
@@ -553,7 +513,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             }).then((result) => {
                 if (result.isConfirmed) {
                     clearFilters();
-
                     Swal.fire(
                         'Filtros limpiados',
                         'Todos los filtros y etiquetas se han eliminado.',
@@ -566,29 +525,24 @@ $fecha_proceso = $row["FECHAPROCESO"];
         });
 
         function clearFilters() {
-            
-            // Eliminar todos los filtros del LocalStorage
-            localStorage.removeItem('selected_cuenta'); 
-            localStorage.removeItem('filterData'); 
-            localStorage.removeItem('selectedTags'); 
+            localStorage.removeItem('selected_cuenta');
+            localStorage.removeItem('filterData');
+            localStorage.removeItem('selectedTags');
             localStorage.removeItem('selected_month_year');
 
-            // Restablecer el filtro de cuenta
             $('#cuenta_filter').val("0").change();
-            // Restablecer el checkbox de excluir etiquetas
             $('#excluir_tags').prop('checked', false);
-            // Limpiar el filtro de mes/año
             $('#month_filter').val('');
-            // Restablecer los íconos de los filtros
+
             $('.icon-filter-filter').removeClass('selected fas').addClass('far');
             $('.icon-row-filter').removeClass('selected fas').addClass('far');
-            // Mostrar todas las filas
+
             $('#datatable2 tbody tr').each(function() {
                 $(this).show();
             });
+
             table.draw();
         }
-
     });
 </script>
 
