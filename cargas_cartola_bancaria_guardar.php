@@ -86,10 +86,14 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 	/* Conciliamos todos los asignados que hagan match en la cartola y esté canalizado por cheque */
 	if ($tipo_canal == 1 && $n_cheque == $n_documento) {
 
-		$sql_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_CHEQUES_ACTUALIZA](?, ?)}";
+		$cheque_resultado = 0;
+
+		$sql_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_CHEQUES_ACTUALIZA](?, ?, ?, ?)}";
 		$params_remesa = array(
 			array($id_asignacion,   	SQLSRV_PARAM_IN),
+			array($n_cheque,   			SQLSRV_PARAM_IN),
 			array($idusuario,     		SQLSRV_PARAM_IN),
+			array(&$cheque_resultado,   SQLSRV_PARAM_INOUT),
 		);
 		$stmt_remesa = sqlsrv_query($conn, $sql_remesa, $params_remesa);
 		if ($stmt_remesa === false) {
