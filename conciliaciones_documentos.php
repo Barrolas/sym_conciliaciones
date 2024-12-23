@@ -133,6 +133,8 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
     <link href="plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
     <link href="assets/css/loading.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/filters.css" rel="stylesheet" type="text/css" />
+
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
     <script type="text/javascript">
@@ -165,6 +167,17 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         .form-control {
             height: 36px;
             /* Ajusta la altura según sea necesario */
+        }
+
+        .icon-row-filter {
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 1.5em;
+            color: #6c757d;
+        }
+
+        .icon-row-filter.selected {
+            color: #007bff;
         }
     </style>
     <style>
@@ -263,7 +276,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group row text-start justify-content-between justify-items-between pl-4 mb-3">
-                                    <div class="col-lg-4">
+                                    <div class="col-lg-3">
                                         <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
                                         <input type="text" class="form-control col-12" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
                                     </div>
@@ -271,9 +284,22 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                         <label class="col-4" for="fecha_ultima_cartola">CUENTA</label>
                                         <input type="text" name="cuenta" id="cuenta" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $cuenta ?>" disabled />
                                     </div>
-                                    <div class="col-lg-4">
+                                    <div class="col-lg-3">
                                         <label class="col-4" for="fecha_ultima_cartola">TRANSACCIÓN</label>
                                         <input type="text" name="transaccion" id="transaccion" class="form-control col-12" maxlength="50" autocomplete="off" value="<?= $gestion["TRANSACCION"] . ' - ' . $gestion["FECHA"] ?>" disabled />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <label class="col-4">ETIQUETAS</label>
+                                        <!-- Panel para íconos -->
+                                        <div id="tag-panel" class="d-flex align-items-center form-control"
+                                            style="height: auto; gap: 0.75rem; border: none;">
+                                            <i class="far fa-star icon-row-filter star" data-tag="star"
+                                                style="cursor:pointer;"></i>
+                                            <i class="far fa-bell icon-row-filter bell" data-tag="bell"
+                                                style="cursor:pointer;"></i>
+                                            <i class="far fa-flag icon-row-filter flag" data-tag="flag"
+                                                style="cursor:pointer;"></i>
+                                        </div>
                                     </div>
                                 </div><!--end form-group-->
                             </div><!--end col-->
@@ -632,7 +658,65 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 <script language="javascript">
     // Incrusta el valor de PHP en una variable de JavaScript
     var cuenta = '<?= $cuenta ?>';
+    var transaccionJS = <?php echo json_encode($gestion["TRANSACCION"]); ?>;
 
+    $(document).ready(function() {
+        // Obtener etiquetas asociadas desde localStorage
+        const selectedTags = JSON.parse(localStorage.getItem('selectedTags')) || {};
+        let rowTags = selectedTags[transaccionJS] || [];
+
+        // Manejar clics en las etiquetas
+        function handleTagClick(icon) {
+            const tag = icon.getAttribute('data-tag');
+
+            if (icon.classList.contains('selected')) {
+                // Desasociar etiqueta
+                icon.classList.remove('selected', 'fas');
+                icon.classList.add('far');
+                rowTags = rowTags.filter(t => t !== tag);
+            } else {
+                // Asociar etiqueta
+                icon.classList.add('selected', 'fas');
+                icon.classList.remove('far');
+                rowTags.push(tag);
+            }
+
+            // Actualizar etiquetas en localStorage
+            selectedTags[transaccionJS] = rowTags;
+            localStorage.setItem('selectedTags', JSON.stringify(selectedTags));
+        }
+
+        // Configurar etiquetas visualmente
+        document.querySelectorAll('.icon-row-filter').forEach(icon => {
+            const tag = icon.getAttribute('data-tag');
+
+            // Marcar etiquetas ya seleccionadas
+            if (rowTags.includes(tag)) {
+                icon.classList.add('selected', 'fas');
+                icon.classList.remove('far');
+            }
+
+            // Asignar evento de clic
+            icon.addEventListener('click', () => handleTagClick(icon));
+        });
+
+        // Verificar etiquetas al cargar la página
+        function initializeTags() {
+            document.querySelectorAll('.icon-row-filter').forEach(icon => {
+                const tag = icon.getAttribute('data-tag');
+                if (rowTags.includes(tag)) {
+                    icon.classList.add('selected', 'fas');
+                    icon.classList.remove('far');
+                }
+            });
+        }
+
+        // Inicializar etiquetas
+        initializeTags();
+    });
+</script>
+
+<script language="javascript">
     $(document).ready(function() {
         $("#cliente").on('change', function() {
             $("#cliente option:selected").each(function() {
@@ -828,6 +912,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
         // Inicializar DataTable
         var table = $('#datatable2').DataTable({
             responsive: true,
+            paging: false,
             columnDefs: [{
                     targets: [0],
                     orderable: false

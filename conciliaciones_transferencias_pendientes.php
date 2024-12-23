@@ -363,6 +363,29 @@ $fecha_proceso = $row["FECHAPROCESO"];
         }
 
         // ------------------ LÓGICA ETIQUETAS Y EXCLUSIÓN ------------------
+        function toggleIconState(icon) {
+            if (icon.classList.contains('selected')) {
+                icon.classList.remove('selected', 'solid', 'fas');
+                icon.classList.add('outline', 'far');
+            } else {
+                icon.classList.remove('outline', 'far');
+                icon.classList.add('selected', 'solid', 'fas');
+            }
+        }
+
+        function handleRowTagClick(event) {
+            const icon = event.target;
+            toggleIconState(icon); // Alternar entre solid y outline
+            saveTagSelection();
+            applyTagFilter();
+        }
+
+        function handleTagFilterClick(event) {
+            const icon = event.target;
+            toggleIconState(icon); // Alternar entre solid y outline
+            handleTagFilterSelection();
+        }
+
         function handleExcludeCheckbox() {
             const exclude = document.getElementById('excluir_tags').checked;
             const filterData = JSON.parse(localStorage.getItem('filterData')) || {tags: [], exclude: false};
@@ -386,41 +409,55 @@ $fecha_proceso = $row["FECHAPROCESO"];
             applyTagFilter();
         }
 
-        function handleTagFilterClick(event) {
-            const icon = event.target;
-            icon.classList.toggle('selected');
-            handleTagFilterSelection();
-        }
+        // Asignar eventos a íconos de etiquetas en filas
+        document.querySelectorAll('.icon-row-filter').forEach(icon => {
+            icon.addEventListener('click', handleRowTagClick);
+        });
 
-        // Asignar eventos a los iconos de filtro
+        // Asignar eventos a íconos de filtro global
         document.querySelectorAll('.icon-filter-filter').forEach(icon => {
             icon.addEventListener('click', handleTagFilterClick);
         });
 
-        document.getElementById('excluir_tags').addEventListener('change', handleExcludeCheckbox);
+        function loadTagSelection() {
+            const selectedTags = JSON.parse(localStorage.getItem('selectedTags')) || {};
+            document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
+                const transactionId = row.getAttribute('data-id');
+                const rowTags = selectedTags[transactionId] || [];
+                row.querySelectorAll('.icon-row-filter').forEach(icon => {
+                    const tag = icon.getAttribute('data-tag');
+                    if (rowTags.includes(tag)) {
+                        icon.classList.add('selected', 'solid', 'fas');
+                        icon.classList.remove('outline', 'far');
+                    } else {
+                        icon.classList.add('outline', 'far');
+                        icon.classList.remove('selected', 'solid', 'fas');
+                    }
+                });
+            });
+        }
 
-        // Cargar estado de filtros visualmente
-        loadFiltersFromLocalStorage();
-
-        // Función para cargar estado de los filtros (checkbox excluir, iconos)
         function loadFiltersFromLocalStorage() {
-            const filterData = JSON.parse(localStorage.getItem('filterData')) || {exclude: false, tags: []};
+            const filterData = JSON.parse(localStorage.getItem('filterData')) || {tags: [], exclude: false};
             document.getElementById('excluir_tags').checked = filterData.exclude;
-            filterData.tags.forEach(tag => {
-                const icon = document.querySelector('.icon-filter-filter[data-tag="'+tag+'"]');
-                if (icon) {
-                    icon.classList.add('selected');
+
+            document.querySelectorAll('.icon-filter-filter').forEach(icon => {
+                const tag = icon.getAttribute('data-tag');
+                if (filterData.tags.includes(tag)) {
+                    icon.classList.add('selected', 'solid', 'fas');
+                    icon.classList.remove('outline', 'far');
+                } else {
+                    icon.classList.add('outline', 'far');
+                    icon.classList.remove('selected', 'solid', 'fas');
                 }
             });
         }
 
-        // Función para aplicar los filtros de etiquetas
         function applyTagFilter() {
             const selectedTags = JSON.parse(localStorage.getItem('selectedTags'));
             const filterData = JSON.parse(localStorage.getItem('filterData'));
 
             if (!filterData || !selectedTags) {
-                // No hay filtros o etiquetas, mostrar todo
                 document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
                     row.style.display = '';
                 });
@@ -430,7 +467,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
             const shouldExclude = filterData.exclude;
 
             if (filterData.tags.length === 0) {
-                // Sin etiquetas seleccionadas, mostrar todo
                 document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
                     row.style.display = '';
                 });
@@ -443,16 +479,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 const hasMatchingTag = rowTags.some(tag => filterData.tags.includes(tag));
 
                 if (shouldExclude) {
-                    // Excluir las que tienen las etiquetas seleccionadas
                     row.style.display = hasMatchingTag ? 'none' : '';
                 } else {
-                    // Mostrar solo las que tienen al menos una etiqueta seleccionada
                     row.style.display = hasMatchingTag ? '' : 'none';
                 }
             });
         }
 
-        // Guardar selección de etiquetas en las filas
         function saveTagSelection() {
             const selectedTags = {};
             document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
@@ -461,7 +494,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 row.querySelectorAll('.icon-row-filter.selected').forEach(icon => {
                     rowTags.push(icon.getAttribute('data-tag'));
                 });
-
                 if (rowTags.length > 0) {
                     selectedTags[transactionId] = rowTags;
                 }
@@ -469,39 +501,26 @@ $fecha_proceso = $row["FECHAPROCESO"];
             localStorage.setItem('selectedTags', JSON.stringify(selectedTags));
         }
 
-        // Cargar etiquetas desde LocalStorage
-        function loadTagSelection() {
-            const selectedTags = JSON.parse(localStorage.getItem('selectedTags'));
-            if (selectedTags) {
-                document.querySelectorAll('#datatable2 tbody tr').forEach(row => {
-                    const transactionId = row.getAttribute('data-id');
-                    if (selectedTags[transactionId]) {
-                        selectedTags[transactionId].forEach(tag => {
-                            const icon = row.querySelector('.icon-row-filter[data-tag="'+tag+'"]');
-                            if (icon) icon.classList.add('selected');
-                        });
-                    }
-                });
-            }
+        function clearFilters() {
+            localStorage.removeItem('selected_cuenta');
+            localStorage.removeItem('filterData');
+            localStorage.removeItem('selectedTags');
+            localStorage.removeItem('selected_month_year');
+
+            $('#cuenta_filter').val("0").change();
+            $('#excluir_tags').prop('checked', false);
+            $('#month_filter').val('');
+
+            $('.icon-filter-filter').removeClass('selected solid fas').addClass('outline far');
+            $('.icon-row-filter').removeClass('selected solid fas').addClass('outline far');
+
+            $('#datatable2 tbody tr').each(function() {
+                $(this).show();
+            });
+
+            table.draw();
         }
 
-        function handleRowTagClick(event) {
-            const icon = event.target;
-            icon.classList.toggle('selected');
-            saveTagSelection();
-            applyTagFilter();
-        }
-
-        // Cargar selección de etiquetas y aplicar filtros
-        loadTagSelection();
-        applyTagFilter();
-
-        // Asignar eventos a las etiquetas de las filas
-        document.querySelectorAll('.icon-row-filter').forEach(icon => {
-            icon.addEventListener('click', handleRowTagClick);
-        });
-
-        // ------------------ LIMPIAR FILTROS ------------------
         $('#clear-filters-btn').on('click', function() {
             Swal.fire({
                 title: '¿Confirmas la acción?',
@@ -524,25 +543,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
             });
         });
 
-        function clearFilters() {
-            localStorage.removeItem('selected_cuenta');
-            localStorage.removeItem('filterData');
-            localStorage.removeItem('selectedTags');
-            localStorage.removeItem('selected_month_year');
-
-            $('#cuenta_filter').val("0").change();
-            $('#excluir_tags').prop('checked', false);
-            $('#month_filter').val('');
-
-            $('.icon-filter-filter').removeClass('selected fas').addClass('far');
-            $('.icon-row-filter').removeClass('selected fas').addClass('far');
-
-            $('#datatable2 tbody tr').each(function() {
-                $(this).show();
-            });
-
-            table.draw();
-        }
+        // Cargar selección inicial
+        loadTagSelection();
+        loadFiltersFromLocalStorage();
     });
 </script>
 
