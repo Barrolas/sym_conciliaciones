@@ -189,7 +189,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 <div class="col-12 px-3">
                     <div class="card">
                         <div class="card-body">
-                            <table id="datatable2" class="table dt-responsive" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                            <table id="datatable2" class="table dt-responsive " style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>F. RECEP</th>
