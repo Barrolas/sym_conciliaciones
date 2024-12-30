@@ -15,7 +15,7 @@ $op = $_GET["op"];
 
 <head>
 	<meta charset="utf-8" />
-	<title>Cargas Cartola Bancaria</title>
+	<title>Carga Cartola Bancaria</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="CRM" name="description" />
 	<meta content="" name="author" />
@@ -59,12 +59,13 @@ $op = $_GET["op"];
 				</div>
 
 				<div class="row align-items-center mt-5">
-
-					<!-- Formulario -->
-					<div class="col-lg-6">
+					<!-- Contenedor Principal -->
+					<div class="col-lg-6 mx-auto">
 						<div class="card shadow-lg">
 							<div class="card-body">
-								<h4 class="card-title text-center mb-4">Sube tu archivo</h4>
+								<!-- Título Principal -->
+								<h4 class="card-title text-center mb-4">Subir Cartola Bancaria</h4>
+								<!-- Formulario -->
 								<form method="post" action="cargas_cartola_bancaria_guardar.php" id="formulario" enctype="multipart/form-data">
 									<div class="mb-3">
 										<label for="archivo" class="form-label">Seleccione un archivo</label>
@@ -74,34 +75,30 @@ $op = $_GET["op"];
 										<button type="submit" class="btn btn-primary px-4">Cargar</button>
 									</div>
 								</form>
-							</div>
-						</div>
-					</div>
-					<!-- Instrucciones -->
-					<div class="col-lg-6 mb-4">
-						<div class="card border-primary shadow-lg">
-							<div class="card-header bg-gradient-primary text-white">
-								<h5 class="card-title mb-0">¿Cómo subir tu archivo?</h5>
-							</div>
-							<div class="card-body">
-								<ul class="list-group list-group-flush">
+								<!-- Instrucciones -->
+								<hr>
+								<h5 class="text-center mt-4">¿Cómo subir tu archivo?</h5>
+								<ul class="list-group list-group-flush mt-3">
 									<li class="list-group-item">
-										<i data-feather="upload" class="text-primary me-2 mr-2"></i> Arrastra el archivo al área de carga o selecciónalo presionando sobre el recuadro.
+										<i data-feather="upload" class="text-primary me-2"></i>
+										<strong>Arrastre o seleccione:</strong> Arrastra el archivo al área de carga o selecciónalo presionando sobre el recuadro.
 									</li>
 									<li class="list-group-item">
-										<i data-feather="file-text" class="text-primary me-2 mr-2"></i> Solo se permite cargar un archivo por vez. Asegúrate de elegir el correcto.
+										<i data-feather="file-text" class="text-success me-2"></i>
+										<strong>Un archivo a la vez:</strong> Solo se permite cargar un archivo por vez. Asegúrate de elegir el correcto.
 									</li>
 									<li class="list-group-item">
-										<i data-feather="check-square" class="text-primary me-2 mr-2"></i> El archivo debe estar en formato Excel (<strong>.xlsx</strong>).
+										<i data-feather="check-square" class="text-warning me-2"></i>
+										<strong>Formato válido:</strong> El archivo debe estar en formato Excel (<strong>.xlsx</strong>).
 									</li>
 									<li class="list-group-item">
-										<i data-feather="check-circle" class="text-primary me-2 mr-2"></i> Haz clic en "<strong>Cargar</strong>" para finalizar el proceso.
+										<i data-feather="check-circle" class="text-info me-2"></i>
+										<strong>Finaliza el proceso:</strong> Haz clic en "<strong>Cargar</strong>" para finalizar el proceso.
 									</li>
 								</ul>
 							</div>
 						</div>
 					</div>
-
 				</div>
 			</div>
 		</div>
