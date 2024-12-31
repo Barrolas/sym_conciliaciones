@@ -62,7 +62,7 @@ $op = $_GET["op"];
                         <div class="card shadow-lg">
                             <div class="card-body">
                                 <h4 class="card-title text-center mb-4">Seleccionar Criterios</h4>
-                                <form method="post" action="exportar_cheques.php" id="formulario">
+                                <form method="post" action="conciliaciones_exportar_procesados_cheques.php" id="formulario">
                                     <!-- Periodos en la misma fila -->
                                     <div class="row">
                                         <!-- Periodo Inicio -->
@@ -90,11 +90,10 @@ $op = $_GET["op"];
                                     <div class="mb-3">
                                         <label for="estado" class="form-label">Estado</label>
                                         <select id="estado" name="estado" class="form-control">
-                                            <option value="" selected>Seleccione una opción</option>
-                                            <option value="todos">Todos</option>
-                                            <option value="pendientes">Pendientes de comprobante</option>
-                                            <option value="sin_conciliar">Con comprobante sin conciliar</option>
-                                            <option value="conciliados">Conciliados</option>
+                                            <option value="1" selected>Todos los cheques</option>
+                                            <option value="2">Pendientes de comprobante</option>
+                                            <option value="3">Con comprobante sin conciliar</option>
+                                            <option value="4">Conciliados</option>
                                         </select>
                                     </div>
                                     <!-- Botón -->
@@ -143,54 +142,70 @@ $op = $_GET["op"];
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
     <script>
-        $(document).ready(function() {
-            // Inicializar Flatpickr para los campos de fecha
-            $(".datepicker").flatpickr({
-                dateFormat: "d-m-Y", // Formato que se mostrará y usará
-                locale: "es" // Configuración en español
-            });
-
-            // Interceptar el envío del formulario
-            $('#formulario').on('submit', function(e) {
-                // Validar si se seleccionaron ambos periodos
-                const start = $('#date_start').val();
-                const end = $('#date_end').val();
-                const estado = $('#estado').val();
-
-                if (!start || !end) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Debe seleccionar ambos periodos (Inicio y Fin).',
-                    });
-                    return;
-                }
-                if (start > end) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'El periodo de inicio no puede ser mayor al periodo de fin.',
-                    });
-                    return;
-                }
-                if (!estado) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Debe seleccionar un estado.',
-                    });
-                }
-            });
-
-            // Ocultar el spinner al cargar la página
-            $(window).on('load', function() {
-                $('#loading-screen').hide();
-            });
+    $(document).ready(function () {
+        // Inicializar Flatpickr para los campos de fecha
+        $(".datepicker").flatpickr({
+            dateFormat: "Y-m-d", // Formato que se mostrará y usará
+            locale: "es" // Configuración en español
         });
-    </script>
+
+        // Obtener la fecha de hoy en formato "YYYY-MM-DD"
+        const today = new Date().toISOString().split('T')[0];
+
+        // Interceptar el envío del formulario
+        $('#formulario').on('submit', function (e) {
+            // Obtener valores de los campos
+            let start = $('#date_start').val();
+            let end = $('#date_end').val();
+            const estado = $('#estado').val();
+
+            // Si no se seleccionan los periodos, establecer valores por defecto
+            if (!start && !end) {
+                start = '2020-01-01'; // Fecha más antigua predeterminada
+                end = today; // Fecha de hoy
+                $('#date_start').val(start); // Asignar el valor por defecto al input
+                $('#date_end').val(end); // Asignar el valor por defecto al input
+            }
+
+            // Validar si ambos periodos están definidos
+            if (!start || !end) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Debe seleccionar ambos periodos (Inicio y Fin).',
+                });
+                return;
+            }
+
+            // Validar que la fecha de inicio no sea mayor que la fecha de fin
+            if (start > end) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'El periodo de inicio no puede ser mayor al periodo de fin.',
+                });
+                return;
+            }
+
+            // Validar que se haya seleccionado un estado
+            if (estado == 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Debe seleccionar un estado.',
+                });
+            }
+        });
+
+        // Ocultar el spinner al cargar la página
+        $(window).on('load', function () {
+            $('#loading-screen').hide();
+        });
+    });
+</script>
 </body>
 
 </html>

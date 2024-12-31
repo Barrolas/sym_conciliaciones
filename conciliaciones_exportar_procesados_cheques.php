@@ -10,6 +10,64 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Verificar que la solicitud se envió con el método POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $date_start = isset($_POST['date_start']) ? $_POST['date_start'] : null;
+    $date_end = isset($_POST['date_end']) ? $_POST['date_end'] : null;
+    $estado = isset($_POST['estado']) ? $_POST['estado'] : null;
+
+    // Validar y convertir las fechas al formato 'Y-m-d'
+    if ($date_start) {
+        $date_start = DateTime::createFromFormat('Y-m-d', $date_start);
+        if ($date_start) {
+            $date_start = $date_start->format('Y-m-d');
+        } else {
+            die("Fecha de inicio inválida.");
+        }
+    }
+
+    if ($date_end) {
+        $date_end = DateTime::createFromFormat('Y-m-d', $date_end);
+        if ($date_end) {
+            $date_end = $date_end->format('Y-m-d');
+        } else {
+            die("Fecha de fin inválida.");
+        }
+    }
+
+    // Mapear el estado
+    $p_estado1 = null;
+    $p_estado2 = null;
+
+    switch ($estado) {
+        case '1': // Todos
+            $p_estado1 = '1-';
+            $p_estado2 = '4';
+            break;
+        case '2': // Pendientes de comprobante
+            $p_estado1 = '1';
+            $p_estado2 = '';
+            break;
+        case '3': // Sin conciliar
+            $p_estado1 = '2';
+            $p_estado2 = '';
+            break;
+        case '4': // Conciliados
+            $p_estado1 = '3-';
+            $p_estado2 = '4';
+            break;
+        default:
+            die("Estado inválido.");
+    }
+}
+/*
+echo "Fecha de Inicio: $date_start<br>";
+echo "Fecha de Fin: $date_end<br>";
+echo "p_estado1: $p_estado1<br>";
+echo "p_estado2: $p_estado2<br>";
+
+exit;
+*/
 require_once('phpexcel2/vendor/autoload.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -63,12 +121,12 @@ function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
 
 $numeroDeFilaCheques = 2;
 
-$estado1 = '1-';
-$estado2 = '3';
-$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$sql_asign    = "EXEC [_SP_CONCILIACIONES_CHEQUES_FILTRADOS_LISTA] ?, ?, ?, ?";
 $params_asign = array(
-    array($estado1,     SQLSRV_PARAM_IN),
-    array($estado2,     SQLSRV_PARAM_IN),
+    array($p_estado1,   SQLSRV_PARAM_IN),
+    array($p_estado2,   SQLSRV_PARAM_IN),
+    array($date_start,  SQLSRV_PARAM_IN),
+    array($date_end,    SQLSRV_PARAM_IN),
 );
 $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
 if ($stmt_asign === false) {
@@ -81,7 +139,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     $iddoc              = $asignados['ID_DOCDEUDORES'];
     $id_asignacion      = $asignados['ID_ASIGNACION'];
     $id_estado_asign    = $asignados['ID_ESTADO'];
-/*
+    /*
     print_r('$idpareo_sis: ' . $idpareo_sis . '; ');
     print_r('$iddoc: ' . $iddoc . '; ');
     print_r('$id_asignacion: ' . $id_asignacion . '; ');
