@@ -37,9 +37,12 @@ $allowedFileType = [
 
 $Reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
 
-$spreadSheet    = $Reader->load('ChequesRecibidos.xlsx');
-$sheetIndex     = 0;
-$excelSheet     = $spreadSheet->getSheet($sheetIndex);
+$spreadSheet = $Reader->load('ChequesRecibidos.xlsx');
+if ($spreadSheet->sheetNameExists('Cheques')) {
+    $excelSheet = $spreadSheet->getSheetByName('Cheques');
+} else {
+    die("Error: La hoja 'Cheques' no se encuentra en el archivo cargado.");
+}
 $spreadSheetAry = $excelSheet->toArray();
 $sheetCount     = count($spreadSheetAry);
 
@@ -97,20 +100,20 @@ for ($i = 1; $i < $sheetCount; $i++) {
 
     $sql_detalles = "{call [_SP_CONCILIACIONES_CANALIZACION_CARGA_CHEQUES_DETALLES_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
     $params_detalles = array(
-        array($idcarga,         SQLSRV_PARAM_IN),
-        array($idasignacion,    SQLSRV_PARAM_IN),
-        array($titular_rut,     SQLSRV_PARAM_IN),
-        array($titular_dv,      SQLSRV_PARAM_IN),
-        array($titular_nom,     SQLSRV_PARAM_IN),
-        array($cuenta_benef,    SQLSRV_PARAM_IN),
-        array($cliente_rut,     SQLSRV_PARAM_IN),
-        array($operacion,       SQLSRV_PARAM_IN),
-        array($monto_doc,       SQLSRV_PARAM_IN),
-        array($f_venc,          SQLSRV_PARAM_IN),
-        array($subprod,         SQLSRV_PARAM_IN),
-        array($cartera,         SQLSRV_PARAM_IN),
-        array($pagodocs,        SQLSRV_PARAM_IN),
-        array($n_cheque,        SQLSRV_PARAM_IN),
+        array(intval($idcarga), SQLSRV_PARAM_IN),
+        array(intval($idasignacion), SQLSRV_PARAM_IN),
+        array(intval($titular_rut), SQLSRV_PARAM_IN),
+        array($titular_dv, SQLSRV_PARAM_IN),
+        array($titular_nom, SQLSRV_PARAM_IN),
+        array($cuenta_benef, SQLSRV_PARAM_IN),
+        array($cliente_rut, SQLSRV_PARAM_IN),
+        array($operacion, SQLSRV_PARAM_IN),
+        array(intval($monto_doc), SQLSRV_PARAM_IN),
+        array($f_venc, SQLSRV_PARAM_IN),
+        array($subprod, SQLSRV_PARAM_IN),
+        array($cartera, SQLSRV_PARAM_IN),
+        array($pagodocs, SQLSRV_PARAM_IN),
+        array($n_cheque, SQLSRV_PARAM_IN),
     );
     $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
     if ($stmt_detalles === false) {
@@ -332,6 +335,6 @@ if ($stmt_actualiza === false) {
 
 $nombre_archivo = 'ChequesRecibidos_' . $hoy_formateado . '.xlsx';
 move_uploaded_file('ChequesRecibidos.xlsx', '\archivos\\' . $nombre_archivo);
-header("Location: cargas_cheques.php?op=1");
+header("Location: cargas_cheques.php?op=4");
 ?>
 

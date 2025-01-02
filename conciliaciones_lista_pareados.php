@@ -208,7 +208,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                     <div class="col-12 px-3">
                         <div class="card card_content">
                             <div class="card-body card_width">
-                                <table id="datatable2" class="table dt-responsive nowrap">
+                                <table id="datatable2" class="table dt-responsive nowrap table-hover">
                                     <thead>
                                         <tr>
                                             <th class="font_mini_header">
