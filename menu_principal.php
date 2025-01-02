@@ -64,7 +64,7 @@ if (isset($_GET["op"])) {
         <!-- Top Bar End -->
         <div class="row">
             <div class="col-12 ml-3">
-                <h4>Última versión sistema: v1.1.5 / 2024-12-31</h4>
+                <h4>Última versión sistema: v1.1.6 / 2025-01-02</h4>
             </div>
         </div>
 

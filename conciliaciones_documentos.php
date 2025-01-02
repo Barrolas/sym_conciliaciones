@@ -471,7 +471,7 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                                                     </div>
                                                                 </form>
 
-                                                                <table id="datatable2" class="table dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                                                <table id="datatable2" class="table dt-responsive nowrap table-hover" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                                                     <thead>
                                                                         <tr>
                                                                             <th class="col-1 font_mini_header"></th>

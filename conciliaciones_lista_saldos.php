@@ -234,43 +234,41 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             die(print_r(sqlsrv_errors(), true));
                                         }
                                         while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-
+                                            // Variables individuales
+                                            $tipo_saldo     = $conciliacion["TIPO_SALDO"];
+                                            $cuenta         = $conciliacion["CUENTA"];
+                                            $fecha_original = $conciliacion["F_REC"];
+                                            $transaccion    = $conciliacion["TRANSACCION"];
+                                            $rut_ord        = trim($conciliacion["RUT_ORD"]);
+                                            $dv             = $conciliacion["DV"];
+                                            $nombre         = $conciliacion["NOMBRE"];
+                                            $saldo          = $conciliacion["SALDO"];
                                             $disabled       = '';
+                                            $id_pareo_sistema = $conciliacion["ID_PAREO_SISTEMA"];
 
+                                            // Formateo de fecha
+                                            $fecha = DateTime::createFromFormat('d/m/Y', $fecha_original);
+                                            $fecha_formateada = $fecha ? $fecha->format('Y/m/d') : 'Fecha inválida';
                                         ?>
                                             <tr>
-                                                <!--<td>
-                                                    <div class="form-check d-flex justify-content-center align-items-center">
-                                                        <input class="form-check-input ch_checkbox" name="ch_checkbox[]" type="checkbox" value="<?php echo $asignados["ID_DOCDEUDORES"]; ?>" data-column="1" onclick="toggleRowCheckbox(this)" <?php echo $disabled; ?>>
-                                                        <input type="hidden" class="checkbox_type" value="ch">
-                                                    </div>
-                                                </td> -->
-                                                <td class="col-auto"><?php echo $conciliacion["TIPO_SALDO"]; ?></td>
-                                                <td class="col-auto"><?php echo $conciliacion["CUENTA"]; ?></td>
-                                                <td class="col-auto">
-                                                    <?php
-                                                    $fechaOriginal = $conciliacion["F_REC"];
-                                                    $fecha = DateTime::createFromFormat('d/m/Y', $fechaOriginal);
-                                                    if ($fecha) {
-                                                        echo $fecha->format('Y/m/d');
-                                                    } else {
-                                                        echo 'Fecha inválida';
-                                                    }
-                                                    ?>
-                                                </td>
-                                                <td class="col-auto"><?php echo $conciliacion["TRANSACCION"]; ?></td>
-                                                <td class="col-auto"><?php echo trim($conciliacion["RUT_ORD"]) . "-" . $conciliacion["DV"]; ?></td>
-                                                <td class="col-auto"><?php echo $conciliacion["NOMBRE"]; ?></td>
-                                                <td class="col-auto">$<?php echo number_format($conciliacion["SALDO"], 0, ',', '.'); ?></td>
+                                                <td class="col-auto"><?php echo $tipo_saldo; ?></td>
+                                                <td class="col-auto"><?php echo $cuenta; ?></td>
+                                                <td class="col-auto"><?php echo $fecha_formateada; ?></td>
+                                                <td class="col-auto"><?php echo $transaccion; ?></td>
+                                                <td class="col-auto"><?php echo $rut_ord . "-" . $dv; ?></td>
+                                                <td class="col-auto"><?php echo $nombre; ?></td>
+                                                <td class="col-auto">$<?php echo number_format($saldo, 0, ',', '.'); ?></td>
                                                 <td class="font_mini">
-                                                    <?php if ($conciliacion["TIPO_SALDO"] == 'DEVOLUCION') { ?>
-                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_canalizaciones_eliminar.php?r_cl=<?php echo urlencode($detalles_pd["RUT_CLIENTE"]); ?>&r_dd=<?php echo urlencode($detalles_pd["RUT_DEUDOR"]); ?>&f_venc=<?php echo urlencode($f_venc); ?>&ndoc=<?php echo urlencode($detalles_pd["N_DOC"]); ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                    <?php if ($tipo_saldo == 'DEVOLUCION') { ?>
+                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_devoluciones_eliminar.php?id_ps=<?php echo $id_pareo_sistema ?>" class="btn btn-icon btn-rounded btn-danger">
                                                             <i class="feather-24" data-feather="x"></i>
                                                         </a>
                                                     <?php } ?>
                                                 </td>
-                                            </tr> <?php
-                                                } ?>
+                                            </tr>
+                                        <?php
+                                        }
+                                        ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -605,8 +603,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <?php if ($op == 1) { ?>
         Swal.fire({
             width: 600,
-            icon: 'success',
-            title: 'Canalizacion realizada con éxito.',
+            icon: 'info',
+            title: 'Devolución anulada.',
             showConfirmButton: true
         });
     <?php } ?>
