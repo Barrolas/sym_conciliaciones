@@ -199,7 +199,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </select>
                                 </div>
                                 <div class="col-lg-1">
-                                    <a href="conciliaciones_devoluciones_asignar.php" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton">GUARDAR</a>
+                                    <a href="conciliaciones_devoluciones_asignar.php" class="btn btn-primary waves-effect waves-light mt-4" id="guardarButton" data-href="conciliaciones_devoluciones_asignar.php">PROCESAR</a>
                                 </div>
                             </div><!--end form-group-->
                         </div><!--end col-->
@@ -260,7 +260,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 <td class="col-auto">$<?php echo number_format($saldo, 0, ',', '.'); ?></td>
                                                 <td class="font_mini">
                                                     <?php if ($tipo_saldo == 'DEVOLUCION') { ?>
-                                                        <a data-toggle="tooltip" title="Eliminar" href="conciliaciones_devoluciones_eliminar.php?id_ps=<?php echo $id_pareo_sistema ?>" class="btn btn-icon btn-rounded btn-danger">
+                                                        <a data-toggle="tooltip" title="Eliminar" data-href="conciliaciones_devoluciones_eliminar.php?id_ps=<?php echo $id_pareo_sistema ?>" class="btn btn-icon btn-rounded btn-danger delete-btn">
                                                             <i class="feather-24" data-feather="x"></i>
                                                         </a>
                                                     <?php } ?>
@@ -294,6 +294,60 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault(); // Evita la navegación inmediata
+
+                    const href = this.getAttribute('data-href'); // Obtén el enlace real
+
+                    Swal.fire({
+                        title: '¿Confirmas anular esta devolución?',
+                        text: "No podrás revertir esta acción.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Navega al enlace si se confirma
+                            window.location.href = href;
+                        }
+                    });
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const guardarButton = document.getElementById('guardarButton');
+
+            guardarButton.addEventListener('click', function(event) {
+                event.preventDefault(); // Evita la navegación inmediata
+
+                const href = this.getAttribute('data-href'); // Obtén el enlace real
+
+                Swal.fire({
+                    title: '¿Confirmar acción?',
+                    text: "Se procesarán los saldos y devoluciones. Se recomienda realizar una validacion previa de los datos.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, procesar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Navega al enlace si se confirma
+                        window.location.href = href;
+                    }
+                });
+            });
+        });
+
         function handleMasterCheckbox(column) {
             // Determinar si el checkbox maestro está marcado o desmarcado
             var isChecked = $('#select_all_checkbox' + column).is(':checked');
@@ -613,7 +667,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
         Swal.fire({
             width: 600,
             icon: 'success',
-            title: 'Estado actualizado.',
+            title: 'Saldos y devoluciones procesados.',
             showConfirmButton: false,
             timer: 3000,
         });

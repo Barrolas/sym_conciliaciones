@@ -50,5 +50,5 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     
 }
 
-header("Location: conciliaciones_lista_saldos.php?op=1");
+header("Location: conciliaciones_lista_saldos.php?op=2");
 exit;
