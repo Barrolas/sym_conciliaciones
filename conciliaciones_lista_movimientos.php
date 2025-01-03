@@ -14,17 +14,6 @@ if (isset($_GET["op"])) {
     $op = $_GET["op"];
 };
 
-$sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from dbo.Transferencias_Recibidas_Hist";
-
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
-}
-
-$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-
-$fecha_proceso = $row["FECHAPROCESO"];
 
 
 ?>
@@ -57,6 +46,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/simplebar@latest/dist/simplebar.min.css" />
     <script src="https://unpkg.com/simplebar@latest/dist/simplebar.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+
 
     <!-- Plugins -->
     <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
@@ -160,60 +151,52 @@ $fecha_proceso = $row["FECHAPROCESO"];
             </div>
 
             <div class="container-fluid px-3">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group row text-start justify-content-start justify-items-stretch pl-4 mb-3">
-                            <div class="col-lg-3">
-                                <label class="col-12" for="fecha_ultima_cartola">ÚLT ACTUALIZACIÓN</label>
-                                <input type="text" class="form-control col-8" name="fecha_ultima_cartola" id="fecha_ultima_cartola" value="<?php echo $fecha_proceso ?>" disabled>
-                            </div>
-                            <div class="col-lg-3">
-                                <div class="col-lg-9">
-                                    <label for="canal_filtro" class="col-4">CANAL</label>
-                                    <select name="canal_filtro" id="canal_filtro" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Mostrar todos</option>
-                                        <?php
-                                        $sql_canal = "{call [_SP_CONCILIACIONES_TIPOS_CANALIZACIONES_LISTA]}";
-                                        $stmt_canal = sqlsrv_query($conn, $sql_canal);
+                <div class="row mb-4 align-items-end">
+                    <!-- Cuenta -->
+                    <div class="col-lg-2">
+                        <label for="cuenta" class="form-label">Cuenta</label>
+                        <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
+                            <option value="0" selected>Mostrar todas</option>
+                            <?php
+                            $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
+                            $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
-                                        if ($stmt_canal === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo substr($canal['DESCRIPCION'], 0, 6); ?>"><?php echo $canal["DESCRIPCION"] ?></option>
-                                        <?php }; ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-lg-3">
-                                <div class="col-lg-9">
-                                    <label for="cuenta" class="col-4">CUENTA</label>
-                                    <select name="cuenta" id="cuenta" class="form-control" maxlength="50" autocomplete="off">
-                                        <option value="0" selected>Mostrar todas</option>
-                                        <?php
-                                        $sql_cuenta = "{call [_SP_CONCILIACIONES_LISTA_CUENTAS_BENEFICIARIOS]}";
-                                        $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
+                            if ($stmt_cuenta === false) {
+                                die(print_r(sqlsrv_errors(), true));
+                            }
+                            while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
+                            ?>
+                                <option value="<?php echo $cuenta["CUENTA"]; ?>"><?php echo $cuenta["CUENTA"]; ?></option>
+                            <?php }; ?>
+                        </select>
+                    </div>
 
-                                        if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-                                        while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
-                                        ?>
-                                            <option value="<?php echo $cuenta["CUENTA"] ?>"><?php echo $cuenta["CUENTA"] ?></option>
-                                        <?php }; ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-lg-3">
-                                <a href="conciliaciones_exportar_canalizados.php">
-                                    <button type="button" class="btn btn-primary waves-effect waves-light mt-4" id="exportar_btn" disabled>
-                                        EXPORTAR
-                                    </button>
-                                </a>
-                            </div>
-                        </div><!--end form-group-->
-                    </div><!--end col-->
+                    <!-- Periodo Inicio -->
+                    <div class="col-lg-2">
+                        <label for="date_start" class="form-label">Periodo Inicio</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-feather="calendar"></i></span>
+                            <input type="text" id="date_start" name="date_start" class="form-control datepicker" placeholder="Selecciona una fecha">
+                        </div>
+                    </div>
+
+                    <!-- Periodo Fin -->
+                    <div class="col-lg-2">
+                        <label for="date_end" class="form-label">Periodo Fin</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i data-feather="calendar"></i></span>
+                            <input type="text" id="date_end" name="date_end" class="form-control datepicker" placeholder="Selecciona una fecha">
+                        </div>
+                    </div>
+
+                    <!-- Botones Buscar y Exportar -->
+                    <div class="col-lg-2 d-flex justify-content-start ml-2">
+                        <button type="button" class="btn btn-success" id="buscar_btn">Buscar</button>
+                    </div>
+                    <div class="col-lg-2 d-flex justify-content-end ml-2">
+                            <button type="button" class="btn btn-primary" id="exportar_btn" disabled>Exportar</button>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="col-12 px-3">
@@ -233,95 +216,44 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <th class="font_mini">$ DOC</th>
                                         <th class="font_mini">HABER</th>
                                         <th class="font_mini">DEBE</th>
-                                        <!-- <th class="font_mini">ESTADO</th> -->
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_MOVIMIENTOS_LISTA] 1";
-                                    $stmt = sqlsrv_query($conn, $sql);
+                                    // Variables para los parámetros del SP
+                                    $fecha_inicio   = isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio']    : null;
+                                    $fecha_fin      = isset($_POST['fecha_fin'])    ? $_POST['fecha_fin']       : null;
+
+                                    // Preparar la llamada al SP
+                                    $sql = "{call [_SP_CONCILIACIONES_MOVIMIENTOS_LISTA](?, ?, ?)}";
+                                    $params = array(1, $fecha_inicio, $fecha_fin); // Estado fijo en 1 para este ejemplo
+                                    $stmt = sqlsrv_query($conn, $sql, $params);
+
                                     if ($stmt === false) {
                                         die(print_r(sqlsrv_errors(), true));
                                     }
+
                                     while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-
-
-                                        $id_documento = $conciliacion['ID_DOCDEUDORES'];
-
-                                        // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                        $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_DETALLES_ID](?)}";
-                                        $params4 = array($id_documento);
-                                        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-
-                                        if ($stmt4 === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-
-                                        // Procesar resultados de la consulta de detalles
-                                        $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
-
-                                        /* // Consulta para obtener el estado del documento
-                                        $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                        $params5 = array($id_documento);
-                                        $stmt5 = sqlsrv_query($conn, $sql5, $params5);
-
-                                        if ($stmt5 === false) {
-                                            die(print_r(sqlsrv_errors(), true));
-                                        }
-
-                                        $estado_pareo_text = 'OK'; // Valor por defecto
-                                        while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-                                            $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
-                                            switch ($estado_pareo) {
-                                                case '1':
-                                                    $estado_pareo_text = 'CONC';
-                                                    break;
-                                                case '2':
-                                                    $estado_pareo_text = 'ABON';
-                                                    break;
-                                                case '3':
-                                                    $estado_pareo_text = 'PEND';
-                                                    break;
-                                            }
-                                        } */
                                     ?>
                                         <tr>
-                                            <!--
-                                            <td class="col-1">
-                                                <div class="form-check d-flex justify-content-center align-items-center">
-                                                    <input class="form-check-input" type="checkbox" data-column="1" onclick="toggleRowCheckbox(this)">
-                                                </div>
-                                            </td>
-                                            -->
                                             <td class="font_mini"><?php echo $conciliacion["ID_PS"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["TICKET"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["MOVIMIENTO"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["TRANSACCION"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["CTA_BENEF"]; ?></td>
                                             <td class="font_mini"><?php echo $conciliacion["F_RECEPCION"]->format('Y/m/d'); ?></td>
-                                            <td class="font_mini"><?php echo $conciliacion["F_VENC"]->format('Y/m/d'); ?> </td>
-                                            <td class="font_mini">
-                                                <?php echo $conciliacion["N_DOC"] ?? ''; ?>
-                                            </td>
-                                            <td class="font_mini">$
-                                                <?php
-                                                if (isset($conciliacion["MONTO_DOC"]) && $conciliacion["MONTO_DOC"] !== null) {
-                                                    echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.');
-                                                } else {
-                                                    echo '';
-                                                }
-                                                ?>
-                                            </td>
+                                            <td class="font_mini"><?php echo $conciliacion["F_VENC"]->format('Y/m/d'); ?></td>
+                                            <td class="font_mini"><?php echo $conciliacion["N_DOC"] ?? ''; ?></td>
+                                            <td class="font_mini">$<?php echo number_format($conciliacion["MONTO_DOC"], 0, ',', '.'); ?></td>
                                             <td class="font_mini">$<?php echo number_format($conciliacion["HABER"], 0, ',', '.'); ?></td>
                                             <td class="font_mini">$<?php echo number_format($conciliacion["DEBE"], 0, ',', '.'); ?></td>
-                                            <!-- <td class="font_mini"><?php // echo $estado_pareo_text; ?></td> -->
                                         </tr>
                                     <?php } ?>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div> <!-- end col -->
+                </div>
             </div> <!-- end row -->
         </div><!-- container -->
         <?php include('footer.php'); ?>
@@ -336,69 +268,6 @@ $fecha_proceso = $row["FECHAPROCESO"];
         };
     </script>
 
-
-    <script>
-        function handleMasterCheckbox(column) {
-            // Determinar si el checkbox maestro está marcado o desmarcado
-            var isChecked = $('#select_all_checkbox' + column).is(':checked');
-
-            // Desmarcar todos los checkboxes maestros
-            $('#select_all_checkbox1, #select_all_checkbox2').not('#select_all_checkbox' + column).prop('checked', false);
-
-            // Obtener la instancia de DataTable
-            var table = $('#datatable2').DataTable();
-
-            // Marcar o desmarcar los checkboxes en la columna seleccionada
-            table.rows({
-                search: 'applied'
-            }).nodes().to$().each(function() {
-                var row = $(this);
-                var checkboxes = row.find('input[type="checkbox"]');
-
-                checkboxes.each(function() {
-                    if ($(this).data('column') === column) {
-                        this.checked = isChecked;
-                    } else {
-                        this.checked = false;
-                    }
-                });
-            });
-
-            // Actualizar el estado del encabezado después de cambiar los checkboxes en las filas
-            updateHeaderCheckboxState();
-        }
-
-        function toggleRowCheckbox(checkbox) {
-            var row = $(checkbox).closest('tr');
-            var checkboxes = row.find('input[type="checkbox"]');
-
-            // Marcar solo el checkbox clickeado y desmarcar los demás en la misma fila
-            checkboxes.each(function() {
-                if (this !== checkbox) {
-                    this.checked = false;
-                }
-            });
-
-            // Actualizar el estado de los checkboxes maestros
-            updateHeaderCheckboxState();
-        }
-
-        function updateHeaderCheckboxState() {
-            var table = $('#datatable2').DataTable();
-
-            // Comprobar si todos los checkboxes de la columna 1 están marcados
-            var allCheckedColumn1 = table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length && table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').filter(':checked').length === table.rows({
-                search: 'applied'
-            }).nodes().to$().find('input[data-column="1"]').length;
-
-            // Actualizar el estado de los checkboxes maestros
-            $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
-        }
-    </script>
 
 </body>
 
@@ -432,128 +301,167 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="plugins/datatables/spanish.js"></script>
 <script src="assets/js/sweetalert2/sweetalert2.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
 <script>
+    $(".datepicker").flatpickr({
+        dateFormat: "Y-m-d", // Formato que se mostrará y usará
+        locale: "es" // Configuración en español
+    });
+
     // Inicializar Feather Icons
     feather.replace();
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#idcliente').select2();
     });
 
     // Inicializar Tooltip de Bootstrap
-    $(function() {
+    $(function () {
         $('[data-toggle="tooltip"]').tooltip();
     });
 
+    // Calcular las fechas predeterminadas (últimos 5 días)
+    const today = new Date();
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(today.getDate() - 5);
+
+    // Formatear las fechas a "YYYY-MM-DD"
+    const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const fechaInicioDefault = formatDate(fiveDaysAgo);
+    const fechaFinDefault = formatDate(today);
+
+    // Establecer las fechas predeterminadas en los campos de fecha
+    $('#date_start').val(fechaInicioDefault);
+    $('#date_end').val(fechaFinDefault);
+
     // DataTables Initialization
-    $(document).ready(function() {
-
-        $('#datatable2').on('change', '#select_all_checkbox1', function() {
-            toggleAllCheckboxes(this, 1);
-        });
-
-        $('#datatable2').on('change', '#select_all_checkbox2', function() {
-            toggleAllCheckboxes(this, 2);
-        });
-
+    $(document).ready(function () {
         var table = $('#datatable2').DataTable({
-            order: [
-                [0, 'desc'],
-            ]
+            processing: true,
+            serverSide: false, // Procesamiento del lado cliente
+            columns: [
+                { data: 'ID_PS' },
+                { data: 'TICKET' },
+                { data: 'MOVIMIENTO' },
+                { data: 'TRANSACCION' },
+                { data: 'CTA_BENEF' }, // Índice 4
+                { data: 'F_RECEPCION' },
+                { data: 'F_VENC' },
+                { data: 'N_DOC' },
+                { data: 'MONTO_DOC' },
+                { data: 'HABER' },
+                { data: 'DEBE' }
+            ],
+            order: [[0, 'desc']]
         });
 
-        var rowCount = table.rows().count();
         var exportButton = document.getElementById('exportar_btn');
 
+        // Habilitar/Deshabilitar botón exportar basado en el número de filas
+        var rowCount = table.rows().count();
         if (rowCount > 0) {
-            exportButton.disabled = false;
+            exportButton.disabled = true;
         } else {
             exportButton.disabled = true;
         }
 
+        // Realizar una consulta inicial con las fechas predeterminadas
+        cargarMovimientos(fechaInicioDefault, fechaFinDefault);
+
+        // Evento para filtrar por Cuenta (Columna CTA_BENEF)
+        $('#cuenta').on('change', function () {
+            const cuentaValue = $(this).val();
+
+            if (cuentaValue === "0") {
+                // Limpiar filtro si se selecciona "Mostrar todas"
+                table.column(4).search('').draw();
+            } else {
+                // Aplicar filtro en la columna 4
+                table.column(4).search(cuentaValue).draw();
+            }
+        });
+
+        // Event listener for Buscar button
+        $('#buscar_btn').on('click', function () {
+            const fechaInicio = $('#date_start').val();
+            const fechaFin = $('#date_end').val();
+
+            if (!fechaInicio || !fechaFin) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Faltan datos',
+                    text: 'Por favor, selecciona el periodo de inicio y fin.'
+                });
+                return;
+            }
+
+            // Realizar la consulta con las fechas seleccionadas
+            cargarMovimientos(fechaInicio, fechaFin);
+        });
+
+        // Función para cargar los movimientos
+        function cargarMovimientos(fechaInicio, fechaFin) {
+            $('#loading-screen').css('display', 'flex');
+
+            $.ajax({
+                url: 'get_movimientos.php',
+                method: 'POST',
+                data: {
+                    fecha_inicio: fechaInicio,
+                    fecha_fin: fechaFin
+                },
+                success: function (response) {
+                    console.log("Respuesta del servidor:", response); // Inspeccionar estructura
+                    try {
+                        const jsonResponse = JSON.parse(response); // Asegúrate de que la respuesta sea un JSON válido
+                        table.clear().rows.add(jsonResponse).draw();
+                    } catch (error) {
+                        console.error("Error procesando el JSON:", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error en la respuesta',
+                            text: 'La respuesta del servidor no tiene un formato válido.'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error en la solicitud AJAX:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al buscar los datos.'
+                    });
+                },
+                complete: function () {
+                    $('#loading-screen').css('display', 'none'); // Ocultar pantalla de carga
+                }
+            });
+        }
 
         // Function to apply filters based on stored values
         function applyFilters() {
-            var storedCuentaValue = sessionStorage.getItem('selected_cuenta_3');
-            var storedCanalValue = sessionStorage.getItem('selected_canal');
-            var storedFiltroValue = sessionStorage.getItem('selected_diasmora');
-
-            if (storedCanalValue && storedCanalValue !== "0") {
-                $('#canal_filtro').val(storedCanalValue).change();
-            } else {
-                $('#canal_filtro').val("0").change(); // Reset to default
-            }
-
-            // Apply cuenta filter
+            const storedCuentaValue = sessionStorage.getItem('selected_cuenta_3');
             if (storedCuentaValue && storedCuentaValue !== "0") {
                 $('#cuenta').val(storedCuentaValue).change();
             } else {
                 $('#cuenta').val("0").change(); // Reset to default
             }
-
-
-            // Apply dias_mora filter
-            if (storedFiltroValue && storedFiltroValue !== "0") {
-                $('#dias_mora').val(storedFiltroValue).change();
-            } else {
-                $('#dias_mora').val("0").change(); // Reset to default
-            }
         }
-
-        // Custom filter function for values >= 170
-        $.fn.dataTable.ext.search.push(
-            function(settings, data, dataIndex) {
-                var filterValue = $('#dias_mora').val();
-                var columnValue = parseFloat(data[7]) || 0; // Convert the value to a number
-
-                if (filterValue === "1") {
-                    return columnValue >= 100; // Rango para dias de mora
-                }
-                return true; // Otherwise, show all rows
-            }
-        );
-
-        // Add event listener to the cuenta select element
-        $('#cuenta').on('change', function() {
-            var filterValue = $(this).val();
-            sessionStorage.setItem('selected_cuenta_3', filterValue);
-
-            if (filterValue == "0") {
-                table.column(1).search('').draw(); // Clear the cuenta filter
-            } else {
-                table.column(1).search(filterValue).draw();
-            }
-        });
-
-        $('#canal_filtro').on('change', function() {
-            var filterValue = $(this).val();
-            sessionStorage.setItem('selected_canal', filterValue);
-
-            if (filterValue == "0") {
-                table.column(0).search('').draw(); // Clear the cuenta filter
-            } else {
-                table.column(0).search(filterValue).draw();
-            }
-        });
-
-        // Add event listener to the dias_mora select element
-        $('#dias_mora').on('change', function() {
-            var filterValue = $(this).val();
-            sessionStorage.setItem('selected_diasmora', filterValue);
-
-            // Redraw table to apply the dias_mora filter
-            table.draw();
-        });
 
         // Apply filters on page load
         applyFilters();
     });
+</script>
 
-
-
+<script>
     <?php if ($op == 1) { ?>
         Swal.fire({
             width: 600,

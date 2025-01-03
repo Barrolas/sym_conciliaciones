@@ -162,7 +162,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     <div class="col">
                                         <ol class="breadcrumb">
                                             <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
-                                            <li class="breadcrumb-item active">Canalización</li>
+                                            <li class="breadcrumb-item active">Conciliar</li>
                                         </ol>
                                     </div><!--end col-->
                                 </div><!--end row-->

@@ -244,8 +244,9 @@ $rut_existe = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
                                 <div class="col">
                                     <ol class="breadcrumb">
 
-                                        <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias pendientes</a></li>
-                                        <li class="breadcrumb-item active">Asignar conciliación</li>
+                                    <li class="breadcrumb-item"><a href="menu_principal.php">Inicio</a></li>
+                                    <li class="breadcrumb-item"><a href="conciliaciones_transferencias_pendientes.php">Transferencias recibidas</a></li>
+                                        <li class="breadcrumb-item active">Parear documentos</li>
                                     </ol>
                                 </div>
                             </div>
