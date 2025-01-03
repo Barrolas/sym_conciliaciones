@@ -400,6 +400,19 @@ $fecha_proceso = $row["FECHAPROCESO"];
 <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Asegúrate de tener Font Awesome -->
 
 <script>
+
+$(document).ready(function() {
+    $('#datatable_salidas').DataTable({
+        responsive: true,
+        language: {
+            url: "//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json"
+        },
+        columnDefs: [
+            { orderable: false, targets: 0 }, // Deshabilitar ordenación para la primera columna (ícono de colapso)
+        ]
+    });
+});
+
     $(document).ready(function() {
         // Variables para almacenar los totales seleccionados
         let totalCartola = 0;

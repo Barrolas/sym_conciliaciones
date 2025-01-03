@@ -303,6 +303,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
             "ordering": true,
         });
 
+        document.getElementById('excluir_tags').addEventListener('change', handleExcludeCheckbox);
+
         // ------------------ FILTRO POR CUENTA ------------------
         var storedCuentaValue = localStorage.getItem('selected_cuenta');
         if (storedCuentaValue) {

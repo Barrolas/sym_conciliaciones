@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 */
 
     if (!empty($datosSeleccionados)) {
+        
         $query = "{CALL [_SP_CONCILIACIONES_CONCILIACION_OBTENER_ID](?)}";
         $params = array(array(&$id_conciliacion, SQLSRV_PARAM_OUT));
         $stmt = sqlsrv_query($conn, $query, $params);
@@ -88,6 +89,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } 
             if ($canalizacion_row['ID_TIPO_CANALIZACION'] == 3) {
                 $tipo_canal = 3;
+
+                $sql_saldo_consulta = "{call [_SP_CONCILIACIONES_SALDO_CAMBIA_ESTADO](?)}";
+                $params_saldo_consulta = array(
+                    array($n_remesa,   SQLSRV_PARAM_IN),
+                );
+                $stmt_saldo_consulta = sqlsrv_query($conn, $sql_saldo_consulta, $params_saldo_consulta);
+                if ($stmt_saldo_consulta === false) {
+                    echo "Error in executing statement saldo_consulta.\n";
+                    die(print_r(sqlsrv_errors(), true));
+                }
+                $saldo_consulta_row = sqlsrv_fetch_array($stmt_saldo_consulta, SQLSRV_FETCH_ASSOC);
+                $id_ps = $saldo_consulta_row['ID_PAREO_SISTEMA'];
+
+                $sql_estado = "{call [_SP_CONCILIACIONES_SALDO_CAMBIA_ESTADO](?, ?)}";
+                $params_estado = array(
+                    array($id_ps,   SQLSRV_PARAM_IN),
+                    array(3,        SQLSRV_PARAM_IN)
+                );
+                $stmt_estado = sqlsrv_query($conn, $sql_estado, $params_estado);
+                if ($stmt_estado === false) {
+                    echo "Error in executing statement estado.\n";
+                    die(print_r(sqlsrv_errors(), true));
+                }
+            
             } else {
                 $tipo_canal = 2;
             }
