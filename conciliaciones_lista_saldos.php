@@ -328,11 +328,28 @@ $fecha_proceso = $row["FECHAPROCESO"];
             guardarButton.addEventListener('click', function(event) {
                 event.preventDefault(); // Evita la navegación inmediata
 
+                // Verificar si hay registros en la tabla
+                const tableBody = document.querySelector('#datatable2 tbody');
+                const rows = tableBody.querySelectorAll('tr');
+                const noDataMessage = tableBody.querySelector('.dataTables_empty'); // Clase usada por DataTables para "Sin datos"
+
+                // Validar si hay registros visibles en la tabla
+                if (rows.length === 0 || noDataMessage) {
+                    Swal.fire({
+                        title: 'No se puede procesar',
+                        text: 'No hay registros disponibles para procesar.',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return; // Salir de la función si no hay registros
+                }
+
+                // Continuar con el proceso si hay registros
                 const href = this.getAttribute('data-href'); // Obtén el enlace real
 
                 Swal.fire({
                     title: '¿Confirmar acción?',
-                    text: "Se procesarán los saldos y devoluciones. Se recomienda realizar una validacion previa de los datos.",
+                    text: "Se procesarán los saldos y devoluciones. Se recomienda realizar una validación previa de los datos.",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#28a745',
@@ -347,151 +364,8 @@ $fecha_proceso = $row["FECHAPROCESO"];
                 });
             });
         });
-
-        function handleMasterCheckbox(column) {
-            // Determinar si el checkbox maestro está marcado o desmarcado
-            var isChecked = $('#select_all_checkbox' + column).is(':checked');
-
-            // Desmarcar todos los checkboxes maestros
-            $('#select_all_checkbox1, #select_all_checkbox2').not('#select_all_checkbox' + column).prop('checked', false);
-
-            // Obtener la instancia de DataTable
-            var table = $('#datatable2').DataTable();
-
-            // Marcar o desmarcar los checkboxes en la columna seleccionada
-            table.rows({
-                search: 'applied'
-            }).nodes().to$().each(function() {
-                var row = $(this);
-                var checkboxes = row.find('input[data-column="' + column + '"]');
-
-                checkboxes.each(function() {
-                    if (!$(this).is(':disabled')) { // Solo marca los checkboxes habilitados
-                        this.checked = isChecked;
-                    }
-                });
-
-                // Desmarcar los checkboxes de la columna opuesta
-                var otherColumn = column === 1 ? 2 : 1;
-                row.find('input[data-column="' + otherColumn + '"]').each(function() {
-                    if (!$(this).is(':disabled')) { // Solo desmarca los checkboxes habilitados
-                        this.checked = false;
-                    }
-                });
-            });
-
-            // Actualizar el estado del encabezado después de cambiar los checkboxes en las filas
-            updateHeaderCheckboxState();
-        }
-
-        function toggleRowCheckbox(checkbox) {
-            var row = $(checkbox).closest('tr');
-            var checkboxes = row.find('input[type="checkbox"]');
-
-            // Marcar solo el checkbox clickeado y desmarcar los demás en la misma fila
-            checkboxes.each(function() {
-                if (this !== checkbox) {
-                    this.checked = false;
-                }
-            });
-
-            // Actualizar el estado de los checkboxes maestros
-            updateHeaderCheckboxState();
-        }
-
-        function updateHeaderCheckboxState() {
-            var table = $('#datatable2').DataTable();
-
-            // Comprobar si todos los checkboxes habilitados de la columna 1 están marcados
-            var allCheckedColumn1 = table.rows({
-                    search: 'applied'
-                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length &&
-                table.rows({
-                    search: 'applied'
-                }).nodes().to$().find('input[data-column="1"]').filter(':checked').length ===
-                table.rows({
-                    search: 'applied'
-                }).nodes().to$().find('input[data-column="1"]').not(':disabled').length;
-
-            // Comprobar si todos los checkboxes habilitados de la columna 2 están marcados
-            var allCheckedColumn2 = table.rows({
-                    search: 'applied'
-                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length &&
-                table.rows({
-                    search: 'applied'
-                }).nodes().to$().find('input[data-column="2"]').filter(':checked').length ===
-                table.rows({
-                    search: 'applied'
-                }).nodes().to$().find('input[data-column="2"]').not(':disabled').length;
-
-            // Actualizar el estado de los checkboxes maestros
-            $('#select_all_checkbox1').prop('checked', allCheckedColumn1);
-            $('#select_all_checkbox2').prop('checked', allCheckedColumn2);
-        }
     </script>
 
-    <script>
-        function habilitarBoton() {
-            // Verifica si hay al menos un checkbox con las clases 'ch_checkbox' o 'tr_checkbox' marcado
-            const checkboxesCh = document.querySelectorAll('.ch_checkbox:checked');
-            const checkboxesTr = document.querySelectorAll('.tr_checkbox:checked');
-
-            // Verifica el estado de los master checkboxes
-            const masterCheckbox1 = document.getElementById('select_all_checkbox1').checked;
-            const masterCheckbox2 = document.getElementById('select_all_checkbox2').checked;
-
-            const botonGuardar = document.getElementById('guardarButton');
-
-            if (checkboxesCh.length > 0 || checkboxesTr.length > 0 || masterCheckbox1 || masterCheckbox2) {
-                botonGuardar.disabled = false;
-            } else {
-                botonGuardar.disabled = true;
-            }
-        }
-
-        // Agrega el evento change a todos los checkboxes
-        document.querySelectorAll('.ch_checkbox, .tr_checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', habilitarBoton);
-        });
-
-        // Agrega el evento change a los master checkboxes
-        document.querySelectorAll('#select_all_checkbox1, #select_all_checkbox2').forEach(checkbox => {
-            checkbox.addEventListener('change', habilitarBoton);
-        });
-
-        // Inicializa el estado del botón al cargar la página
-        document.addEventListener('DOMContentLoaded', habilitarBoton);
-    </script>
-
-    <script>
-        function valida_envia() {
-            var selectedIdsDocs = [];
-            var selectedIdsPareoDoc = [];
-            var selectedTypes = [];
-
-            // Obtener los checkboxes seleccionados, excluyendo los checkboxes maestros
-            document.querySelectorAll('input[type=checkbox]:checked:not(#select_all_checkbox1):not(#select_all_checkbox2)').forEach(function(checkbox) {
-                var ids = checkbox.value.split(',');
-                var idDoc = ids[0];
-                var idPareoDoc = ids[1];
-
-                // Obtener el valor de data-column
-                var checkboxType = checkbox.getAttribute('data-column');
-
-                // Agregar valores a los arreglos
-                selectedIdsDocs.push(idDoc);
-                selectedIdsPareoDoc.push(idPareoDoc);
-                selectedTypes.push(checkboxType);
-            });
-
-            // Asignar los valores a los campos ocultos
-            document.getElementById('selected_ids_docs').value = selectedIdsDocs.join(',');
-            document.getElementById('selected_ids_pareodoc').value = selectedIdsPareoDoc.join(',');
-            document.getElementById('selected_types').value = selectedTypes.join(',');
-
-            return true; // Asegúrate de que el formulario se envíe
-        }
-    </script>
 
 </body>
 
