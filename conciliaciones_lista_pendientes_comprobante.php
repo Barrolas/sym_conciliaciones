@@ -580,47 +580,89 @@ $fecha_proceso = $row["FECHAPROCESO"];
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Añade un event listener a todos los enlaces de eliminación
             const deleteLinks = document.querySelectorAll('.eliminar-btn');
 
             deleteLinks.forEach(link => {
                 link.addEventListener('click', function(event) {
-                    event.preventDefault(); // Evita que el enlace se siga inmediatamente
+                    event.preventDefault();
 
-                    // Obtiene los datos de eliminación desde el enlace
                     const iddoc = this.getAttribute('data-iddoc');
                     const idasig = this.getAttribute('data-idasig');
                     const transaccion = this.getAttribute('data-transaccion');
 
-                    // Llama a SweetAlert para el popup
                     Swal.fire({
                         title: 'Motivo de eliminación',
                         html: `
-                    <p>Proporcione un motivo para la desasignación del caso seleccionado. Este campo es obligatorio y debe contener al menos 2 palabras y un máximo de 2000 caracteres.</p>
-                    <textarea id="motivo" class="swal2-input" placeholder="Escriba el motivo..." rows="4" style="width: 100%; height: 25vh; padding: 10px;"></textarea>
+                    <p>Seleccione el motivo de la eliminación. Si selecciona "Otro (Especificar motivo)", proporcione más detalles.</p>
+                    <select id="motivo-select" class="swal2-select" style="width: 100%; margin-bottom: 10px;">
+                        <option value="" disabled selected>Seleccione un motivo</option>
+                        <option value="Pareo incorrecto">Pareo incorrecto</option>
+                        <option value="Canalización incorrecta">Canalización incorrecta</option>
+                        <option value="Monto no corresponde">Monto no corresponde</option>
+                        <option value="Otro">Otro (Especificar motivo)</option>
+                    </select>
+                    <textarea id="motivo" class="swal2-input" placeholder="Escriba el motivo..." rows="4" style="width: 100%; height: 25vh; padding: 10px; display: none;"></textarea>
                     <div id="mensaje" style="color: red; display: none;">Debes escribir al menos 2 palabras y no más de 2000 caracteres.</div>
                 `,
-                        icon: 'info', // Agrega el ícono de información
+                        icon: 'info',
                         focusConfirm: false,
                         confirmButtonText: 'Confirmar',
                         confirmButtonColor: '#3085d6',
-                        cancelButtonText: 'Cancelar', // Cambia el texto del botón a "Cancelar"
+                        cancelButtonText: 'Cancelar',
                         showCancelButton: true,
+                        didOpen: () => {
+                            const confirmButton = Swal.getConfirmButton();
+                            confirmButton.disabled = true;
+
+                            const selectElement = document.getElementById('motivo-select');
+                            const motivoInput = document.getElementById('motivo');
+
+                            selectElement.addEventListener('change', function() {
+                                if (this.value === "Otro") {
+                                    motivoInput.style.display = "block";
+                                } else {
+                                    motivoInput.style.display = "none";
+                                }
+
+                                confirmButton.disabled = this.value === "";
+                            });
+
+                            motivoInput.addEventListener('input', function() {
+                                if (selectElement.value === "Otro") {
+                                    const palabrasValidas = this.value.trim().split(' ').filter(word => word.length > 0);
+                                    confirmButton.disabled = palabrasValidas.length < 2 || this.value.length > 2000;
+                                }
+                            });
+                        },
                         preConfirm: () => {
-                            const motivo = document.getElementById('motivo').value; // Captura el valor del textarea
-                            // Comprobación de la longitud del motivo
-                            const palabrasValidas = motivo.split(' ').filter(word => word.length > 0);
-                            if (palabrasValidas.length < 2 || motivo.length > 2000) {
-                                document.getElementById('mensaje').style.display = 'block';
-                                return false; // Impide el cierre del popup
-                            } else {
+                            const selectValue = document.getElementById('motivo-select').value;
+                            const motivo = document.getElementById('motivo').value.trim();
+
+                            if (!selectValue) {
+                                Swal.showValidationMessage('Debe seleccionar un motivo.');
+                                return false;
+                            }
+
+                            if (selectValue === "Otro") {
+                                const palabrasValidas = motivo.split(' ').filter(word => word.length > 0);
+                                if (palabrasValidas.length < 2 || motivo.length > 2000) {
+                                    Swal.showValidationMessage('Debes escribir al menos 2 palabras y no más de 2000 caracteres.');
+                                    return false;
+                                }
                                 return {
+                                    motivo,
                                     iddoc,
                                     idasig,
-                                    transaccion,
-                                    motivo
-                                }; // Devuelve los datos necesarios
+                                    transaccion
+                                };
                             }
+
+                            return {
+                                motivo: selectValue,
+                                iddoc,
+                                idasig,
+                                transaccion
+                            };
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
@@ -631,31 +673,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 motivo
                             } = result.value;
 
-                            // Redirige a la URL de eliminación
                             window.location.href = `conciliaciones_asignaciones_eliminar.php?iddoc=${iddoc}&idasig=${idasig}&transaccion=${transaccion}&motivo=${encodeURIComponent(motivo)}`;
                         }
                     });
-
-                    // Habilita o deshabilita el botón de confirmación
-                    const motivoInput = document.getElementById('motivo');
-                    const mensaje = document.getElementById('mensaje');
-
-                    motivoInput.addEventListener('input', function() {
-                        const palabrasValidas = this.value.split(' ').filter(word => word.length > 0);
-                        if (this.value.trim() === "") {
-                            Swal.getConfirmButton().disabled = true; // Deshabilita el botón de confirmar si está vacío
-                            mensaje.style.display = 'none'; // Oculta el mensaje
-                        } else if (palabrasValidas.length < 2 || this.value.length > 2000) {
-                            Swal.getConfirmButton().disabled = true; // Deshabilita si hay menos de dos palabras o más de 2000 caracteres
-                            mensaje.style.display = 'block'; // Muestra el mensaje
-                        } else {
-                            Swal.getConfirmButton().disabled = false; // Habilita el botón si tiene al menos dos palabras y no supera 2000 caracteres
-                            mensaje.style.display = 'none'; // Oculta el mensaje
-                        }
-                    });
-
-                    // Inicialmente deshabilitar el botón de confirmación
-                    Swal.getConfirmButton().disabled = true; // Deshabilitado hasta que el usuario escriba algo
                 });
             });
         });
