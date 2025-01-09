@@ -17,7 +17,7 @@ if (isset($_GET["op"])) {
 $id_proceso = $_GET['id'];
 
 $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
-        from [192.168.1.193].conciliacion.dbo.Transferencias_Recibidas_Hist";
+        from Transferencias_Recibidas_Hist";
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
