@@ -25,19 +25,18 @@ $transaccion    = $_GET["transaccion"];
 $rut_deudor     = $_GET["rut_deudor"];
 $cuenta         = $_GET["cuenta"];
 
-$sql1     = "{call [_SP_CONCILIACIONES_TRANSFERENCIAS_ASIGNADAS_CONSULTA](?, ?)}";
-$params1 = array(
+$sql_tr_asig     = "{call [_SP_CONCILIACIONES_TRANSFERENCIAS_ASIGNADAS_CONSULTA](?, ?)}";
+$params_tr_asig = array(
     array($rut_ordenante,   SQLSRV_PARAM_IN),
     array($transaccion,     SQLSRV_PARAM_IN)
 );
 //print_r($params1);
 //exit;
-$stmt1 = sqlsrv_query($conn, $sql1, $params1);
-if ($stmt1 === false) {
-    echo "Error in executing statement 1.\n";
-    die(print_r(sqlsrv_errors(), true));
+$stmt_tr_asig = sqlsrv_query($conn, $sql_tr_asig, $params_tr_asig);
+if ($stmt_tr_asig === false) {
+    mostrarError("Error al ejecutar la consulta 'stmt_tr_asig'.");
 }
-$gestion = sqlsrv_fetch_array($stmt1, SQLSRV_FETCH_ASSOC);
+$gestion = sqlsrv_fetch_array($stmt_tr_asig, SQLSRV_FETCH_ASSOC);
 
 $existe     = 0;
 $idestado   = 0;
@@ -50,7 +49,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -296,7 +295,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                                 $stmt_cliente = sqlsrv_query($conn, $sql_cliente, $params_cliente);
 
                                                                 if ($stmt_cliente === false) {
-                                                                    die(print_r(sqlsrv_errors(), true));
+                                                                    mostrarError("Error al ejecutar la consulta 'stmt_cliente'.");
                                                                 }
                                                                 while ($cliente = sqlsrv_fetch_array($stmt_cliente, SQLSRV_FETCH_ASSOC)) {
                                                                 ?>
@@ -308,13 +307,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     <div class="col-lg-6 d-flex align-items-center justify-content-start">
                                                         <label for="gestion" class="col-lg-2 col-form-label">GESTION</label>
                                                         <div id="gestion" class="scrollable-div border p-3 col-10 rounded">
-                                                            <?php $sql4 = "{call [_SP_CONCILIACIONES_GESTIONES_CONSULTA_TRANSFERENCIA](?)}";
-                                                            $params4 = array($transaccion);
-                                                            $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-                                                            if ($stmt4 === false) {
-                                                                die(print_r(sqlsrv_errors(), true));
+                                                            <?php $sql_gest = "{call [_SP_CONCILIACIONES_GESTIONES_CONSULTA_TRANSFERENCIA](?)}";
+                                                            $params_gest = array($transaccion);
+                                                            $stmt_gest = sqlsrv_query($conn, $sql_gest, $params_gest);
+                                                            if ($stmt_gest === false) {
+                                                                mostrarError("Error al ejecutar la consulta 'stmt_gest'.");
                                                             }
-                                                            while ($gestiones = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
+                                                            while ($gestiones = sqlsrv_fetch_array($stmt_gest, SQLSRV_FETCH_ASSOC)) {
                                                                 echo "<strong>" . $gestiones['FECHA_GESTION'] . ": </strong>" . $gestiones['OBSERVACION'] . "<br><hr>";
                                                             }; ?>
                                                         </div>
@@ -347,15 +346,15 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         <tbody>
                                             <?php
                                             // Consulta para obtener documentos asignados
-                                            $sql3 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
-                                            $params3 = array($rut_deudor);
-                                            $stmt3 = sqlsrv_query($conn, $sql3, $params3);
+                                            $sql_doc_asig = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
+                                            $params_doc_asig = array($rut_deudor);
+                                            $stmt_doc_asig = sqlsrv_query($conn, $sql_doc_asig, $params_doc_asig);
 
-                                            if ($stmt3 === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                            if ($stmt_doc_asig === false) {
+                                                mostrarError("Error al ejecutar la consulta 'stmt_doc_asig'.");
                                             }
 
-                                            while ($transferencia = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+                                            while ($transferencia = sqlsrv_fetch_array($stmt_doc_asig, SQLSRV_FETCH_ASSOC)) {
 
                                                 // Variables de documento
                                                 $f_venc         = (new DateTime($transferencia["F_VENC"]))->format('Y/m/d');
@@ -382,30 +381,28 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 }
 
                                                 // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
-                                                $params4 = array($id_documento);
-                                                $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+                                                $sql_doc_ab = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
+                                                $params_doc_ab = array($id_documento);
+                                                $stmt_doc_ab = sqlsrv_query($conn, $sql_doc_ab, $params_doc_ab);
 
-                                                if ($stmt4 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
-                                                }
-
+                                                if ($stmt_doc_ab === false) {
+                                                    mostrarError("Error al ejecutar la consulta 'stmt_doc_ab'.");
                                                 $monto_pareo = 0; // Inicializa en 0
-                                                while ($abonos = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
+                                                while ($abonos = sqlsrv_fetch_array($stmt_doc_ab, SQLSRV_FETCH_ASSOC)) {
                                                     $monto_pareo = isset($abonos["MONTO_PAREO"]) ? $abonos["MONTO_PAREO"] : 0;
                                                 }
 
                                                 // Consulta para obtener el estado del documento
-                                                $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                                $params5 = array($id_documento);
-                                                $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+                                                $sql_doc_estado = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                                $params_doc_estado = array($id_documento);
+                                                $stmt_doc_estado = sqlsrv_query($conn, $sql_doc_estado, $params_doc_estado);
 
-                                                if ($stmt5 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
+                                                if ($stmt_doc_estado === false) {
+                                                    mostrarError("Error al ejecutar la consulta 'stmt_doc_estado'.");
                                                 }
 
                                                 $estado_pareo_text = 'N/A'; // Valor por defecto
-                                                while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
+                                                while ($estados = sqlsrv_fetch_array($stmt_doc_estado, SQLSRV_FETCH_ASSOC)) {
                                                     $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
                                                     switch ($estado_pareo) {
                                                         case '1':

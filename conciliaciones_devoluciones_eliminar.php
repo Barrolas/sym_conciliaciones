@@ -30,8 +30,7 @@ $params_devolucion = array(
 );
 $stmt_devolucion = sqlsrv_query($conn, $sql_devolucion, $params_devolucion);
 if ($stmt_devolucion === false) {
-    echo "Error in executing statement devolucion.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_devolucion'.");
 }
 
 // Redireccionar a la página de lista de conciliaciones

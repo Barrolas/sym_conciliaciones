@@ -27,7 +27,7 @@ $params_entrecta = array(
 );
 $stmt_entrecta = sqlsrv_query($conn, $sql_entrecta, $params_entrecta);
 if ($stmt_entrecta === false) {
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_entrecta'.");
 }
 $entrecta = sqlsrv_fetch_array($stmt_entrecta, SQLSRV_FETCH_ASSOC);
 $transaccion_entrecta = $entrecta['TRANSACCION'];
@@ -43,8 +43,7 @@ $params_eliminar = array(
 );
 $stmt_eliminar = sqlsrv_query($conn, $sql_eliminar, $params_eliminar);
 if ($stmt_eliminar === false) {
-    echo "Error in executing statement eliminar.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_eliminar'.");
 }
 
 header("Location: conciliaciones_lista_pareados.php?op=5");

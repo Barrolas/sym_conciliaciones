@@ -4,7 +4,7 @@ include("permisos_adm.php");
 include("funciones.php");
 include("error_view.php");
 include("conexiones.php");
-validarConexion($conn);  
+validarConexion($conn);
 noCache();
 
 ini_set('display_errors', 1);
@@ -23,25 +23,17 @@ $id_conciliacion = 0;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verificar que hay datos en el arreglo de selected_details
     $datosSeleccionados = isset($_POST['selected_details']) && is_array($_POST['selected_details']) ? $_POST['selected_details'] : [];
-    
+
     // Verificar que hay datos en el arreglo de selected_remesas
     $datosRemesasSeleccionadas = isset($_POST['selected_remesas']) && is_array($_POST['selected_remesas']) ? $_POST['selected_remesas'] : [];
 
-    // Puedes imprimir o registrar los datos de remesas si es necesario para comprobar que llegan
-     /*print_r($datosSeleccionados); 
-     print_r('; ');
-     print_r($datosRemesasSeleccionadas);
-     print_r('; '); 
-     exit;
-*/
-
     if (!empty($datosSeleccionados)) {
-        
+
         $query = "{CALL [_SP_CONCILIACIONES_CONCILIACION_OBTENER_ID](?)}";
         $params = array(array(&$id_conciliacion, SQLSRV_PARAM_OUT));
         $stmt = sqlsrv_query($conn, $query, $params);
         if ($stmt === false) {
-            die("Error al obtener ID_CONCILIACION: " . print_r(sqlsrv_errors(), true));
+            mostrarError("Error al obtener el ID de conciliación. -> stmt_obtener_id");
         }
         sqlsrv_free_stmt($stmt);
 
@@ -53,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Convertir la fecha de dd/mm/yyyy a yyyy-mm-dd
             $fechaConvertida = DateTime::createFromFormat('d/m/Y', $fecha);
             if ($fechaConvertida === false) {
-                die("Error: Formato de fecha inválido en el dato seleccionado.");
+                mostrarError("Error: Formato de fecha inválido en el detalle seleccionado.");
             }
             $fechaSQL = $fechaConvertida->format('Y-m-d');
 
@@ -62,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $paramsInsert = array(
                 array($id_conciliacion,         SQLSRV_PARAM_IN),
                 array($cuenta,                  SQLSRV_PARAM_IN),
-                array($fechaSQL,                SQLSRV_PARAM_IN),  
+                array($fechaSQL,                SQLSRV_PARAM_IN),
                 array($n_documento,             SQLSRV_PARAM_IN),
                 array($descripcion,             SQLSRV_PARAM_IN),
                 array((int)$monto_detalle_int,  SQLSRV_PARAM_IN),
@@ -70,8 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             $stmtInsert = sqlsrv_query($conn, $queryInsert, $paramsInsert);
             if ($stmtInsert === false) {
-                error_log("Error al insertar datos: " . print_r(sqlsrv_errors(), true));
-                die("Error al insertar datos: " . print_r(sqlsrv_errors(), true));
+                mostrarError("Error al insertar datos en la cartola. -> stmt_cartola_insertar");
             }
         }
 
@@ -83,15 +74,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql_canalizacion = "EXEC [_SP_CONCILIACIONES_CONCILIAR_REMESAS_CUENTA_CONSULTA] ?";
             $params_canalizacion = array(array($n_remesa, SQLSRV_PARAM_IN));
             $stmt_canalizacion = sqlsrv_query($conn, $sql_canalizacion, $params_canalizacion);
-    
+
             if ($stmt_canalizacion === false) {
-                die("Error en la consulta de cuenta beneficiario: " . print_r(sqlsrv_errors(), true));
+                mostrarError("Error al consultar la cuenta beneficiario para la remesa. -> stmt_canalizacion");
             }
             $canalizacion_row = sqlsrv_fetch_array($stmt_canalizacion, SQLSRV_FETCH_ASSOC);
-    
+
             if ($canalizacion_row['ID_TIPO_CANALIZACION'] == 2) {
                 $tipo_canal = 2;
-            } 
+            }
             if ($canalizacion_row['ID_TIPO_CANALIZACION'] == 3) {
                 $tipo_canal = 3;
 
@@ -101,8 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 $stmt_saldo_consulta = sqlsrv_query($conn, $sql_saldo_consulta, $params_saldo_consulta);
                 if ($stmt_saldo_consulta === false) {
-                    echo "Error in executing statement saldo_consulta.\n";
-                    die(print_r(sqlsrv_errors(), true));
+                    mostrarError("Error al consultar el saldo asociado. -> stmt_saldo_consulta");
                 }
                 $saldo_consulta_row = sqlsrv_fetch_array($stmt_saldo_consulta, SQLSRV_FETCH_ASSOC);
                 $id_ps = $saldo_consulta_row['ID_PAREO_SISTEMA'];
@@ -114,18 +104,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 $stmt_estado = sqlsrv_query($conn, $sql_estado, $params_estado);
                 if ($stmt_estado === false) {
-                    echo "Error in executing statement estado.\n";
-                    die(print_r(sqlsrv_errors(), true));
+                    mostrarError("Error al cambiar el estado del saldo. -> stmt_estado");
                 }
-            
             } else {
                 $tipo_canal = 2;
             }
-            
+
             // Convertir la fecha de dd/mm/yyyy a yyyy-mm-dd
             $fechaRemesaConvertida = DateTime::createFromFormat('d/m/Y', $fecha_remesa);
             if ($fechaRemesaConvertida === false) {
-                die("Error: Formato de fecha inválido en el dato seleccionado.");
+                mostrarError("Error: Formato de fecha inválido en la remesa seleccionada.");
             }
             $fechaRemesaSQL = $fechaRemesaConvertida->format('Y-m-d');
 
@@ -143,25 +131,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             $stmtInsert = sqlsrv_query($conn, $queryInsert, $paramsInsert);
             if ($stmtInsert === false) {
-                error_log("Error al insertar datos: "   . print_r(sqlsrv_errors(), true));
-                die("Error al insertar datos: "         . print_r(sqlsrv_errors(), true));
+                mostrarError("Error al insertar datos en el respaldo. -> stmt_respaldo_insertar");
             }
         }
-
     } else {
         // Manejar el caso en que no hay detalles seleccionados
-        die("No se han seleccionado detalles.");
+        mostrarError("No se han seleccionado detalles para procesar.");
     }
-
-    // Para procesar los datos de remesas más adelante, puedes guardar o imprimirlos aquí
-    // if (!empty($datosRemesasSeleccionadas)) {
-    //     // Lógica para manejar remesas (por ahora solo se imprime)
-    //     print_r($datosRemesasSeleccionadas);
-    // }
 
     header("Location: conciliaciones_cartola_pareo.php?op=0");
     exit;
+    
 } else {
     // Responder con error si la solicitud no es POST
-    die("Método de solicitud no permitido.");
+    mostrarError("Método de solicitud no permitido.");
 }

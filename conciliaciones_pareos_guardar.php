@@ -171,10 +171,10 @@ if ($monto_transferido < $suma_docs) {
 
 
 // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+$sql_ps_inserta = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 // Parámetros para la llamada al stored procedure
-$params1 = array(
+$params_ps_inserta = array(
     array($rut_ordenante,       SQLSRV_PARAM_IN),
     array($rut_deudor,          SQLSRV_PARAM_IN),
     array($transaccion,         SQLSRV_PARAM_IN),
@@ -188,9 +188,9 @@ $params1 = array(
 );
 
 // Ejecutar la consulta
-$stmt1 = sqlsrv_query($conn, $sql1, $params1);
+$stmt_ps_inserta = sqlsrv_query($conn, $sql_ps_inserta, $params_ps_inserta);
 
-if ($stmt1 === false) {
+if ($stmt_ps_inserta === false) {
     echo "Error in executing statement 1.\n";
     die(print_r(sqlsrv_errors(), true));
 }
@@ -210,8 +210,7 @@ $params_tipo_ps = array(
 $stmt_tipo_ps = sqlsrv_query($conn, $sql_tipo_ps, $params_tipo_ps);
 
 if ($stmt_tipo_ps === false) {
-    echo "Error in executing statement tipo_ps.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_tipo_ps'.");
 }
 
 $tipo_ps = sqlsrv_fetch_array($stmt_tipo_ps, SQLSRV_FETCH_ASSOC);
@@ -263,8 +262,8 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         $aplica_cobertura = 1;  // Aplicar cobertura solo en la última iteración
     }
 
-    $sql2 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-    $params2 = [
+    $sql_pd_inserta = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    $params_pd_inserta = [
         [$idpareo_sistema,              SQLSRV_PARAM_IN],
         [$id_docdeudores,               SQLSRV_PARAM_IN],
         [$montos_docs[$index],          SQLSRV_PARAM_IN],
@@ -276,18 +275,17 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         [&$saldo_disponible,            SQLSRV_PARAM_INOUT]
     ];
 
-    $stmt2 = sqlsrv_query($conn, $sql2, $params2);
-    if ($stmt2 === false) {
-        echo "Error in executing statement 2.\n";
-        die(print_r(sqlsrv_errors(), true));
+    $stmt_pd_inserta = sqlsrv_query($conn, $sql_pd_inserta, $params_pd_inserta);
+    if ($stmt_pd_inserta === false) {
+        mostrarError("Error al ejecutar la consulta 'stmt_pd_inserta'.");
     }
 
     $leidos++;
     print_r('id pareo docdeudores: ' . $idpareo_docdeudores . '; ');
 
     if ($concilia_doc == 0) {
-        $sql3 = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-        $params3 = [
+        $sql_pd_tipifica = "{call [_SP_CONCILIACIONES_PAREO_DOCDEUDORES_TIPIFICA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $params_pd_tipifica = [
             [$idpareo_sistema,          SQLSRV_PARAM_IN],
             [$idpareo_docdeudores,      SQLSRV_PARAM_IN],
             [$id_docdeudores,           SQLSRV_PARAM_IN],
@@ -300,14 +298,13 @@ foreach ($id_documentos as $index => $id_docdeudores) {
             [&$saldo_disponible,        SQLSRV_PARAM_INOUT]
         ];
 
-        $stmt3 = sqlsrv_query($conn, $sql3, $params3);
-        if ($stmt3 === false) {
-            echo "Error in executing statement 3.\n";
-            die(print_r(sqlsrv_errors(), true));
+        $stmt_pd_tipifica = sqlsrv_query($conn, $sql_pd_tipifica, $params_pd_tipifica);
+        if ($stmt_pd_tipifica === false) {
+            mostrarError("Error al ejecutar la consulta 'stmt_pd_tipifica'.");
         }
 
-        $sql4 = "{call [_SP_CONCILIACIONES_MOVIMIENTO_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-        $params4 = [
+        $sql_mov_inserta = "{call [_SP_CONCILIACIONES_MOVIMIENTO_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $params_mov_inserta = [
             [$id_docdeudores,           SQLSRV_PARAM_IN],
             [$cuenta_benef,             SQLSRV_PARAM_IN],
             [$transaccion,              SQLSRV_PARAM_IN],
@@ -324,15 +321,14 @@ foreach ($id_documentos as $index => $id_docdeudores) {
             [$idusuario,                SQLSRV_PARAM_IN]
         ];
 
-        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-        if ($stmt4 === false) {
-            echo "Error in executing statement 4.\n";
-            die(print_r(sqlsrv_errors(), true));
+        $stmt_mov_inserta = sqlsrv_query($conn, $sql_mov_inserta, $params_mov_inserta);
+        if ($stmt_mov_inserta === false) {
+            mostrarError("Error al ejecutar la consulta 'stmt_mov_inserta'.");
         }
         
 
-        $sql5 = "{call [_SP_CONCILIACIONES_OPERACION_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-        $params5 = [
+        $sql_op_inserta = "{call [_SP_CONCILIACIONES_OPERACION_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $params_op_inserta = [
             [$idpareo_sistema,              SQLSRV_PARAM_IN],
             [$idpareo_docdeudores,          SQLSRV_PARAM_IN],
             [$rut_deudor,                   SQLSRV_PARAM_IN],
@@ -354,10 +350,9 @@ foreach ($id_documentos as $index => $id_docdeudores) {
             [$idusuario,                    SQLSRV_PARAM_IN]
         ];
 
-        $stmt5 = sqlsrv_query($conn, $sql5, $params5);
-        if ($stmt5 === false) {
-            echo "Error in executing statement 5.\n";
-            die(print_r(sqlsrv_errors(), true));
+        $stmt_op_inserta = sqlsrv_query($conn, $sql_op_inserta, $params_op_inserta);
+        if ($stmt_op_inserta === false) {
+            mostrarError("Error al ejecutar la consulta 'stmt_op_inserta'.");
         }
 
 
@@ -419,8 +414,7 @@ if ($saldo_disponible > 0 && $monto_diferencia == 0) {
     exit;*/
 
     if ($stmt_saldo === false) {
-        echo "Error in executing statement saldo.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_saldo'.");
     }
 /*
     print_r($cuenta_benef);
@@ -444,8 +438,7 @@ if ($saldo_disponible > 0 && $monto_diferencia == 0) {
     $stmt_devolucion = sqlsrv_query($conn, $sql_devolucion, $params_devolucion);
 
     if ($stmt_devolucion === false) {
-        echo "Error in executing statement devolucion.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_devolucion'.");
     }
 }
 
@@ -464,8 +457,7 @@ if ($es_entrecuentas == 1){
     $stmt_entrecta = sqlsrv_query($conn, $sql_entrecta, $params_entrecta);
 
     if ($stmt_entrecta === false) {
-        echo "Error in executing statement entrecta.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_entrecta'.");
     }
 
 

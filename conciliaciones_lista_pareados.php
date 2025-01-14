@@ -4,7 +4,7 @@ include("permisos_adm.php");
 include("funciones.php");
 include("error_view.php");
 include("conexiones.php");
-validarConexion($conn);  
+validarConexion($conn);
 noCache();
 
 ini_set('display_errors', 1);
@@ -28,7 +28,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -189,7 +189,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                             if ($stmt_cuenta === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_cuenta'.");
                                             }
                                             while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                             ?>
@@ -253,12 +253,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "[_SP_CONCILIACIONES_CANALIZACIONES_LISTA]";
-                                        $stmt = sqlsrv_query($conn, $sql);
-                                        if ($stmt === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                        $sql_canal = "[_SP_CONCILIACIONES_CANALIZACIONES_LISTA]";
+                                        $stmt_canal = sqlsrv_query($conn, $sql_canal);
+                                        if ($stmt_canal === false) {
+                                            mostrarError("Error al ejecutar la consulta 'stmt_canal'.");
                                         }
-                                        while ($canalizacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                        while ($canalizacion = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
 
                                             $id_documento = $canalizacion["ID_DOCDEUDORES"];
 
@@ -269,8 +269,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                             $stmt_docdetalles = sqlsrv_query($conn, $sql_docdetalles, $params_docdetalles);
                                             if ($stmt_docdetalles === false) {
-                                                echo "Error en la ejecución de la declaración _docdetalles en el índice $index.\n";
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_docdetalles'.");
                                             }
                                             $docdetalles = sqlsrv_fetch_array($stmt_docdetalles, SQLSRV_FETCH_ASSOC);
 
@@ -281,22 +280,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                             $stmt_trdetalles = sqlsrv_query($conn, $sql_trdetalles, $params_trdetalles);
                                             if ($stmt_trdetalles === false) {
-                                                echo "Error en la ejecución de la declaración _trdetalles en el índice $index.\n";
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error en la ejecución de la declaración de detalles de transferencia en el índice $index. -> stmt_trdetalles");
                                             }
                                             $trdetalles = sqlsrv_fetch_array($stmt_trdetalles, SQLSRV_FETCH_ASSOC);
 
+
                                             // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                            $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
-                                            $params4 = array($id_documento);
-                                            $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-
-                                            if ($stmt4 === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                            $sql_abonos = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ABONOS](?)}";
+                                            $params_abonos = array($id_documento);
+                                            $stmt_abonos = sqlsrv_query($conn, $sql_abonos, $params_abonos);
+                                            if ($stmt_abonos === false) {
+                                                mostrarError("Error en la ejecución de la consulta de abonos. -> stmt_abonos");
                                             }
-
                                             $monto_pareo = 0; // Inicializa en 0
-                                            while ($abonos = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC)) {
+                                            while ($abonos = sqlsrv_fetch_array($stmt_abonos, SQLSRV_FETCH_ASSOC)) {
                                                 $monto_pareo = isset($abonos["MONTO_PAREO"]) ? $abonos["MONTO_PAREO"] : 0;
                                             }
 
@@ -309,26 +306,23 @@ $fecha_proceso = $row["FECHAPROCESO"];
 
                                             $stmt_dif = sqlsrv_query($conn, $sql_dif, $params_dif);
                                             if ($stmt_dif === false) {
-                                                echo "Error en la ejecución de la declaración _dif en el índice $index.\n";
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error en la ejecución de la consulta de diferencias. -> stmt_dif en el índice $index");
                                             }
                                             $diferencia = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC);
 
                                             $monto_diferencia = $diferencia['MONTO_DIFERENCIA'] ?? 0;
 
                                             // Consulta para obtener el estado del documento
-                                            $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                            $params5 = array($id_documento);
-                                            $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+                                            $sql_estado_doc = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                            $params_estado_doc = array($id_documento);
+                                            $stmt_estado_doc = sqlsrv_query($conn, $sql_estado_doc, $params_estado_doc);
 
-                                            if ($stmt5 === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                            if ($stmt_estado_doc === false) {
+                                                mostrarError("Error en la ejecución de la consulta del estado del documento. -> stmt_estado_doc");
                                             }
 
-
                                             $estado_pareo_text = 'N/A'; // Valor por defecto
-                                            while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-
+                                            while ($estados = sqlsrv_fetch_array($stmt_estado_doc, SQLSRV_FETCH_ASSOC)) {
                                                 $disabled = ($estados["ID_ESTADO"] == 3 || $estados['ENTRECUENTAS'] == 1) ? 'disabled' : '';
 
                                                 $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
@@ -359,7 +353,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $monto_cubierto     = $docdetalles['MONTO_CUBIERTO'];
                                             $subproducto        = $docdetalles['SUBPRODUCTO'];
                                             $entrecuenta_estado = $trdetalles['ENTRE_CUENTAS'];
-                                            if($entrecuenta_estado < 2){
+                                            if ($entrecuenta_estado < 2) {
                                                 $cuenta_benef   = $trdetalles['CUENTA'];
                                                 $transaccion    = $trdetalles['TRANSACCION'];
                                             } else {
@@ -644,9 +638,9 @@ $fecha_proceso = $row["FECHAPROCESO"];
         });
 
         var table = $('#datatable2').DataTable({
-            "paging":       false, // Deshabilita la paginación
-            "searching":    true, // Habilita la búsqueda
-            "ordering":     true, // Habilita el ordenamiento
+            "paging": false, // Deshabilita la paginación
+            "searching": true, // Habilita la búsqueda
+            "ordering": true, // Habilita el ordenamiento
 
             responsive: true,
             order: [

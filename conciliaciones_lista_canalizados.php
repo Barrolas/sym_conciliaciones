@@ -28,7 +28,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -152,7 +152,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
                                             if ($stmt_canal === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_canal'.");
                                             }
                                             while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
                                             ?>
@@ -171,7 +171,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                             if ($stmt_cuenta === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_cuenta'.");
                                             }
                                             while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                             ?>
@@ -246,12 +246,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_OPERACIONES_LISTA]";
-                                                $stmt = sqlsrv_query($conn, $sql);
-                                                if ($stmt === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
+                                                $sql_op = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_OPERACIONES_LISTA]";
+                                                $stmt_op = sqlsrv_query($conn, $sql_op);
+                                                if ($stmt_op === false) {
+                                                    mostrarError("Error al ejecutar la consulta 'stmt_op'.");
                                                 }
-                                                while ($p_sistema = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                                while ($p_sistema = sqlsrv_fetch_array($stmt_op, SQLSRV_FETCH_ASSOC)) {
 
 
                                                     $n_doc              = $p_sistema['N_DOC'];
@@ -267,7 +267,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
                                                     if ($stmt_pd === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar la consulta 'stmt_pd'.");
                                                     }
                                                     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
 
@@ -284,7 +284,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_contable = sqlsrv_query($conn, $sql_contable, $params_contable);
                                                     if ($stmt_contable === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar la consulta 'stmt_contable'.");
                                                     }
                                                     $contable = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
 
@@ -294,7 +294,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_contable = sqlsrv_query($conn, $sql_contable, $params_contable);
                                                     if ($stmt_contable === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar la consulta 'stmt_contable'.");
                                                     }
                                                     $canalizacion = sqlsrv_fetch_array($stmt_contable, SQLSRV_FETCH_ASSOC);
 
@@ -321,7 +321,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_ps = sqlsrv_query($conn, $sql_ps, $params_ps);
                                                     if ($stmt_ps === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar la consulta 'stmt_ps'.");
                                                     }
                                                     $ps = sqlsrv_fetch_array($stmt_ps, SQLSRV_FETCH_ASSOC);
 
@@ -333,7 +333,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
                                                     if ($stmt_pagodocs === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar la consulta 'stmt_pagodocs'.");
                                                     }
                                                     $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
@@ -412,12 +412,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $sql = "EXEC [_SP_CONCILIACIONES_PROCESOS_LISTA]";
-                                            $stmt = sqlsrv_query($conn, $sql);
-                                            if ($stmt === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                            $sql_proc_lista = "EXEC [_SP_CONCILIACIONES_PROCESOS_LISTA]";
+                                            $stmt_proc_lista = sqlsrv_query($conn, $sql_proc_lista);
+                                            if ($stmt_proc_lista === false) {
+                                                mostrarError("Error al ejecutar la consulta 'stmt_proc_lista'.");
                                             }
-                                            while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) { ?>
+                                            while ($conciliacion = sqlsrv_fetch_array($stmt_proc_lista, SQLSRV_FETCH_ASSOC)) { ?>
 
                                                 <tr>
                                                     <td class="col-auto"><?php echo $conciliacion["ID_CANALIZACION_PROCESO"]; ?></td>

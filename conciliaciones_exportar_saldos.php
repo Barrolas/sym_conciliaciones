@@ -72,9 +72,9 @@ $hojaDeProductos->fromArray($encabezado, null, 'A1');
 // Asignar el formato de celda para la columna de saldo
 //$hojaDeProductos->getStyle('J')->getNumberFormat()->setFormatCode('#.##0'); // Asegúrate de que la columna de saldo esté formateada correctamente
 
-$sql = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
+$sql_saldos = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
+$stmt_saldos = sqlsrv_query($conn, $sql_saldos);
+if ($stmt_saldos === false) {
     header("Location: menu_principal.php?op=1");
     exit;
 }

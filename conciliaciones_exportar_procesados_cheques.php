@@ -139,7 +139,7 @@ $params_asign = array(
 );
 $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
 if ($stmt_asign === false) {
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_asign'.");
 }
 
 while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
@@ -160,7 +160,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     );
     $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
     if ($stmt_pd === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_pd'.");
     }
     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
 
@@ -173,7 +173,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     );
     $stmt_docdetalles = sqlsrv_query($conn, $sql_docdetalles, $params_docdetalles);
     if ($stmt_docdetalles === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_docdetalles'.");
     }
     $docdetalles = sqlsrv_fetch_array($stmt_docdetalles, SQLSRV_FETCH_ASSOC);
 
@@ -183,7 +183,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     );
     $stmt_qtydocs = sqlsrv_query($conn, $sql_qtydocs, $params_qtydocs);
     if ($stmt_qtydocs === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_qtydocs'.");
     }
     $qtydocs = sqlsrv_fetch_array($stmt_qtydocs, SQLSRV_FETCH_ASSOC);
 
@@ -193,7 +193,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     );
     $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
     if ($stmt_pagodocs === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_pagodocs'.");
     }
     $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 

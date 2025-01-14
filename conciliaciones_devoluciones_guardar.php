@@ -37,8 +37,8 @@ $existe_pareo       = 0;
 $idpareo_sistema    = 0;
 
 
-$sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-$params1 = array(
+$sql_ps_insert = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+$params_ps_insert = array(
     array($rut_ordenante,       SQLSRV_PARAM_IN),
     array($rut_deudor,          SQLSRV_PARAM_IN),
     array($transaccion,         SQLSRV_PARAM_IN),
@@ -50,11 +50,10 @@ $params1 = array(
     array(&$existe_pareo,       SQLSRV_PARAM_OUT),
     array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
 );
-$stmt1 = sqlsrv_query($conn, $sql1, $params1);
+$stmt_ps_insert = sqlsrv_query($conn, $sql_ps_insert, $params_ps_insert);
 
-if ($stmt1 === false) {
-    echo "Error in executing statement 1.\n";
-    die(print_r(sqlsrv_errors(), true));
+if ($stmt_ps_insert === false) {
+    mostrarError("Error al ejecutar la consulta 'stmt_ps_insert'.");
 }
 // Verificar la variable de salida $existe
 if ($existe_pareo == 1) {
@@ -71,8 +70,7 @@ $params_tipo_ps = array(
 $stmt_tipo_ps = sqlsrv_query($conn, $sql_tipo_ps, $params_tipo_ps);
 
 if ($stmt_tipo_ps === false) {
-    echo "Error in executing statement tipo_ps.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_tipo_ps'.");
 }
 
 $tipo_saldo = 2;
@@ -86,8 +84,7 @@ $params_saldo = array(
 );
 $stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
 if ($stmt_saldo === false) {
-    echo "Error in executing statement saldo.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_saldo'.");
 }
 
 $sql_devolucion = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DEVOLUCION_INSERTA] (?, ?, ?, ?, ?, ?)}";
@@ -102,8 +99,7 @@ $params_devolucion = array(
 $stmt_devolucion = sqlsrv_query($conn, $sql_devolucion, $params_devolucion);
 
 if ($stmt_devolucion === false) {
-    echo "Error in executing statement devolucion.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_devolucion'.");
 }
 
 header("Location: conciliaciones_transferencias_pendientes.php?op=1");

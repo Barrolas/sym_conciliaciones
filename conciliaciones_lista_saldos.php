@@ -28,7 +28,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -189,7 +189,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                             if ($stmt_cuenta === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_cuenta'.");
                                             }
                                             while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                             ?>
@@ -237,12 +237,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
-                                        $stmt = sqlsrv_query($conn, $sql);
-                                        if ($stmt === false) {
+                                        $sql_saldo = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
+                                        $stmt_saldo = sqlsrv_query($conn, $sql_saldo);
+                                        if ($stmt_saldo === false) {
                                             die(print_r(sqlsrv_errors(), true));
                                         }
-                                        while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                        while ($conciliacion = sqlsrv_fetch_array($stmt_saldo, SQLSRV_FETCH_ASSOC)) {
                                             // Variables individuales
                                             $tipo_saldo     = $conciliacion["TIPO_SALDO"];
                                             $cuenta         = $conciliacion["CUENTA"];

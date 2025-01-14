@@ -148,7 +148,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
                                         if ($stmt_canal === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_canal'.");
                                         }
                                         while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
                                         ?>
@@ -167,7 +167,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                         if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_cuenta'.");
                                         }
                                         while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                         ?>
@@ -262,7 +262,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
 
                                             if ($stmt_diferencia === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_diferencia'.");
                                             }
 
                                             // Procesar resultados de la consulta de detalles
@@ -276,35 +276,35 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                 $stmt_monto = sqlsrv_query($conn, $sql_monto, $params_monto);
 
                                                 if ($stmt_monto === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
+                                                    mostrarError("Error al ejecutar la consulta 'stmt_monto'.");
                                                 }
 
                                                 // Procesar resultados de la consulta de detalles
                                                 $monto_consulta = sqlsrv_fetch_array($stmt_monto, SQLSRV_FETCH_ASSOC);
 
                                                 // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                                $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                                $params4 = array($id_documento);
-                                                $stmt4 = sqlsrv_query($conn, $sql4, $params4);
+                                                $sql_id_doc = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                                $params_id_doc = array($id_documento);
+                                                $stmt_id_doc = sqlsrv_query($conn, $sql_id_doc, $params_id_doc);
 
-                                                if ($stmt4 === false) {
-                                                    die(print_r(sqlsrv_errors(), true));
+                                                if ($stmt_id_doc === false) {
+                                                    mostrarError("Error al ejecutar la consulta 'stmt_id_doc'.");
                                                 }
 
                                                 // Procesar resultados de la consulta de detalles
-                                                $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
+                                                $detalles = sqlsrv_fetch_array($stmt_id_doc, SQLSRV_FETCH_ASSOC);
 
                                                 // Consulta para obtener el estado del documento
-                                                $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-                                                $params5 = array($id_documento);
-                                                $stmt5 = sqlsrv_query($conn, $sql5, $params5);
+                                                $sql_doc_estado = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+                                                $params_doc_estado = array($id_documento);
+                                                $stmt_doc_estado = sqlsrv_query($conn, $sql_doc_estado, $params_doc_estado);
 
-                                                if ($stmt5 === false) {
+                                                if ($stmt_doc_estado === false) {
                                                     die(print_r(sqlsrv_errors(), true));
                                                 }
 
                                                 $estado_pareo_text = 'N/A'; // Valor por defecto
-                                                while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
+                                                while ($estados = sqlsrv_fetch_array($stmt_doc_estado, SQLSRV_FETCH_ASSOC)) {
                                                     $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
                                                     switch ($estado_pareo) {
                                                         case '1':

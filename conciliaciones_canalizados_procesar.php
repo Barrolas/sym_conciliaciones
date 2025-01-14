@@ -4,7 +4,7 @@ include("permisos_adm.php");
 include("funciones.php");
 include("error_view.php");
 include("conexiones.php");
-validarConexion($conn);  
+validarConexion($conn);
 noCache();
 
 ini_set('display_errors', 1);
@@ -98,8 +98,7 @@ $params_proceso = array(
 $stmt_proceso = sqlsrv_query($conn, $sql_proceso, $params_proceso);
 
 if ($stmt_proceso === false) {
-    echo "Error in executing statement proceso.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_proceso'. No se pudo insertar el proceso de canalización.");
 }
 
 foreach ($docs_combined as $index => $conciliacion) {
@@ -130,31 +129,13 @@ foreach ($docs_combined as $index => $conciliacion) {
     );
     $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
     if ($stmt_diferencia === false) {
-        echo "Error in executing statement diferencia.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_diferencia' para validar las diferencias del documento con ID: $id_documento.");
     }
     $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
 
-/*print_r($diferencia_doc);
+    /*print_r($diferencia_doc);
 exit;*/
     if ($diferencia_doc == 0) {
-/*
-        print_r('PRINT PREVIO AL SP: ');
-        var_dump('id_pareo_sis: ' .  $id_pareo_sis . '; ');
-        var_dump('id_documento: ' .  $id_documento . '; ');
-        var_dump('operacion: ' .     $operacion . '; ');
-        var_dump('transaccion: ' .   $transaccion . '; ');
-        var_dump('benef_cta: ' .     $benef_cta . '; ');
-        var_dump('deud_nom: ' .      $deud_nom . '; ');
-        var_dump('deud_rut: ' .      $deud_rut . '; ');
-        var_dump('deud_dv: ' .       $deud_dv . '; ');
-        var_dump('monto_doc: ' .     $monto_doc . '; ');
-        var_dump('f_venc: ' .        $f_venc . '; ');
-        var_dump('pago_doc: ' .      $pago_doc . '; ');
-        var_dump('tipo_canal: ' .    $tipo_canal . '; ');
-        var_dump('idusuario: ' .     $idusuario . '; ');
-        exit;*/
-    
 
         $sql_asignacion = "{call [_SP_CONCILIACIONES_ASIGNACION_INSERTAR](?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         $params_asignacion = array(
@@ -176,24 +157,17 @@ exit;*/
         var_dump($params_asignacion);
         exit;*/
         $stmt_asignacion = sqlsrv_prepare($conn, $sql_asignacion, $params_asignacion);
-        if ($stmt_asignacion === false) {
-            echo "Error in preparing statement asignacion.\n";
-            die(print_r(sqlsrv_errors(), true));
-        }
-        if (sqlsrv_execute($stmt_asignacion) === false) {
-            echo "Error in executing statement asignacion.\n";
-            die(print_r(sqlsrv_errors(), true));
+        if ($stmt_asignacion === false || !sqlsrv_execute($stmt_asignacion)) {
+            mostrarError("Error al ejecutar la consulta 'stmt_asignacion' para asignar el documento con ID: $id_documento.");
         }
 
         $sql_row = "{call [_SP_CONCILIACIONES_ASIGNACION_ULTIMA_CONSULTA]}";
         $stmt_row = sqlsrv_query($conn, $sql_row);
         if ($stmt_row === false) {
-            die(print_r(sqlsrv_errors(), true));
+            mostrarError("Error al ejecutar la consulta 'stmt_row'. No se pudo obtener la última asignación.");
         }
         $row = sqlsrv_fetch_array($stmt_row, SQLSRV_FETCH_ASSOC);
         $id_asignacion = $row['ID_ASIGNACION'];
-        
-        //print_r('Transaccion print: ' . $transaccion . '; ');
 
         $sql_ps = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_TRANSACCION_CONSULTA](?)}";
         $params_ps = array(
@@ -201,12 +175,12 @@ exit;*/
         );
         $stmt_ps = sqlsrv_query($conn, $sql_ps, $params_ps);
         if ($stmt_ps === false) {
-            die(print_r(sqlsrv_errors(), true));
+            mostrarError("Error al ejecutar la consulta 'stmt_ps'. No se pudo consultar la transacción: $transaccion.");
         }
         $ps = sqlsrv_fetch_array($stmt_ps, SQLSRV_FETCH_ASSOC);
-        
+
         $id_pareo_sis = $ps['ID_PAREO_SISTEMA'];
-        
+
         //print_r(' ' .$id_pareo_sis. '; ');
 
         $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_CONSULTA](?)}";
@@ -215,11 +189,9 @@ exit;*/
         );
         $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
         if ($stmt_operacion === false) {
-            die(print_r(sqlsrv_errors(), true));
+            mostrarError("Error al ejecutar la consulta 'stmt_operacion'. No se pudo consultar la operación asociada al ID de pareo: $id_pareo_sis.");
         }
         $operaciones = sqlsrv_fetch_array($stmt_operacion, SQLSRV_FETCH_ASSOC);
-
-        //print_r($operaciones);
 
         $transaccion_op = $operaciones['TRANSACCION'];
 
@@ -232,9 +204,9 @@ exit;*/
         );
         $stmt_asociados = sqlsrv_query($conn, $sql_asociados, $params_asociados);
         if ($stmt_asociados === false) {
-            echo "Error in executing statement asociados.\n";
-            die(print_r(sqlsrv_errors(), true));
+            mostrarError("Error al ejecutar la consulta 'stmt_asociados'. No se pudieron identificar las operaciones asociadas al documento con ID: $id_documento.");
         }
+
         while ($asociados = sqlsrv_fetch_array($stmt_asociados, SQLSRV_FETCH_ASSOC)) {
 
             $iddoc_asociado = $asociados['ID_DOCDEUDORES'];
@@ -258,8 +230,7 @@ exit;*/
             );
             $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
             if ($stmt_detalles === false) {
-                echo "Error in executing statement detalles.\n";
-                die(print_r(sqlsrv_errors(), true));
+                mostrarError("Error al ejecutar la consulta 'stmt_detalles'. No se pudieron insertar los detalles del proceso para el documento con ID: $id_documento.");
             }
 
             $sql_estado = "{call [_SP_CONCILIACIONES_CANALIZACION_CAMBIA_ESTADO](?, ?)}";
@@ -267,12 +238,9 @@ exit;*/
                 array($iddoc_asociado,      SQLSRV_PARAM_IN),
                 array($estado_canalizacion, SQLSRV_PARAM_IN)
             );
-
             $stmt_estado = sqlsrv_query($conn, $sql_estado, $params_estado);
-
             if ($stmt_estado === false) {
-                echo "Error in executing statement estado.\n";
-                die(print_r(sqlsrv_errors(), true));
+                mostrarError("Error al ejecutar la consulta 'stmt_estado'. No se pudo cambiar el estado del documento asociado con ID: $iddoc_asociado.");
             }
 
             $sql_operacion = "{call [_SP_CONCILIACIONES_OPERACION_PROCESO_INSERTA](?, ?)}";
@@ -282,16 +250,12 @@ exit;*/
             );
             $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
             if ($stmt_operacion === false) {
-                echo "Error in executing statement operacion.\n";
-                die(print_r(sqlsrv_errors(), true));
+                mostrarError("Error al ejecutar la consulta 'stmt_operacion'. No se pudo insertar la operación para el documento asociado con ID: $iddoc_asociado.");
             }
         }
     }
     $total_procesados++;
 }
-
-// Finalmente, puedes mostrar el total de procesados si es necesario
-//echo "Total procesados: " . $total_procesados;
 
 $sql_actualiza = "{call [_SP_CONCILIACIONES_CANALIZACION_PROCESO_ACTUALIZA](?, ?, ?)}";
 $params_actualiza = array(
@@ -303,8 +267,7 @@ $params_actualiza = array(
 $stmt_actualiza = sqlsrv_query($conn, $sql_actualiza, $params_actualiza);
 
 if ($stmt_actualiza === false) {
-    echo "Error in executing statement actualiza.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_actualiza'. No se pudo actualizar el proceso de canalización con ID: $idproceso.");
 }
 
 header("Location: conciliaciones_lista_canalizados.php?op=1");

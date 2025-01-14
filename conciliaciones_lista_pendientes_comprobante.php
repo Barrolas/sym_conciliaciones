@@ -28,7 +28,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar consulta 'ultima_cartola'.");
 }
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
@@ -180,7 +180,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
                                         if ($stmt_canal === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar consulta 'stmt_canal'.");
                                         }
                                         while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
                                         ?>
@@ -198,7 +198,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                             $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                             if ($stmt_cuenta === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar consulta 'stmt_cuenta'.");
                                             }
                                             while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                             ?>
@@ -261,7 +261,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         );
                                         $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
                                         if ($stmt_asign === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar consulta 'stmt_asign'.");
                                         }
                                         while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 
@@ -281,7 +281,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
                                                     if ($stmt_pd === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar consulta 'stmt_pd'.");
                                                     }
                                                     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
 
@@ -291,7 +291,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_row = sqlsrv_query($conn, $sql_row, $params_row);
                                                     if ($stmt_row === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar consulta 'stmt_row'.");
                                                     }
                                                     $row = sqlsrv_fetch_array($stmt_row, SQLSRV_FETCH_ASSOC);
 
@@ -303,7 +303,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_qtydocs = sqlsrv_query($conn, $sql_qtydocs, $params_qtydocs);
                                                     if ($stmt_qtydocs === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar consulta 'stmt_qtydocs'.");
                                                     }
                                                     $qtydocs = sqlsrv_fetch_array($stmt_qtydocs, SQLSRV_FETCH_ASSOC);
 
@@ -313,7 +313,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                     );
                                                     $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
                                                     if ($stmt_pagodocs === false) {
-                                                        die(print_r(sqlsrv_errors(), true));
+                                                        mostrarError("Error al ejecutar consulta 'stmt_pagodocs'.");
                                                     }
                                                     $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
@@ -365,7 +365,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         );
                                                         $stmt_cheque = sqlsrv_query($conn, $sql_cheque, $params_cheque);
                                                         if ($stmt_cheque === false) {
-                                                            die(print_r(sqlsrv_errors(), true));
+                                                            mostrarError("Error al ejecutar consulta 'stmt_cheque'.");
                                                         }
                                                         $rowcheque = sqlsrv_fetch_array($stmt_cheque, SQLSRV_FETCH_ASSOC);
 
@@ -378,7 +378,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                                         );
                                                         $stmt_remesa = sqlsrv_query($conn, $sql_remesa, $params_remesa);
                                                         if ($stmt_remesa === false) {
-                                                            die(print_r(sqlsrv_errors(), true));
+                                                            mostrarError("Error al ejecutar consulta 'stmt_remesa'.");
                                                         }
                                                         $rowremesa = sqlsrv_fetch_array($stmt_remesa, SQLSRV_FETCH_ASSOC);
 

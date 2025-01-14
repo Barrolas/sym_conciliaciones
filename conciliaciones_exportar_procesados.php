@@ -5,7 +5,7 @@ include("permisos_adm.php");
 include("funciones.php");
 include("error_view.php");
 include("conexiones.php");
-validarConexion($conn);  
+validarConexion($conn);
 noCache();
 
 ini_set('display_errors', 1);
@@ -102,60 +102,60 @@ $numeroDeFilaHipotecario_tr     = 2;
 
 $estado1 = '1-';
 $estado2 = '3';
-$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$sql_asign = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
 $params_asign = array(
-    array($estado1,     SQLSRV_PARAM_IN),
-    array($estado2,     SQLSRV_PARAM_IN),
+    array($estado1, SQLSRV_PARAM_IN),
+    array($estado2, SQLSRV_PARAM_IN),
 );
 $stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
 if ($stmt_asign === false) {
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta de asignados. -> stmt_asign");
 }
 
 while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
 
-    $idpareo_sis        = $asignados['ID_PAREO_SISTEMA'];
-    $iddoc              = $asignados['ID_DOCDEUDORES'];
-    $id_asignacion      = $asignados['ID_ASIGNACION'];
-    $id_estado_asign    = $asignados['ID_ESTADO'];
+    $idpareo_sis = $asignados['ID_PAREO_SISTEMA'];
+    $iddoc = $asignados['ID_DOCDEUDORES'];
+    $id_asignacion = $asignados['ID_ASIGNACION'];
+    $id_estado_asign = $asignados['ID_ESTADO'];
 
     $sql_pd = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID_PS](?)}";
     $params_pd = array(
-        array($idpareo_sis,     SQLSRV_PARAM_IN),
+        array($idpareo_sis, SQLSRV_PARAM_IN),
     );
     $stmt_pd = sqlsrv_query($conn, $sql_pd, $params_pd);
     if ($stmt_pd === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al consultar documentos deudores por ID de pareo sistema. -> stmt_pd");
     }
     $p_docs = sqlsrv_fetch_array($stmt_pd, SQLSRV_FETCH_ASSOC);
 
     $sql_docdetalles = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
     $params_docdetalles = array(
-        array($iddoc,     SQLSRV_PARAM_IN),
+        array($iddoc, SQLSRV_PARAM_IN),
     );
     $stmt_docdetalles = sqlsrv_query($conn, $sql_docdetalles, $params_docdetalles);
     if ($stmt_docdetalles === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al consultar detalles del documento deudor. -> stmt_docdetalles");
     }
     $docdetalles = sqlsrv_fetch_array($stmt_docdetalles, SQLSRV_FETCH_ASSOC);
 
     $sql_qtydocs = "{call [_SP_CONCILIACIONES_CANALIZADOS_PROCESADOS_CANTIDAD_PAREO_SISTEMA](?)}";
     $params_qtydocs = array(
-        array($idpareo_sis,    SQLSRV_PARAM_IN),
+        array($idpareo_sis, SQLSRV_PARAM_IN),
     );
     $stmt_qtydocs = sqlsrv_query($conn, $sql_qtydocs, $params_qtydocs);
     if ($stmt_qtydocs === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al consultar la cantidad de documentos procesados en el pareo sistema. -> stmt_qtydocs");
     }
     $qtydocs = sqlsrv_fetch_array($stmt_qtydocs, SQLSRV_FETCH_ASSOC);
 
     $sql_pagodocs = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_METODOS_PAGO](?)}";
     $params_pagodocs = array(
-        array($idpareo_sis,    SQLSRV_PARAM_IN),
+        array($idpareo_sis, SQLSRV_PARAM_IN),
     );
     $stmt_pagodocs = sqlsrv_query($conn, $sql_pagodocs, $params_pagodocs);
     if ($stmt_pagodocs === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al consultar métodos de pago del pareo sistema. -> stmt_pagodocs");
     }
     $pagodocs = sqlsrv_fetch_array($stmt_pagodocs, SQLSRV_FETCH_ASSOC);
 
@@ -290,7 +290,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
     $sql_hipotecario = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PROCESADOS_HIPOTECARIOS_LISTA]";
     $stmt_hipotecario = sqlsrv_query($conn, $sql_hipotecario);
     if ($stmt_hipotecario === false) {
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta de hipotecarios procesados. -> stmt_hipotecario");
     }
 
     $numeroDeFilaHipotecario_tr     = 2;
@@ -319,11 +319,11 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
         $sql_cuotas = "EXEC [_SP_CONCILIACIONES_PAREO_SISTEMA_CANALIZADOS_METODOS_PAGO] ?";
         $params_cuotas = array(
             array($id_ps_hipotecario,    SQLSRV_PARAM_IN),
-        );    
+        );
         $stmt_cuotas = sqlsrv_query($conn, $sql_cuotas, $params_cuotas);
         if ($stmt_cuotas === false) {
-            die(print_r(sqlsrv_errors(), true));
-        }    
+            mostrarError("Error al consultar métodos de pago del pareo sistema. -> stmt_cuotas");
+        }
         $cuotas = sqlsrv_fetch_array($stmt_cuotas, SQLSRV_FETCH_ASSOC);
 
         $pago_docs_hipotecario = $cuotas['DESCRIPCION_PAGOS'];
@@ -332,7 +332,7 @@ while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
         /* ======================================================HIPOTECARIOS=====================================================*/
         if ($tipo_canal_hipotecario == 2 && in_array($id_estado_asign, [1, 2])) {
 
-            $encabezadoHipotecario_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "N° Cuotas" , "Valor Cuota", "Subproducto", "Cartera", "Cuenta Beneficiario"];
+            $encabezadoHipotecario_tr = ["ID", "Rut Ordenante", "DV", "Banco Ordenante", "Cuenta Ordenante", "Monto", "Rut Titular", "DVT", "Operacion", "N° Cuotas", "Valor Cuota", "Subproducto", "Cartera", "Cuenta Beneficiario"];
             $hojaHipotecario_tr->fromArray($encabezadoHipotecario_tr, null, 'A1');
 
             $hojaHipotecario_tr->setCellValueByColumnAndRow(1, $numeroDeFilaHipotecario_tr, $id_asign_hipotecario);

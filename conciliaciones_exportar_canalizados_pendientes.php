@@ -4,7 +4,7 @@ include("permisos_adm.php");
 include("funciones.php");
 include("error_view.php");
 include("conexiones.php");
-validarConexion($conn);  
+validarConexion($conn);
 noCache();
 
 ini_set('display_errors', 1);
@@ -17,12 +17,7 @@ if (!$idusuario) {
     mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
 }
 
-
 $hoy_arch = date("YmdHis");
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once('phpexcel2/vendor/autoload.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -47,7 +42,6 @@ function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
     $highestRow = $sheet->getHighestRow();
     $endColumn = $endColumn ?: $highestColumn;
 
-    // Convertir las columnas a números
     $startColIndex = Coordinate::columnIndexFromString($startColumn);
     $endColIndex = Coordinate::columnIndexFromString($endColumn);
 
@@ -63,62 +57,51 @@ function autoSizeColumns($sheet, $startColumn = 'A', $endColumn = null)
             }
         }
 
-        // Ajustar el ancho de la columna
-        $sheet->getColumnDimension($column)->setWidth($maxLength + 2); // +2 para margen
+        $sheet->getColumnDimension($column)->setWidth($maxLength + 2);
     }
 }
 
-// Escribir encabezado de los productos
 $encabezado = ["CANAL", "CUENTA BENEF", "RUT CLIENTE", "RUT DEUDOR", "F. VENC", "OPERACION", "TIPO", "MONTO", "DIFERENCIA"];
 $hojaDeProductos->fromArray($encabezado, null, 'A1');
 
 $numeroDeFila = 2;
 $i = 0;
 
-$sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PENDIENTES_LISTA]";
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true));
+$sql_canalizados_lista = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_PENDIENTES_LISTA]";
+$stmt_canalizados_lista = sqlsrv_query($conn, $sql_canalizados_lista);
+if ($stmt_canalizados_lista === false) {
+    mostrarError("Error al ejecutar la consulta de canalizados pendientes. -> stmt_canalizados_lista");
 }
-while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 
+while ($conciliacion = sqlsrv_fetch_array($stmt_canalizados_lista, SQLSRV_FETCH_ASSOC)) {
     $id_documento = $conciliacion['ID_DOC'];
 
-    // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-    $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-    $params4 = array($id_documento);
-    $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-
-    if ($stmt4 === false) {
-        die(print_r(sqlsrv_errors(), true));
+    $sql_doc_deudores = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+    $params_doc_deudores = [$id_documento];
+    $stmt_doc_deudores = sqlsrv_query($conn, $sql_doc_deudores, $params_doc_deudores);
+    if ($stmt_doc_deudores === false) {
+        mostrarError("Error al consultar detalles de documentos deudores. -> stmt_doc_deudores");
     }
-    // Procesar resultados de la consulta de detalles
-    $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
+    $detalles = sqlsrv_fetch_array($stmt_doc_deudores, SQLSRV_FETCH_ASSOC);
 
-    $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?)}";
-    $params_diferencia = array($id_documento);
-    $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
-
-    if ($stmt_diferencia === false) {
-        die(print_r(sqlsrv_errors(), true));
+    $sql_diferencia_consulta = "{call [_SP_CONCILIACIONES_DIFERENCIAS_CONSULTA](?)}";
+    $params_diferencia_consulta = [$id_documento];
+    $stmt_diferencia_consulta = sqlsrv_query($conn, $sql_diferencia_consulta, $params_diferencia_consulta);
+    if ($stmt_diferencia_consulta === false) {
+        mostrarError("Error al consultar diferencia de documentos. -> stmt_diferencia_consulta");
     }
+    $diferencia = sqlsrv_fetch_array($stmt_diferencia_consulta, SQLSRV_FETCH_ASSOC);
 
-    $diferencia = sqlsrv_fetch_array($stmt_diferencia, SQLSRV_FETCH_ASSOC);
-
-
-
-    // Consulta para obtener el estado del documento
-    $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
-    $params5 = array($id_documento);
-    $stmt5 = sqlsrv_query($conn, $sql5, $params5);
-
-    if ($stmt5 === false) {
-        die(print_r(sqlsrv_errors(), true));
+    $sql_doc_estado = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
+    $params_doc_estado = [$id_documento];
+    $stmt_doc_estado = sqlsrv_query($conn, $sql_doc_estado, $params_doc_estado);
+    if ($stmt_doc_estado === false) {
+        mostrarError("Error al consultar el estado de documentos deudores. -> stmt_doc_estado");
     }
 
-    $estado_pareo_text = 'N/A'; // Valor por defecto
-    while ($estados = sqlsrv_fetch_array($stmt5, SQLSRV_FETCH_ASSOC)) {
-        $estado_pareo = isset($estados['ID_ESTADO']) ? $estados['ID_ESTADO'] : NULL;
+    $estado_pareo_text = 'N/A';
+    while ($estados = sqlsrv_fetch_array($stmt_doc_estado, SQLSRV_FETCH_ASSOC)) {
+        $estado_pareo = $estados['ID_ESTADO'] ?? null;
         switch ($estado_pareo) {
             case '1':
                 $estado_pareo_text = 'CONCILIADO';
@@ -132,8 +115,6 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         }
     }
 
-    $i++;
-
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(1, $numeroDeFila, $detalles["CANALIZACION"], DataType::TYPE_STRING);
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(2, $numeroDeFila, $detalles["CUENTA"], DataType::TYPE_STRING);
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(3, $numeroDeFila, $detalles["RUT_CLIENTE"], DataType::TYPE_STRING);
@@ -146,7 +127,7 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(8, $numeroDeFila, $formattedValue, DataType::TYPE_STRING);
     $formattedValue2 = number_format($diferencia["DIFERENCIA"], 0, ',', '.');
     $hojaDeProductos->setCellValueExplicitByColumnAndRow(9, $numeroDeFila, $formattedValue2, DataType::TYPE_STRING);
-    
+
     $numeroDeFila++;
 }
 

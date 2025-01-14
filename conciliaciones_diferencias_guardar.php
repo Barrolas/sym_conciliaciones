@@ -106,8 +106,7 @@ $params_consulta = array(
 $stmt_consulta = sqlsrv_query($conn, $sql_consulta, $params_consulta);
 
 if ($stmt_consulta === false) {
-    echo "Error in executing statement _consulta.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_consulta'.");
 }
 
 while ($consulta = sqlsrv_fetch_array($stmt_consulta, SQLSRV_FETCH_ASSOC)) {
@@ -116,10 +115,8 @@ while ($consulta = sqlsrv_fetch_array($stmt_consulta, SQLSRV_FETCH_ASSOC)) {
     $rut_cliente    = $consulta['RUT_CLIENTE'];
 
     // SP para insertar en PAREO_SISTEMA y obtener ID_PAREO_SISTEMA
-    $sql1 = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-
-    // Parámetros para la llamada al stored procedure
-    $params1 = array(
+    $sql_ps_insert = "{call [_SP_CONCILIACIONES_PAREO_SISTEMA_INSERTA](?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    $params_ps_insert = array(
         array($rut_ordenante,       SQLSRV_PARAM_IN),
         array($rut_deudor,          SQLSRV_PARAM_IN),
         array($transaccion,         SQLSRV_PARAM_IN),
@@ -131,13 +128,9 @@ while ($consulta = sqlsrv_fetch_array($stmt_consulta, SQLSRV_FETCH_ASSOC)) {
         array(&$existe_pareo,       SQLSRV_PARAM_OUT),
         array(&$idpareo_sistema,    SQLSRV_PARAM_OUT)
     );
-
-    // Ejecutar la consulta
-    $stmt1 = sqlsrv_query($conn, $sql1, $params1);
-
-    if ($stmt1 === false) {
-        echo "Error in executing statement 1.\n";
-        die(print_r(sqlsrv_errors(), true));
+    $stmt_ps_insert = sqlsrv_query($conn, $sql_ps_insert, $params_ps_insert);
+    if ($stmt_ps_insert === false) {
+        mostrarError("Error al ejecutar la consulta 'stmt_ps_insert'.");
     }
 
     // Verificar la variable de salida $existe
@@ -175,8 +168,8 @@ foreach ($id_documentos as $index => $id_docdeudores) {
 
     // Determinar si estamos en la última iteración
 
-    $sql4 = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DIFERENCIA_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-    $params4 = [
+    $sql_mov_insert = "{call [_SP_CONCILIACIONES_MOVIMIENTO_DIFERENCIA_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+    $params_mov_insert = [
         [$id_docdeudores,           SQLSRV_PARAM_IN],
         [$cuenta,                   SQLSRV_PARAM_IN],
         [$transaccion,              SQLSRV_PARAM_IN],
@@ -187,10 +180,9 @@ foreach ($id_documentos as $index => $id_docdeudores) {
         [$idusuario,                SQLSRV_PARAM_IN],
         [&$saldo_disponible,        SQLSRV_PARAM_INOUT]
     ];
-    $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-    if ($stmt4 === false) {
-        echo "Error in executing statement 4.\n";
-        die(print_r(sqlsrv_errors(), true));
+    $stmt_mov_insert = sqlsrv_query($conn, $sql_mov_insert, $params_mov_insert);
+    if ($stmt_mov_insert === false) {
+        mostrarError("Error al ejecutar la consulta 'stmt_mov_insert'.");
     }
 
     $sql_diferencia = "{call [_SP_CONCILIACIONES_DIFERENCIA_CAMBIA_ESTADO] (?, ?)}";
@@ -200,8 +192,7 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     );
     $stmt_diferencia = sqlsrv_query($conn, $sql_diferencia, $params_diferencia);
     if ($stmt_diferencia === false) {
-        echo "Error in executing statement diferencia.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_diferencia'.");
     }
 
     $sql_estado = "{call [_SP_CONCILIACIONES_CANALIZACION_CAMBIA_ESTADO] (?, ?)}";
@@ -211,14 +202,13 @@ foreach ($id_documentos as $index => $id_docdeudores) {
     );
     $stmt_estado = sqlsrv_query($conn, $sql_estado, $params_estado);
     if ($stmt_estado === false) {
-        echo "Error in executing statement estado.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_estado'.");
     }
 }
 
 
-$sql5 = "{call [_SP_CONCILIACIONES_OPERACION_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-$params5 = [
+$sql_op_insert = "{call [_SP_CONCILIACIONES_OPERACION_INSERTA] (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+$params_op_insert = [
     [$idpareo_sistema,              SQLSRV_PARAM_IN],
     [$idpareo_docdeudores,          SQLSRV_PARAM_IN],
     [$rut_deudor,                   SQLSRV_PARAM_IN],
@@ -240,10 +230,9 @@ $params5 = [
     [$idusuario,                    SQLSRV_PARAM_IN]
 ];
 
-$stmt5 = sqlsrv_query($conn, $sql5, $params5);
-if ($stmt5 === false) {
-    echo "Error in executing statement 5.\n";
-    die(print_r(sqlsrv_errors(), true));
+$stmt_op_insert = sqlsrv_query($conn, $sql_op_insert, $params_op_insert);
+if ($stmt_op_insert === false) {
+    mostrarError("Error al ejecutar la consulta 'stmt_op_insert'.");
 
 }
 
@@ -260,8 +249,7 @@ if ($saldo_disponible > 0) {
     );
     $stmt_saldo = sqlsrv_query($conn, $sql_saldo, $params_saldo);
     if ($stmt_saldo === false) {
-        echo "Error in executing statement saldo.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_saldo'.");
     }
 } else {
     // Opcional: Manejo del caso cuando $saldo_disponible <= 0

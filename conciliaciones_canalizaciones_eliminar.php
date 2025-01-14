@@ -17,86 +17,76 @@ if (!$idusuario) {
     mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
 }
 
-
 // Obtener y sanitizar los datos de entrada
-$id_doc         = $_GET["id_doc"];
-$transaccion    = $_GET["transaccion"];
-$idusuario     = $_SESSION['ID_USUARIO'];;
+$id_doc         = $_GET["id_doc"] ?? null;
+$transaccion    = $_GET["transaccion"] ?? null;
 
-print_r($id_doc . '; ');
-print_r($transaccion . '; ');
+if (!$id_doc || !$transaccion) {
+    mostrarError("Faltan parámetros requeridos: ID del documento o transacción.");
+}
 
+// Validar si la transacción es entre cuentas
 $sql_entrecta = "{call [_SP_CONCILIACIONES_ENTRECUENTAS_TRANSACCION_VALIDA](?)}";
-$params_entrecta = array(
-    array($transaccion,    SQLSRV_PARAM_IN),
-);
+$params_entrecta = [
+    [$transaccion, SQLSRV_PARAM_IN],
+];
 $stmt_entrecta = sqlsrv_query($conn, $sql_entrecta, $params_entrecta);
 if ($stmt_entrecta === false) {
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_entrecta'.");
 }
 $entrecta = sqlsrv_fetch_array($stmt_entrecta, SQLSRV_FETCH_ASSOC);
-$transaccion_entrecta = $entrecta['TRANSACCION'];
+$transaccion_entrecta = $entrecta['TRANSACCION'] ?? null;
 
-if ($transaccion_entrecta <> 0) {
-    //Si es entrecuenta, busca la TRANSACCION original asociada a las operaciones. 
+if ($transaccion_entrecta && $transaccion_entrecta !== 0) {
+    // Si es entre cuentas, actualiza la transacción con el valor original
     $transaccion = $entrecta['TRANSACCION'];
 }
 
-
+// Identificar operaciones asociadas
 $sql_seleccion = "EXEC [_SP_CONCILIACIONES_OPERACIONES_ASOCIADAS_IDENTIFICAR] ?, ?, ?, ?";
-$params_seleccion = array(
-    array($id_doc,      SQLSRV_PARAM_IN),
-    array($transaccion, SQLSRV_PARAM_IN),
-    array(1,            SQLSRV_PARAM_IN),
-    array('2-3',        SQLSRV_PARAM_IN)
-);
+$params_seleccion = [
+    [$id_doc, SQLSRV_PARAM_IN],
+    [$transaccion, SQLSRV_PARAM_IN],
+    [1, SQLSRV_PARAM_IN],
+    ['2-3', SQLSRV_PARAM_IN],
+];
 $stmt_seleccion = sqlsrv_query($conn, $sql_seleccion, $params_seleccion);
 if ($stmt_seleccion === false) {
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_seleccion'.");
 }
 
-// Imprimir resultados y continuar con la lógica
+// Procesar las operaciones asociadas
 while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
+    $id_documento = $seleccion["ID_DOCDEUDORES"];
+    $id_pareodoc  = $seleccion["ID_PAREO_DOCDEUDORES"];
 
-    $id_documento   = $seleccion["ID_DOCDEUDORES"];
-    $id_pareodoc    = $seleccion["ID_PAREO_DOCDEUDORES"];
-
-    // Procedimiento de eliminación si necesitas continuar
-    $sql_eliminar = "EXEC [_SP_CONCILIACIONES_OPERACION_CANALIZACION_ELIMINA] ?, ?, ?";
-    $params_eliminar = array(
-        array($id_documento,    SQLSRV_PARAM_IN),
-        array($id_pareodoc,     SQLSRV_PARAM_IN),
-        array($idusuario,      SQLSRV_PARAM_IN),
-    );
-
-    $stmt_eliminar = sqlsrv_prepare($conn, $sql_eliminar, $params_eliminar);
-    if ($stmt_eliminar === false) {
-        die(print_r(sqlsrv_errors(), true));
-    }
-    if (!sqlsrv_execute($stmt_eliminar)) {
-        die(print_r(sqlsrv_errors(), true));
+    // Eliminar operación de canalización
+    $sql_eliminar_op = "EXEC [_SP_CONCILIACIONES_OPERACION_CANALIZACION_ELIMINA] ?, ?, ?";
+    $params_eliminar_op = [
+        [$id_documento, SQLSRV_PARAM_IN],
+        [$id_pareodoc, SQLSRV_PARAM_IN],
+        [$idusuario, SQLSRV_PARAM_IN],
+    ];
+    $stmt_eliminar_op = sqlsrv_prepare($conn, $sql_eliminar_op, $params_eliminar_op);
+    if ($stmt_eliminar_op === false || !sqlsrv_execute($stmt_eliminar_op)) {
+        mostrarError("Error al ejecutar la consulta 'stmt_eliminar_op'.");
     }
 
-    $sql = "{call [_SP_CONCILIACIONES_CANALIZACION_ELIMINAR](?, ?, ?, ?, ?)}";
-    $params = array(
-        array($id_documento,    SQLSRV_PARAM_IN),
-        array($rut_cl,          SQLSRV_PARAM_IN),
-        array($rut_dd,          SQLSRV_PARAM_IN),
-        array($f_venc,          SQLSRV_PARAM_IN),
-        array($ndoc,            SQLSRV_PARAM_IN),
-    );
-    $stmt = sqlsrv_prepare($conn, $sql, $params);
-    if ($stmt === false) {
-        die(print_r(sqlsrv_errors(), true));
+    // Eliminar datos de la canalización
+    $sql_eliminar_cn = "{call [_SP_CONCILIACIONES_CANALIZACION_ELIMINAR](?, ?, ?, ?, ?)}";
+    $params_eliminar_cn = [
+        [$id_documento, SQLSRV_PARAM_IN],
+        [$rut_cl, SQLSRV_PARAM_IN],
+        [$rut_dd, SQLSRV_PARAM_IN],
+        [$f_venc, SQLSRV_PARAM_IN],
+        [$ndoc, SQLSRV_PARAM_IN],
+    ];
+    $stmt_eliminar_cn = sqlsrv_prepare($conn, $sql_eliminar_cn, $params_eliminar_cn);
+    if ($stmt_eliminar_cn === false || !sqlsrv_execute($stmt_eliminar_cn)) {
+        mostrarError("Error al ejecutar la consulta 'stmt_eliminar_cn'.");
     }
-    if (!sqlsrv_execute($stmt)) {
-        die(print_r(sqlsrv_errors(), true));
-    }
-    
 }
 
-
-
-// Redireccionar a la página de lista de conciliaciones
+// Redirigir a la página de lista de conciliaciones
 header("Location: conciliaciones_lista_canalizados.php?op=2");
 exit;

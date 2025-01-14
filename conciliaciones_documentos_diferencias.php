@@ -22,7 +22,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
         from Transferencias_Recibidas_Hist";
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -42,8 +42,7 @@ $params_detalles = array(
 );
 $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
 if ($stmt_detalles === false) {
-    echo "Error in executing statement detalles.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_detalles'.");
 }
 $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
@@ -295,53 +294,53 @@ $monto_diferencia   = 0;
                                             <?php
 
                                             // Consulta para obtener documentos asignados
-                                            $sql3 = "{call [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]}";
-                                            $stmt3 = sqlsrv_query($conn, $sql3);
+                                            $sql_diferencias = "{call [_SP_CONCILIACIONES_DIFERENCIAS_LISTA]}";
+                                            $stmt_diferencias = sqlsrv_query($conn, $sql_diferencias);
 
-                                            if ($stmt3 === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                            if ($stmt_diferencias === false) {
+                                                mostrarError("Error al ejecutar la consulta 'stmt_diferencias'.");
                                             }
 
-                                            while ($diferencias = sqlsrv_fetch_array($stmt3, SQLSRV_FETCH_ASSOC)) {
+                                            while ($diferencias = sqlsrv_fetch_array($stmt_diferencias, SQLSRV_FETCH_ASSOC)) {
 
                                                 $id_documento = $diferencias['ID_DOCDEUDORES'];
 
                                                 // Consulta para obtener documentos asignados
-                                                $sql_4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                                $params_4 = array($id_documento);  // Primero defines los parámetros
-                                                $stmt_4 = sqlsrv_query($conn, $sql_4, $params_4);  // Luego ejecutas la consulta con los parámetros
+                                                $sql_doc_id = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                                $params_doc_id = array($id_documento);  // Primero defines los parámetros
+                                                $stmt_doc_id = sqlsrv_query($conn, $sql_doc_id, $params_doc_id);  // Luego ejecutas la consulta con los parámetros
 
-                                                if ($stmt_4 === false) {
+                                                if ($stmt_doc_id === false) {
                                                     die(print_r(sqlsrv_errors(), true));
                                                 }
 
-                                                $consulta = sqlsrv_fetch_array($stmt_4, SQLSRV_FETCH_ASSOC);
+                                                $consulta = sqlsrv_fetch_array($stmt_doc_id, SQLSRV_FETCH_ASSOC);
                                                 $rut_deudor = $consulta['RUT_DEUDOR'];
 
 
 
                                                 // Consulta para obtener documentos asignados
-                                                $sql_5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
-                                                $params_5 = array($rut_deudor);
-                                                $stmt_5 = sqlsrv_query($conn, $sql_5, $params_5);
+                                                $sql_doc_asig = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ASIGNADAS](?)}";
+                                                $params_doc_asig = array($rut_deudor);
+                                                $stmt_doc_asig = sqlsrv_query($conn, $sql_doc_asig, $params_doc_asig);
 
-                                                if ($stmt_5 === false) {
+                                                if ($stmt_doc_asig === false) {
                                                     die(print_r(sqlsrv_errors(), true));
                                                 }
 
-                                                $docdetalles = sqlsrv_fetch_array($stmt_5, SQLSRV_FETCH_ASSOC);
+                                                $docdetalles = sqlsrv_fetch_array($stmt_doc_asig, SQLSRV_FETCH_ASSOC);
 
                                                 $f_venc = isset($consulta["F_VENC"])
                                                     ? (is_a($consulta["F_VENC"], 'DateTime')
                                                         ? $consulta["F_VENC"]->format('Y-m-d')
                                                         : $consulta["F_VENC"])
                                                     : 'Sin fecha';
-                                                $monto_doc      = isset($consulta['MONTO_DOCUMENTO'])          ? $consulta['MONTO_DOCUMENTO'] : '';
+                                                $monto_doc      = isset($consulta['MONTO_DOCUMENTO'])   ? $consulta['MONTO_DOCUMENTO'] : '';
                                                 $subproducto    = isset($docdetalles["SUBPRODUCTO"])    ? $docdetalles["SUBPRODUCTO"] : '';
-                                                $n_doc          = isset($consulta["N_DOC"])          ? $consulta["N_DOC"] : '';
+                                                $n_doc          = isset($consulta["N_DOC"])             ? $consulta["N_DOC"] : '';
                                                 $rut_deudor     = isset($rut_deudor)                    ? $rut_deudor  : '';
-                                                $rut_cliente    = isset($consulta["RUT_CLIENTE"])    ? $consulta["RUT_CLIENTE"] : '';
-                                                $nom_cliente    = isset($consulta["NOM_CLIENTE"])    ? $consulta["NOM_CLIENTE"] : '';
+                                                $rut_cliente    = isset($consulta["RUT_CLIENTE"])       ? $consulta["RUT_CLIENTE"] : '';
+                                                $nom_cliente    = isset($consulta["NOM_CLIENTE"])       ? $consulta["NOM_CLIENTE"] : '';
                                                 $prestamos      = isset($diferencias["DIFERENCIA"])     ? $diferencias["DIFERENCIA"] : '';
 
                                                 // Sanitización para comparación

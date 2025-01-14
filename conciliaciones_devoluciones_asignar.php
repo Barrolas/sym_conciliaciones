@@ -18,12 +18,12 @@ if (!$idusuario) {
 }
 
 
-$sql = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
-$stmt = sqlsrv_query($conn, $sql);
-if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true));
+$sql_lista_saldos = "EXEC [_SP_CONCILIACIONES_SALDOS_LISTA]";
+$stmt_lista_saldos = sqlsrv_query($conn, $sql_lista_saldos);
+if ($stmt_lista_saldos === false) {
+    mostrarError("Error al ejecutar la consulta 'stmt_lista_saldos'.");
 }
-while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+while ($conciliacion = sqlsrv_fetch_array($stmt_lista_saldos, SQLSRV_FETCH_ASSOC)) {
 
     $id_ps          = $conciliacion['ID_PAREO_SISTEMA'];
     $transaccion    = $conciliacion['TRANSACCION'];
@@ -39,8 +39,7 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $stmt_asig = sqlsrv_query($conn, $sql_asig, $params_asig);
     
     if ($stmt_asig === false) {
-        echo "Error in executing statement asig.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_asig'.");
     }
 
     $sql_estado = "{call [_SP_CONCILIACIONES_SALDO_CAMBIA_ESTADO](?, ?)}";
@@ -51,8 +50,7 @@ while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $stmt_estado = sqlsrv_query($conn, $sql_estado, $params_estado);
     
     if ($stmt_estado === false) {
-        echo "Error in executing statement estado.\n";
-        die(print_r(sqlsrv_errors(), true));
+        mostrarError("Error al ejecutar la consulta 'stmt_estado'.");
     }
     
 }

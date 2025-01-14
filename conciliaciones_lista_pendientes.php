@@ -4,7 +4,7 @@ include("permisos_adm.php");
 include("funciones.php");
 include("error_view.php");
 include("conexiones.php");
-validarConexion($conn);  
+validarConexion($conn);
 noCache();
 
 ini_set('display_errors', 1);
@@ -147,7 +147,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                         if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_cuenta'.");
                                         }
                                         while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                         ?>
@@ -193,13 +193,13 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_PENDIENTES_LISTA]";
-                                    $stmt = sqlsrv_query($conn, $sql);
-                                    if ($stmt === false) {
-                                        die(print_r(sqlsrv_errors(), true));
+                                    $sql_pendientes_lista = "EXEC [_SP_CONCILIACIONES_PENDIENTES_LISTA]";
+                                    $stmt_pendientes_lista = sqlsrv_query($conn, $sql_pendientes_lista);
+                                    if ($stmt_pendientes_lista === false) {
+                                        mostrarError("Error en la ejecución de la consulta de pendientes. -> stmt_pendientes_lista");
                                     }
-                                    while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                                        // Manejo de F_REC
+
+                                    while ($conciliacion = sqlsrv_fetch_array($stmt_pendientes_lista, SQLSRV_FETCH_ASSOC)) {                                        // Manejo de F_REC
                                         $fecha_rec = $conciliacion["F_REC"];
                                         if ($fecha_rec instanceof DateTime) {
                                             // Si ya es un objeto DateTime, solo formatear

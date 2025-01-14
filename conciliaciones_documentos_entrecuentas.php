@@ -43,8 +43,7 @@ $params_detalles = array(
 );
 $stmt_detalles = sqlsrv_query($conn, $sql_detalles, $params_detalles);
 if ($stmt_detalles === false) {
-    echo "Error in executing statement detalles.\n";
-    die(print_r(sqlsrv_errors(), true));
+    mostrarError("Error al ejecutar la consulta 'stmt_detalles'.");
 }
 $detalles = sqlsrv_fetch_array($stmt_detalles, SQLSRV_FETCH_ASSOC);
 
@@ -302,7 +301,7 @@ $estado             = '';
                                             $stmt_entrecuentas = sqlsrv_query($conn, $sql_entrecuentas);
 
                                             if ($stmt_entrecuentas === false) {
-                                                die(print_r(sqlsrv_errors(), true));
+                                                mostrarError("Error al ejecutar la consulta 'stmt_entrecuentas'.");
                                             }
                                             while ($entrecuentas = sqlsrv_fetch_array($stmt_entrecuentas, SQLSRV_FETCH_ASSOC)) {
 

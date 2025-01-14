@@ -171,7 +171,7 @@ if (isset($_GET["op"])) {
                             $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                             if ($stmt_cuenta === false) {
-                                die(print_r(sqlsrv_errors(), true));
+                                mostrarError("Error al ejecutar la consulta de cuentas beneficiarios. -> stmt_cuenta");
                             }
                             while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                             ?>
@@ -234,15 +234,15 @@ if (isset($_GET["op"])) {
                                     $fecha_fin      = isset($_POST['fecha_fin'])    ? $_POST['fecha_fin']       : null;
 
                                     // Preparar la llamada al SP
-                                    $sql = "{call [_SP_CONCILIACIONES_MOVIMIENTOS_LISTA](?, ?, ?)}";
-                                    $params = array(1, $fecha_inicio, $fecha_fin); // Estado fijo en 1 para este ejemplo
-                                    $stmt = sqlsrv_query($conn, $sql, $params);
+                                    $sql_mov = "{call [_SP_CONCILIACIONES_MOVIMIENTOS_LISTA](?, ?, ?)}";
+                                    $params_mov = array(1, $fecha_inicio, $fecha_fin); // Estado fijo en 1 para este ejemplo
+                                    $stmt_mov = sqlsrv_query($conn, $sql_mov, $params_mov);
 
-                                    if ($stmt === false) {
-                                        die(print_r(sqlsrv_errors(), true));
+                                    if ($stmt_mov === false) {
+                                        mostrarError("Error al ejecutar la consulta de movimientos. -> stmt_mov");
                                     }
 
-                                    while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                    while ($conciliacion = sqlsrv_fetch_array($stmt_mov, SQLSRV_FETCH_ASSOC)) {
                                     ?>
                                         <tr>
                                             <td class="font_mini"><?php echo $conciliacion["ID_PS"]; ?></td>

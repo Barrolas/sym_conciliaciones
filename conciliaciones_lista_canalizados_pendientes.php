@@ -28,7 +28,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
-    die(print_r(sqlsrv_errors(), true)); // Manejar el error aquí según tus necesidades
+    mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
 }
 
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -144,7 +144,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $stmt_canal = sqlsrv_query($conn, $sql_canal);
 
                                         if ($stmt_canal === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_canal'.");
                                         }
                                         while ($canal = sqlsrv_fetch_array($stmt_canal, SQLSRV_FETCH_ASSOC)) {
                                         ?>
@@ -163,7 +163,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $stmt_cuenta = sqlsrv_query($conn, $sql_cuenta);
 
                                         if ($stmt_cuenta === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_cuenta'.");
                                         }
                                         while ($cuenta = sqlsrv_fetch_array($stmt_cuenta, SQLSRV_FETCH_ASSOC)) {
                                         ?>
@@ -204,12 +204,12 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $sql = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_DIFERENCIAS_LISTA]";
-                                    $stmt = sqlsrv_query($conn, $sql);
-                                    if ($stmt === false) {
-                                        die(print_r(sqlsrv_errors(), true));
+                                    $sql_dif = "EXEC [_SP_CONCILIACIONES_CANALIZADOS_DIFERENCIAS_LISTA]";
+                                    $stmt_dif = sqlsrv_query($conn, $sql_dif);
+                                    if ($stmt_dif === false) {
+                                        mostrarError("Error al ejecutar la consulta 'stmt_dif'.");
                                     }
-                                    while ($conciliacion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                                    while ($conciliacion = sqlsrv_fetch_array($stmt_dif, SQLSRV_FETCH_ASSOC)) {
 
                                         $diferencia_doc     = $conciliacion['DIFERENCIA'];
                                         $id_documento       = $conciliacion['ID_DOCDEUDORES'];
@@ -220,7 +220,7 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         );
                                         $stmt_psistema = sqlsrv_query($conn, $sql_psistema, $params_psistema);
                                         if ($stmt_psistema === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_psistema'.");
                                         }
                                         // Procesar resultados de la consulta de detalles
                                         $psistema = sqlsrv_fetch_array($stmt_psistema, SQLSRV_FETCH_ASSOC);
@@ -230,20 +230,20 @@ $fecha_proceso = $row["FECHAPROCESO"];
                                         $params_monto = array($id_documento);
                                         $stmt_monto = sqlsrv_query($conn, $sql_monto, $params_monto);
                                         if ($stmt_monto === false) {
-                                            die(print_r(sqlsrv_errors(), true));
+                                            mostrarError("Error al ejecutar la consulta 'stmt_monto'.");
                                         }
                                         // Procesar resultados de la consulta de detalles
                                         $monto_consulta = sqlsrv_fetch_array($stmt_monto, SQLSRV_FETCH_ASSOC);
 
                                         // Consulta para obtener el monto de abonos (solo si el estado no es '1')
-                                        $sql4 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
-                                        $params4 = array($id_documento);
-                                        $stmt4 = sqlsrv_query($conn, $sql4, $params4);
-                                        if ($stmt4 === false) {
+                                        $sql_id_doc = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ID](?)}";
+                                        $params_id_doc = array($id_documento);
+                                        $stmt_id_doc = sqlsrv_query($conn, $sql_id_doc, $params_id_doc);
+                                        if ($stmt_id_doc === false) {
                                             die(print_r(sqlsrv_errors(), true));
                                         }
                                         // Procesar resultados de la consulta de detalles
-                                        $detalles = sqlsrv_fetch_array($stmt4, SQLSRV_FETCH_ASSOC);
+                                        $detalles = sqlsrv_fetch_array($stmt_id_doc, SQLSRV_FETCH_ASSOC);
 
                                         // Consulta para obtener el estado del documento
                                         $sql5 = "{call [_SP_CONCILIACIONES_CONSULTA_DOCDEUDORES_ESTADO](?)}";
