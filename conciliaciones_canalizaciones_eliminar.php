@@ -1,14 +1,27 @@
 <?php
 session_start();
-include("funciones.php");
-include("conexiones.php");
 include("permisos_adm.php");
+include("funciones.php");
+include("error_view.php");
+include("conexiones.php");
+validarConexion($conn);  
 noCache();
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
+
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
+
 
 // Obtener y sanitizar los datos de entrada
 $id_doc         = $_GET["id_doc"];
 $transaccion    = $_GET["transaccion"];
-$id_usuario     = $_SESSION['ID_USUARIO'];;
+$idusuario     = $_SESSION['ID_USUARIO'];;
 
 print_r($id_doc . '; ');
 print_r($transaccion . '; ');
@@ -53,7 +66,7 @@ while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
     $params_eliminar = array(
         array($id_documento,    SQLSRV_PARAM_IN),
         array($id_pareodoc,     SQLSRV_PARAM_IN),
-        array($id_usuario,      SQLSRV_PARAM_IN),
+        array($idusuario,      SQLSRV_PARAM_IN),
     );
 
     $stmt_eliminar = sqlsrv_prepare($conn, $sql_eliminar, $params_eliminar);

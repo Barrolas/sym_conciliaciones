@@ -1,74 +1,73 @@
 <?php
 session_start();
+include("permisos_adm.php");
 include("funciones.php");
+include("error_view.php");
 include("conexiones.php");
-//include("permisos_adm.php");
+validarConexion($conn);  
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
 
-$idusuario 		= $_SESSION['ID_USUARIO'];;
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
 
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
+
+// Verificar archivo cargado
 if ($_FILES['archivo']['name'] != '') {
+    $arr = explode(".", $_FILES['archivo']['name']);
+    $extension = $arr[1] ?? '';
+    $nombre_archivo = 'InformeRecaudaciones.xls';
 
-	print_r($_FILES);
-	//datos del arhivo
-	$arr			= explode(".", $_FILES['archivo']['name']);
-	$extension		= $arr[1];
-	$nombre_archivo = 'InformeRecaudaciones.xls';
-	$tipo_archivo 	= $_FILES['archivo']['type'];
-	$tamano_archivo = $_FILES['archivo']['size'];
-	//echo $tipo_archivo ."<BR>";
-	//compruebo si las características del archivo son las que deseo
-
-	echo $tipo_archivo;
-
-	if (!move_uploaded_file($_FILES['archivo']['tmp_name'],  'archivos\\' . $nombre_archivo)) {
-		echo "Error al subir el archivo: " . $_FILES['archivo']['error'];
-	};
+    if (!move_uploaded_file($_FILES['archivo']['tmp_name'], 'archivos\\' . $nombre_archivo)) {
+        mostrarError("No se pudo cargar el archivo. Verifique los permisos de escritura en el servidor.");
+    }
+} else {
+    mostrarError("No se seleccionó ningún archivo para cargar.");
 }
 
-$sql1 = "{call [_SP_CONCILIACIONES_CARGA_CARTOLA_SISREC]}";
-$stmt1 = sqlsrv_query($conn, $sql1);
-
-if ($stmt1 === false) {
-	echo "Error en la ejecución de la declaración 1.\n";
-	die(print_r(sqlsrv_errors(), true));
+// Ejecutar SP para cargar datos del archivo
+$stmt_carga = "{call [_SP_CONCILIACIONES_CARGA_CARTOLA_SISREC]}";
+$carga_result = sqlsrv_query($conn, $stmt_carga);
+if ($carga_result === false) {
+    mostrarError("Error en stmt_carga | No se pudo cargar los datos del archivo en la base de datos.");
 }
 
+// Consultar asignaciones
 $estado1 = '1';
 $estado2 = '1';
-$sql_asign    = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
-$params_asign = array(
-    array($estado1,     SQLSRV_PARAM_IN),
-    array($estado2,     SQLSRV_PARAM_IN),
-);
-$stmt_asign = sqlsrv_query($conn, $sql_asign, $params_asign);
-if ($stmt_asign === false) {
-	die(print_r(sqlsrv_errors(), true));
+$stmt_asign = "EXEC [_SP_CONCILIACIONES_ASIGNADOS_LISTA] ?, ?";
+$params_asign = [
+    [$estado1, SQLSRV_PARAM_IN],
+    [$estado2, SQLSRV_PARAM_IN],
+];
+$asign_result = sqlsrv_query($conn, $stmt_asign, $params_asign);
+if ($asign_result === false) {
+    mostrarError("Error en stmt_asign | No se pudieron consultar las asignaciones.");
 }
 
-while ($asignados = sqlsrv_fetch_array($stmt_asign, SQLSRV_FETCH_ASSOC)) {
+// Procesar asignaciones
+while ($asignados = sqlsrv_fetch_array($asign_result, SQLSRV_FETCH_ASSOC)) {
+    $id_asignacion 	= $asignados['ID_ASIGNACION'];
+    $tipo_canal 	= $asignados['ID_TIPO_CANALIZACION'];
 
-	$id_asignacion 	= $asignados['ID_ASIGNACION'];
-	$tipo_canal		= $asignados['ID_TIPO_CANALIZACION'];
-
-	if ($tipo_canal == 2) {
-		$sql_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_REMESAS_ACTUALIZA](?, ?)}";
-		$params_remesa = array(
-			array($id_asignacion,   SQLSRV_PARAM_IN),
-			array($idusuario,     	SQLSRV_PARAM_IN),
-		);
-		$stmt_remesa = sqlsrv_query($conn, $sql_remesa, $params_remesa);
-		if ($stmt_remesa === false) {
-			die(print_r(sqlsrv_errors(), true));
-		}
-		//	$rowremesa = sqlsrv_fetch_array($stmt_remesa, SQLSRV_FETCH_ASSOC);
-	}
+    if ($tipo_canal == 2) {
+        $stmt_remesa = "{call [_SP_CONCILIACIONES_ASIGNACIONES_REMESAS_ACTUALIZA](?, ?)}";
+        $params_remesa = [
+            [$id_asignacion, 	SQLSRV_PARAM_IN],
+            [$idusuario, 		SQLSRV_PARAM_IN],
+        ];
+        $remesa_result = sqlsrv_query($conn, $stmt_remesa, $params_remesa);
+        if ($remesa_result === false) {
+            mostrarError("Error en stmt_remesa | No se pudo actualizar la asignación de remesas.");
+        }
+    }
 }
 
-//INSERTAR OPERACION
-//ACTUALIZAR CARGA
+// Redirigir al finalizar
 header("Location: cargas_sisrec.php?op=4");
+?>

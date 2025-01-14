@@ -1,19 +1,27 @@
 <?php
 session_start();
+include("permisos_adm.php");
 include("funciones.php");
+include("error_view.php");
 include("conexiones.php");
-// include("permisos_adm.php");
+validarConexion($conn);  
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
+
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
+
 
 $op             = isset($_GET["op"]) ? $_GET["op"] : 0;
 $transaccion    = $_GET['transaccion']; 
 $cuenta_ord     = $_GET['cuenta_ord']; 
 $cuenta_ben     = $_GET['cuenta_ben'];
-$idusuario      = $_SESSION['ID_USUARIO']; 
 $rut_ord        = '77206260-5';
 $id_ps_nuevo    = 0;
 /*

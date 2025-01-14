@@ -1,15 +1,24 @@
 <?php
 session_start();
+include("permisos_adm.php");
 include("funciones.php");
+include("error_view.php");
 include("conexiones.php");
+validarConexion($conn);  
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(0);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
 
-$op = $_GET["op"];
+
+// Validar el parámetro "op"
+$op = $_GET["op"] ?? null;
+if ($op !== null && !in_array($op, ['1', '2', '4'])) {
+	mostrarError("El parámetro proporcionado no es válido. Verifique la URL e intente nuevamente.");
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -196,7 +205,7 @@ $op = $_GET["op"];
 			Swal.fire({
 				width: 600,
 				icon: 'success',
-				title: 'CARGA CREADA',
+				title: 'Cartola bancaria cargada con éxito',
 				showConfirmButton: false,
 				timer: 2000,
 			});

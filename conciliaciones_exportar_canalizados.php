@@ -1,14 +1,23 @@
 <?php
 session_start();
+include("permisos_adm.php");
 include("funciones.php");
+include("error_view.php");
 include("conexiones.php");
-//include("permisos_adm.php");
+validarConexion($conn);  
 noCache();
 
-$hoy_arch = date("YmdHis");
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
+
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
+
+$hoy_arch = date("YmdHis");
 
 require_once('phpexcel2/vendor/autoload.php');
 

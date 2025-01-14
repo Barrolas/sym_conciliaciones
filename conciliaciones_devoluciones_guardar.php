@@ -1,13 +1,22 @@
 <?php
 session_start();
+include("permisos_adm.php");
 include("funciones.php");
+include("error_view.php");
 include("conexiones.php");
-// include("permisos_adm.php");
+validarConexion($conn);  
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
+
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
+
 
 $transaccion        = $_GET['transaccion']; 
 $rut_ordenante      = $_GET['rut_ordenante']; 
@@ -17,7 +26,6 @@ $monto_diferencia   = 0;
 $rut_cliente        = '';
 $rut_deudor         = '';
 $estado_pareo       = 1;
-$idusuario          = $_SESSION['ID_USUARIO'];;
 $es_entrecuentas    = 0;
 $tipo_pareosistema  = 4;
 

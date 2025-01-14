@@ -1,12 +1,21 @@
 <?php
 session_start();
+include("permisos_adm.php");
 include("funciones.php");
+include("error_view.php");
 include("conexiones.php");
+validarConexion($conn);  
 noCache();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(0);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
+
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
 
 $op = $_GET["op"];
 ?>
@@ -196,7 +205,7 @@ $op = $_GET["op"];
 			Swal.fire({
 				width: 600,
 				icon: 'success',
-				title: 'CARGA CREADA',
+				title: 'Carga de Cheques realizada con éxito',
 				showConfirmButton: false,
 				timer: 2000,
 			});

@@ -1,16 +1,26 @@
 <?php
 session_start();
-include("funciones.php");
-include("conexiones.php");
 include("permisos_adm.php");
+include("funciones.php");
+include("error_view.php");
+include("conexiones.php");
+validarConexion($conn);  
 noCache();
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
+$idusuario = $_SESSION['ID_USUARIO'] ?? null;
+
+if (!$idusuario) {
+    mostrarError("No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.");
+}
 // Obtener y sanitizar los datos de entrada
 $id_asignacion  = $_GET["idasig"];
 $id_doc         = $_GET["iddoc"];
 $transaccion    = $_GET["transaccion"];
 $motivo         = isset($_GET["motivo"]) ? $_GET["motivo"] : '';
-$id_usuario     = $_SESSION['ID_USUARIO'];
 
 // Sanitizar los datos para prevenir inyecciones SQL
 $id_asignacion  = intval($id_asignacion);
@@ -90,7 +100,7 @@ while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
     $params_operacion = array(
         array($id_pareodoc,     SQLSRV_PARAM_IN),
         array('1',              SQLSRV_PARAM_IN),
-        array($id_usuario,      SQLSRV_PARAM_IN),
+        array($idusuario,      SQLSRV_PARAM_IN),
     );
     $stmt_operacion = sqlsrv_query($conn, $sql_operacion, $params_operacion);
     if ($stmt_operacion === false) {
@@ -101,7 +111,7 @@ while ($seleccion = sqlsrv_fetch_array($stmt_seleccion, SQLSRV_FETCH_ASSOC)) {
 print_r($id_documento);
 print_r($id_pareodoc);
 print_r($id_asignacion);
-print_r($id_usuario);
+print_r($idusuario);
 exit;
 */
 
@@ -111,7 +121,7 @@ exit;
         array($id_documento,    SQLSRV_PARAM_IN),
         array($id_pareodoc,     SQLSRV_PARAM_IN),
         array($id_asignacion,   SQLSRV_PARAM_IN),
-        array($id_usuario,      SQLSRV_PARAM_IN)
+        array($idusuario,      SQLSRV_PARAM_IN)
     );
     $stmt_opeliminar = sqlsrv_prepare($conn, $sql_opeliminar, $params_opeliminar);
     if ($stmt_opeliminar === false) {
@@ -129,7 +139,7 @@ $sql_desasig = "{call [_SP_CONCILIACIONES_DESASIGNACION_INSERTA](?, ?, ?)}";
 $params_desasig = array(
     array($id_asignacion,   SQLSRV_PARAM_IN),
     array($motivo,          SQLSRV_PARAM_IN),
-    array($id_usuario,      SQLSRV_PARAM_IN),
+    array($idusuario,      SQLSRV_PARAM_IN),
 );
 $stmt_desasig = sqlsrv_query($conn, $sql_desasig, $params_desasig);
 if ($stmt_desasig === false) {
@@ -141,7 +151,7 @@ $sql_desasig = "{call [_SP_CONCILIACIONES_ASIGNACION_CAMBIA_ESTADO](?, ?, ?)}";
 $params_desasig = array(
     array($id_asignacion,   SQLSRV_PARAM_IN),
     array($estado_asig,     SQLSRV_PARAM_IN),
-    array($id_usuario,      SQLSRV_PARAM_IN),
+    array($idusuario,      SQLSRV_PARAM_IN),
 );
 $stmt_desasig = sqlsrv_query($conn, $sql_desasig, $params_desasig);
 if ($stmt_desasig === false) {

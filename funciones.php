@@ -148,3 +148,10 @@ function validar_clave($clave)
    $error_clave = "";
    return true;
 }
+
+function validarConexion($conn)
+{
+   if (!$conn) {
+      mostrarError("No se pudo establecer la conexión con la base de datos. Por favor, intente nuevamente o contacte a soporte técnico.");
+   }
+}
