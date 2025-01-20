@@ -29,7 +29,7 @@ $sql = "select CONVERT(varchar,MAX(FECHAProceso),20) as FECHAPROCESO
 $stmt = sqlsrv_query($conn, $sql);
 if ($stmt === false) {
     mostrarError("Error al ejecutar la consulta 'ultima_cartola'.");
-
+}
 $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
 $fecha_proceso = $row["FECHAPROCESO"];
